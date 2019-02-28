@@ -1,5 +1,6 @@
 package zyxhj.jiti.service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -16,6 +17,7 @@ import zyxhj.core.domain.User;
 import zyxhj.core.repository.UserRepository;
 import zyxhj.jiti.domain.ORGUser;
 import zyxhj.jiti.domain.ORGUserRole;
+import zyxhj.jiti.domain.ORGUserTagGroup;
 import zyxhj.jiti.repository.ORGUserRepository;
 import zyxhj.utils.CodecUtils;
 import zyxhj.utils.ExcelUtils;
@@ -31,17 +33,22 @@ public class ORGUserService {
 	private ORGUserRepository orgUserRepository;
 	private UserRepository userRepository;
 
+	private ORGUserRoleService orgUserRoleService;
+	private ORGUserGroupService orgUserGroupService;
+
 	public ORGUserService() {
 		try {
 			orgUserRepository = Singleton.ins(ORGUserRepository.class);
 			userRepository = Singleton.ins(UserRepository.class);
 
+			orgUserRoleService = Singleton.ins(ORGUserRoleService.class);
+			orgUserGroupService = Singleton.ins(ORGUserGroupService.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
 	}
 
-	private String array2JsonString(JSONArray arr) {
+	public static String array2JsonString(JSONArray arr) {
 		if (arr == null || arr.size() <= 0) {
 			return "[]";
 		} else {
@@ -57,9 +64,92 @@ public class ORGUserService {
 		}
 	}
 
+	private JSONArray checkRoles(JSONArray roles) throws Exception {
+
+		// 获取当前组织的角色列表
+		ArrayList<ORGUserRole> oList = ORGUserRoleService.SYS_ORG_USER_ROLE_LIST;
+
+		JSONArray ret = new JSONArray();
+		boolean exist = false;
+		for (int i = 0; i < roles.size(); i++) {
+
+			Long roleId = roles.getLong(i);
+
+			// 先判断是否在系统角色中
+
+			for (ORGUserRole o : oList) {
+				if (o.roleId.equals(roleId)) {
+					// 匹配
+					ret.add(roleId);
+					exist = true;
+					break;
+				}
+			}
+
+			// 再判断是否在自定义角色中
+			// TODO 暂时不支持自定义角色
+		}
+
+		if (!exist) {
+			// 什么角色都没有，则分配最低级别的用户
+			ret.add(ORGUserRole.role_user.roleId);
+		}
+
+		return ret;
+	}
+
+	public static JSONArray checkGroups(DruidPooledConnection conn, Long orgId, JSONArray groups) throws Exception {
+
+		// 获取当前组织的分组列表
+		ArrayList<ORGUserTagGroup> oList = ORGUserGroupService.SYS_ORG_USER_TAG_GROUP_LIST;
+
+		// 自定义分组列表
+		List<ORGUserTagGroup> cList = Singleton.ins(ORGUserGroupService.class).getTagGroups(conn, orgId);
+
+		JSONArray ret = new JSONArray();
+		boolean exist = false;
+
+		// System.out.println("xxx" + JSON.toJSONString(groups));
+		for (int i = 0; i < groups.size(); i++) {
+
+			String keyword = StringUtils.trim(groups.getString(i));
+			// System.out.println("------------" + keyword);
+			// 先判断是否在系统分组中
+
+			for (ORGUserTagGroup o : oList) {
+				if (o.keyword.equals(keyword)) {
+					// 匹配
+					ret.add(o.groupId);
+					exist = true;
+					break;
+				}
+			}
+
+			// 如果没匹配到系统分组，则 再判断是否在自定义分组中
+			for (ORGUserTagGroup o : cList) {
+				// System.out.println(">>>>>" + keyword + " ooo " + o.keyword);
+				if (o.keyword.equals(keyword)) {
+					// 匹配
+					ret.add(o.groupId);
+					// System.out.println(">>>>>" + keyword + " + " + o.groupId);
+					exist = true;
+					break;
+				}
+			}
+		}
+
+		if (!exist) {
+			// 什么分组都没有，则分配最低级别的用户
+			ret.add(ORGUserTagGroup.group_undefine.groupId);
+		}
+
+		return ret;
+
+	}
+
 	private void insertORGUser(DruidPooledConnection conn, Long orgId, Long userId, String address, String shareCerNo,
 			String shareCerImg, Boolean shareCerHolder, Integer shareAmount, Integer weight, JSONArray roles,
-			JSONObject tags) throws Exception {
+			JSONArray groups, JSONObject tags) throws Exception {
 		ORGUser or = new ORGUser();
 		or.orgId = orgId;
 		or.userId = userId;
@@ -72,7 +162,8 @@ public class ORGUserService {
 		or.shareAmount = shareAmount;
 		or.weight = weight;
 
-		or.roles = array2JsonString(roles);
+		or.roles = array2JsonString(checkRoles(roles));
+		or.groups = array2JsonString(checkGroups(conn, orgId, groups));
 		or.tags = obj2JsonString(tags);
 
 		orgUserRepository.insert(conn, or);
@@ -83,7 +174,7 @@ public class ORGUserService {
 	 */
 	public void createORGUser(DruidPooledConnection conn, Long orgId, String mobile, String realName, String idNumber,
 			String address, String shareCerNo, String shareCerImg, Boolean shareCerHolder, Integer shareAmount,
-			Integer weight, JSONArray roles, JSONObject tags) throws Exception {
+			Integer weight, JSONArray roles, JSONArray groups, JSONObject tags) throws Exception {
 
 		User extUser = userRepository.getByKey(conn, "id_number", idNumber);
 		if (null == extUser) {
@@ -104,7 +195,7 @@ public class ORGUserService {
 
 			// 写入股东信息表
 			insertORGUser(conn, orgId, newUser.id, address, shareCerNo, shareCerImg, shareCerHolder, shareAmount,
-					weight, roles, tags);
+					weight, roles, groups, tags);
 
 		} else {
 			// 判断ORGUser是否存在
@@ -116,7 +207,7 @@ public class ORGUserService {
 
 				// 写入股东信息表
 				insertORGUser(conn, orgId, extUser.id, address, shareCerNo, shareCerImg, shareCerHolder, shareAmount,
-						weight, roles, tags);
+						weight, roles, groups, tags);
 			} else {
 				throw new ServerException(BaseRC.ECM_ORG_USER_EXIST);
 			}
@@ -150,7 +241,7 @@ public class ORGUserService {
 	 */
 	public int editORGUser(DruidPooledConnection conn, Long orgId, Long userId, String address, String shareCerNo,
 			String shareCerImg, Boolean shareCerHolder, Integer shareAmount, Integer weight, JSONArray roles,
-			JSONObject tags) throws Exception {
+			JSONArray groups, JSONObject tags) throws Exception {
 		ORGUser renew = new ORGUser();
 		renew.address = address;
 		renew.shareCerNo = shareCerNo;
@@ -299,9 +390,9 @@ public class ORGUserService {
 				}
 
 				// 开始处理分组和标签
-				JSONObject joTags = new JSONObject();
+
 				JSONArray arrGroups = new JSONArray();
-				JSONArray arrTags = new JSONArray();
+
 				{
 					// 分组
 					temp = CodecUtils.convertCommaStringList2JSONArray(groups);
@@ -315,11 +406,10 @@ public class ORGUserService {
 						}
 					}
 
-					if (arrGroups.size() > 0) {
-						joTags.put("groups", arrGroups);
-					}
 				}
 
+				JSONObject joTags = new JSONObject();
+				JSONArray arrTags = new JSONArray();
 				{
 					// 标签
 					temp = CodecUtils.convertCommaStringList2JSONArray(tags);
@@ -341,7 +431,7 @@ public class ORGUserService {
 				// System.out.println("----------" + JSON.toJSONString(joTags));
 
 				createORGUser(conn, orgId, mobile, realName, idNumber, address, shareCerNo, "", shareCerHolder,
-						shareAmount, weight, roles, joTags);
+						shareAmount, weight, roles, arrGroups, joTags);
 			} catch (Exception e) {
 				log.error(e.getMessage());
 			}
@@ -379,12 +469,46 @@ public class ORGUserService {
 	}
 
 	/**
+	 * 查询用户
+	 */
+	public JSONArray getORGUsers(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)
+			throws Exception {
+		List<ORGUser> ors = orgUserRepository.getListByKey(conn, "org_id", orgId, count, offset);
+
+		return getORGUsersInfo(conn, ors);
+	}
+
+	/**
 	 * 根据权限查询用户
 	 */
 	public JSONArray getORGUsersByRoles(DruidPooledConnection conn, Long orgId, JSONArray roles, Integer count,
 			Integer offset) throws Exception {
 		List<ORGUser> ors = orgUserRepository.getORGUsersByRoles(conn, orgId, roles, count, offset);
 
+		return getORGUsersInfo(conn, ors);
+	}
+
+	/**
+	 * 根据分组（groups tags等）查询用户
+	 */
+	public JSONArray getORGUsersByGroups(DruidPooledConnection conn, Long orgId, JSONArray groups, Integer count,
+			Integer offset) throws Exception {
+		List<ORGUser> ors = orgUserRepository.getORGUsersByGroups(conn, orgId, groups, count, offset);
+
+		return getORGUsersInfo(conn, ors);
+	}
+
+	/**
+	 * 根据标签（groups tags等）查询用户
+	 */
+	public JSONArray getORGUsersByTags(DruidPooledConnection conn, Long orgId, JSONObject tags, Integer count,
+			Integer offset) throws Exception {
+		List<ORGUser> ors = orgUserRepository.getORGUsersByTags(conn, orgId, tags, count, offset);
+
+		return getORGUsersInfo(conn, ors);
+	}
+
+	private JSONArray getORGUsersInfo(DruidPooledConnection conn, List<ORGUser> ors) throws Exception {
 		if (ors == null || ors.size() == 0) {
 			return new JSONArray();
 		} else {

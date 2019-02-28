@@ -3,15 +3,18 @@ package zyxhj.jiti.service;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 import zyxhj.jiti.domain.Asset;
 import zyxhj.jiti.repository.AssetRepository;
+import zyxhj.utils.CodecUtils;
 import zyxhj.utils.ExcelUtils;
 import zyxhj.utils.IDUtils;
 import zyxhj.utils.Singleton;
@@ -37,7 +40,8 @@ public class AssetService {
 			String estateType, Double area, Double floorArea, String boundary, String locationStart, //
 			String locationEnd, String coordinateStart, String coordinateEnd, Double accumulateStock,
 			Integer treeNumber, //
-			String imgs, String remark) throws Exception {
+			String imgs, String remark, //
+			JSONArray groups) throws Exception {
 		Asset a = new Asset();
 		a.id = IDUtils.getSimpleId();
 		a.orgId = orgId;
@@ -75,20 +79,22 @@ public class AssetService {
 
 		a.imgs = imgs;
 		a.remark = remark;
+		a.groups = ORGUserService.array2JsonString(ORGUserService.checkGroups(conn, orgId, groups));
 
 		assetRepository.insert(conn, a);
 
 		return a;
 	}
 
-	public int editAsset(DruidPooledConnection conn, Long assetId, //
+	public int editAsset(DruidPooledConnection conn, Long orgId, Long assetId, //
 			String originId, String name, String sn, String resType, String assetType, //
 			String buildTime, Double originPrice, String location, String ownership, String keeper, //
 			String businessMode, String businessTime, String holder, Double yearlyIncome, String specType, //
 			String estateType, Double area, Double floorArea, String boundary, String locationStart, //
 			String locationEnd, String coordinateStart, String coordinateEnd, Double accumulateStock,
 			Integer treeNumber, //
-			String imgs, String remark) throws Exception {
+			String imgs, String remark, //
+			JSONArray groups) throws Exception {
 		Asset a = new Asset();
 
 		a.originId = originId;
@@ -124,6 +130,8 @@ public class AssetService {
 		a.imgs = imgs;
 		a.remark = remark;
 
+		a.groups = ORGUserService.array2JsonString(ORGUserService.checkGroups(conn, orgId, groups));
+
 		return assetRepository.updateByKey(conn, "id", assetId, a, true);
 	}
 
@@ -131,20 +139,15 @@ public class AssetService {
 		return assetRepository.deleteByKey(conn, "id", assetId);
 	}
 
-	public List<Asset> getAssets(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)
-			throws Exception {
-		return assetRepository.getListByKey(conn, "org_id", orgId, count, offset);
-	}
-
-	public List<Asset> searchAssets(DruidPooledConnection conn, Long orgId, String assetType, Integer count,
-			Integer offset) throws Exception {
-		return assetRepository.searchAssets(conn, orgId, assetType, count, offset);
+	public List<Asset> queryAssets(DruidPooledConnection conn, Long orgId, String assetType, JSONArray groups,
+			JSONObject tags, Integer count, Integer offset) throws Exception {
+		return assetRepository.queryAssets(conn, orgId, assetType, groups, tags, count, offset);
 	}
 
 	public void importAssets(DruidPooledConnection conn, Long orgId, String url) throws Exception {
 
 		// 2行表头，38列，文件格式写死的
-		List<List<Object>> table = ExcelUtils.readExcelOnline(url, 2, 38, 0);
+		List<List<Object>> table = ExcelUtils.readExcelOnline(url, 2, 39, 0);
 
 		for (List<Object> row : table) {
 			String originId = ExcelUtils.getString(row.get(0));
@@ -210,6 +213,19 @@ public class AssetService {
 
 			String imgs = JSON.toJSONString(img);
 			String remark = ExcelUtils.getString(row.get(37));
+			String groups = ExcelUtils.getString(row.get(38));
+
+			JSONArray arrGroups = new JSONArray();
+			JSONArray temp = CodecUtils.convertCommaStringList2JSONArray(groups);
+
+			for (int i = 0; i < temp.size(); i++) {
+				String ts = StringUtils.trim(temp.getString(i));
+				if (ts.equals("null") || ts.equals("无")) {
+					// 无和null，不加
+				} else {
+					arrGroups.add(ts);
+				}
+			}
 
 			try {
 				createAsset(conn, orgId, originId, name, sn, resType, //
@@ -217,7 +233,7 @@ public class AssetService {
 						keeper, businessMode, businessTime, holder, yearlyIncome, //
 						specType, estateType, area, floorArea, boundary, //
 						locationStart, locationEnd, coordinateStart, coordinateEnd, accumulateStock, //
-						treeNumber, imgs, remark);
+						treeNumber, imgs, remark, arrGroups);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -225,4 +241,19 @@ public class AssetService {
 		}
 	}
 
+	/**
+	 * 根据分组查询资产
+	 */
+	public List<Asset> getAssetsByGroups(DruidPooledConnection conn, Long orgId, JSONArray groups, Integer count,
+			Integer offset) throws Exception {
+		return assetRepository.getAssetsByGroups(conn, orgId, groups, count, offset);
+	}
+
+	/**
+	 * 根据标签查询资产
+	 */
+	public List<Asset> getAssetsByTags(DruidPooledConnection conn, Long orgId, JSONObject tags, Integer count,
+			Integer offset) throws Exception {
+		return assetRepository.getAssetsByTags(conn, orgId, tags, count, offset);
+	}
 }

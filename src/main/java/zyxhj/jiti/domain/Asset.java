@@ -205,5 +205,17 @@ public class Asset {
 	 */
 	@RDSAnnField(column = RDSAnnField.SHORT_TEXT)
 	public String remark;
+	
+	/**
+	 * 分组，怕长度不够2048
+	 */
+	@RDSAnnField(column = "VARCHAR(2048)")
+	public String groups;
+	
+	/**
+	 * 标签
+	 */
+	@RDSAnnField(column = RDSAnnField.JSON)
+	public String tags;
 
 }

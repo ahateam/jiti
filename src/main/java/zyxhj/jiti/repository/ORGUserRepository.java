@@ -59,7 +59,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 
 	public int getParticipateCount(DruidPooledConnection conn, Long orgId, Long voteId, JSONObject crowd)
 			throws ServerException {
-		// 通过ROGUser的role，group和tag来判定人数
+		// 通过ROGUser的roles，groups和tags来判定人数
 		// 人群是重叠的，所以查询比较难写
 
 		// WHERE org_id=? AND (JSON_CONTAINS(roles, '101', '$') OR JSON_CONTAINS(roles,
@@ -69,6 +69,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		// '108', '$') OR JSON_CONTAINS(roles, '109', '$') )
 
 		JSONArray roles = crowd.getJSONArray("roles");
+		JSONArray groups = crowd.getJSONArray("groups");
 		JSONObject tags = crowd.getJSONObject("tags");
 
 		StringBuffer sb = new StringBuffer();
@@ -78,6 +79,14 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 			for (int i = 0; i < roles.size(); i++) {
 				String role = roles.getString(i);
 				sb.append("JSON_CONTAINS(roles, '").append(role).append("', '$') OR ");
+				flg = true;
+			}
+		}
+
+		if (groups != null && groups.size() > 0) {
+			for (int i = 0; i < groups.size(); i++) {
+				String group = groups.getString(i);
+				sb.append("JSON_CONTAINS(groups, '").append(group).append("', '$') OR ");
 				flg = true;
 			}
 		}
@@ -133,37 +142,19 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 
 	public List<ORGUser> getORGUsersByRoles(DruidPooledConnection conn, Long orgId, JSONArray roles, Integer count,
 			Integer offset) throws ServerException {
-		// WHERE org_id=? AND (JSON_CONTAINS(roles, '101', '$') OR JSON_CONTAINS(roles,
-		// '102', '$') OR JSON_CONTAINS(roles, '103', '$') OR JSON_CONTAINS(roles,
-		// '104', '$') OR JSON_CONTAINS(roles, '105', '$') OR JSON_CONTAINS(roles,
-		// '106', '$') OR JSON_CONTAINS(roles, '107', '$') OR JSON_CONTAINS(roles,
-		// '108', '$') OR JSON_CONTAINS(roles, '109', '$') )
+		return this.getListByTags(conn, "roles", "", roles, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
+	}
 
-		StringBuffer sb = new StringBuffer();
-		boolean flg = false;
-		sb.append("WHERE org_id=? AND (");
-		if (roles != null && roles.size() > 0) {
-			for (int i = 0; i < roles.size(); i++) {
-				String role = roles.getString(i);
-				sb.append("JSON_CONTAINS(roles, '").append(role).append("', '$') OR ");
-				flg = true;
-			}
-		}
+	public List<ORGUser> getORGUsersByGroups(DruidPooledConnection conn, Long orgId, JSONArray groups, Integer count,
+			Integer offset) throws ServerException {
 
-		if (!flg) {
-			// 一个查询条件都没有进入，则直接返回0
-			return new ArrayList<ORGUser>();
-		} else {
-			sb.delete(sb.length() - 3, sb.length() - 1);// 移除最后的 OR
+		return this.getListByTags(conn, "groups", "", groups, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
+	}
 
-			sb.append(" )");
+	public List<ORGUser> getORGUsersByTags(DruidPooledConnection conn, Long orgId, JSONObject tags, Integer count,
+			Integer offset) throws ServerException {
 
-			String where = sb.toString();
-
-			System.out.println(where);
-			return this.getList(conn, sb.toString(), new Object[] { orgId }, count, offset);
-		}
-
+		return this.getListByTags(conn, "groups", tags, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
 	}
 
 	public List<User> getORGUsersLikeIDNumber(DruidPooledConnection conn, Long orgId, String idNumber, Integer count,

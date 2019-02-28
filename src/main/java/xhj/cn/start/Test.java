@@ -2,7 +2,7 @@ package xhj.cn.start;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
 
-import zyxhj.jiti.domain.ORGUserTagGroup;
+import zyxhj.jiti.domain.Asset;
 import zyxhj.utils.data.DataSource;
 import zyxhj.utils.data.DataSourceUtils;
 import zyxhj.utils.data.rds.RDSUtils;
@@ -35,7 +35,7 @@ public class Test {
 
 			// RDSUtils.dropTableByEntity(dsRds, Tunnel.class);
 
-			RDSUtils.createTableByEntity(dsRds, ORGUserTagGroup.class);
+			RDSUtils.createTableByEntity(dsRds, Asset.class);
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

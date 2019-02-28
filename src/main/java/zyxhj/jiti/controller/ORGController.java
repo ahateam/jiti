@@ -8,9 +8,9 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 import zyxhj.jiti.service.ORGService;
+import zyxhj.jiti.service.ORGUserGroupService;
 import zyxhj.jiti.service.ORGUserRoleService;
 import zyxhj.jiti.service.ORGUserService;
-import zyxhj.jiti.service.ORGUserTagService;
 import zyxhj.utils.ServiceUtils;
 import zyxhj.utils.Singleton;
 import zyxhj.utils.api.APIResponse;
@@ -25,8 +25,7 @@ public class ORGController extends Controller {
 	private DataSource dsRds;
 	private ORGService orgService;
 	private ORGUserService orgUserService;
-	private ORGUserRoleService orgUserRoleService;
-	private ORGUserTagService orgUserTagService;
+	private ORGUserGroupService orgUserGroupService;
 
 	public ORGController(String node) {
 		super(node);
@@ -35,9 +34,8 @@ public class ORGController extends Controller {
 
 			orgService = Singleton.ins(ORGService.class);
 			orgUserService = Singleton.ins(ORGUserService.class);
-			orgUserRoleService = Singleton.ins(ORGUserRoleService.class);
-			orgUserTagService = Singleton.ins(ORGUserTagService.class);
 
+			orgUserGroupService = Singleton.ins(ORGUserGroupService.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -52,10 +50,13 @@ public class ORGController extends Controller {
 	)
 	public APIResponse registeUser(//
 			@P(t = "手机号") String mobile, //
+			@P(t = "姓名（实名）") String realName, //
+			@P(t = "身份证号") String idNumber, //
+
 			@P(t = "密码") String pwd //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.registeUser(conn, mobile, pwd));
+			return APIResponse.getNewSuccessResp(orgService.registeUser(conn, mobile, pwd, realName, idNumber));
 		}
 	}
 
@@ -202,11 +203,12 @@ public class ORGController extends Controller {
 			@P(t = "股份数") Integer shareAmount, //
 			@P(t = "选举权重") Integer weight, //
 			@P(t = "角色（股东，董事长，经理等）") JSONArray roles, //
+			@P(t = "分组") JSONArray groups, //
 			@P(t = "标签，包含groups,tags,以及其它自定义分组标签列表") JSONObject tags//
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			orgUserService.createORGUser(conn, orgId, mobile, realName, idNumber, address, shareCerNo, shareCerImg,
-					shareCerHolder, shareAmount, weight, roles, tags);
+					shareCerHolder, shareAmount, weight, roles, groups, tags);
 			return APIResponse.getNewSuccessResp();
 		}
 	}
@@ -266,11 +268,12 @@ public class ORGController extends Controller {
 			@P(t = "股份数") Integer shareAmount, //
 			@P(t = "选举权重") Integer weight, //
 			@P(t = "角色（股东，董事长，经理等）") JSONArray roles, //
+			@P(t = "分组") JSONArray groups, //
 			@P(t = "标签，包含groups,tags,以及其它自定义分组标签列表") JSONObject tags//
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			int ret = orgUserService.editORGUser(conn, orgId, userId, address, shareCerNo, shareCerImg, shareCerHolder,
-					shareAmount, weight, roles, tags);
+					shareAmount, weight, roles, groups, tags);
 			return APIResponse.getNewSuccessResp(ret);
 		}
 	}
@@ -365,8 +368,26 @@ public class ORGController extends Controller {
 	 * 
 	 */
 	@POSTAPI(//
-			path = "getORGUserByRole", //
+			path = "getORGUsers", //
 			des = "获取组织成员列表", //
+			ret = "成员列表"//
+	)
+	public APIResponse getORGUsers(//
+			@P(t = "组织编号") Long orgId, //
+			Integer count, //
+			Integer offset//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgUserService.getORGUsers(conn, orgId, count, offset));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getORGUserByRole", //
+			des = "根据角色信息获取组织成员列表", //
 			ret = "成员列表"//
 	)
 	public APIResponse getORGUserByRole(//
@@ -377,6 +398,45 @@ public class ORGController extends Controller {
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			return APIResponse.getNewSuccessResp(orgUserService.getORGUsersByRoles(conn, orgId, roles, count, offset));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getORGUsersByGroups", //
+			des = "根据分组信息获取组织成员列表", //
+			ret = "成员列表"//
+	)
+	public APIResponse getORGUsersByGroups(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "角色分组,JSONArray格式", r = false) JSONArray groups, //
+			Integer count, //
+			Integer offset//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse
+					.getNewSuccessResp(orgUserService.getORGUsersByGroups(conn, orgId, groups, count, offset));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getORGUsersByTags", //
+			des = "根据标签信息获取组织成员列表", //
+			ret = "成员列表"//
+	)
+	public APIResponse getORGUsersByTags(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "角色标签对象（默认包含groups,tags）,JSONObject格式", r = false) JSONObject tags, //
+			Integer count, //
+			Integer offset//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgUserService.getORGUsersByTags(conn, orgId, tags, count, offset));
 		}
 	}
 
@@ -465,7 +525,7 @@ public class ORGController extends Controller {
 	)
 	public APIResponse getSysORGUserRoles() throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(orgUserRoleService.getSysORGUserRoles(conn));
+			return APIResponse.getNewSuccessResp(ORGUserRoleService.SYS_ORG_USER_ROLE_LIST);
 		}
 	}
 
@@ -479,7 +539,7 @@ public class ORGController extends Controller {
 	)
 	public APIResponse getORGUserSysTagGroups() throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(orgUserTagService.getSysTagGroups(conn));
+			return APIResponse.getNewSuccessResp(ORGUserGroupService.SYS_ORG_USER_TAG_GROUP_LIST);
 		}
 	}
 
@@ -499,7 +559,7 @@ public class ORGController extends Controller {
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			return APIResponse.getNewSuccessResp(
-					orgUserTagService.createTagGroup(conn, orgId, parentId, parents, keyword, remark));
+					orgUserGroupService.createTagGroup(conn, orgId, parentId, parents, keyword, remark));
 		}
 	}
 
@@ -520,7 +580,7 @@ public class ORGController extends Controller {
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			return APIResponse.getNewSuccessResp(
-					orgUserTagService.editTagGroup(conn, orgId, groupId, parentId, parents, keyword, remark));
+					orgUserGroupService.editTagGroup(conn, orgId, groupId, parentId, parents, keyword, remark));
 		}
 	}
 
@@ -536,7 +596,7 @@ public class ORGController extends Controller {
 			@P(t = "分组编号") Long groupId//
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(orgUserTagService.delTagGroupById(conn, groupId));
+			return APIResponse.getNewSuccessResp(orgUserGroupService.delTagGroupById(conn, groupId));
 		}
 	}
 
@@ -552,7 +612,7 @@ public class ORGController extends Controller {
 			@P(t = "分组编号") Long groupId//
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(orgUserTagService.getTagGroupTree(conn, orgId, groupId));
+			return APIResponse.getNewSuccessResp(orgUserGroupService.getTagGroupTree(conn, orgId, groupId));
 		}
 	}
 

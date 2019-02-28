@@ -187,11 +187,31 @@ public class VoteController extends Controller {
 	)
 	public APIResponse getVotes(//
 			@P(t = "组织编号") Long orgId, //
+			@P(t = "投票状态，空或不填则表示全部查询", r = false) Byte status, //
 			Integer count, //
 			Integer offset //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(voteService.getVotes(conn, orgId, count, offset));
+			return APIResponse.getNewSuccessResp(voteService.getVotes(conn, orgId, status, count, offset));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getUserVotes", //
+			des = "获取组织用户的投票", //
+			ret = "所查询的对象列表"//
+	)
+	public APIResponse getUserVotes(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "用户编号") Long userId, //
+			Integer count, //
+			Integer offset //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(voteService.getUserVotes(conn, orgId, userId, count, offset));
 		}
 	}
 

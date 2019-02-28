@@ -17,8 +17,6 @@ public class ORGUserTagGroupRepository extends RDSRepository<ORGUserTagGroup> {
 		super(ORGUserTagGroup.class);
 	}
 
-	/// xsldkfsldfh
-
 	private void tree(Long groupId, List<ORGUserTagGroup> groups, JSONArray array) {
 
 		// System.out.println("---tree>" + groupId);
@@ -56,14 +54,6 @@ public class ORGUserTagGroupRepository extends RDSRepository<ORGUserTagGroup> {
 		JSONArray ret = new JSONArray();
 		if (groups != null && groups.size() > 0) {
 			// 将列表转换成树
-
-			// 先构造好全部的parents数组，避免反复构造
-			// int size = groups.size();
-			// ArrayList<List<Long>> gps = new ArrayList<>();
-			// for (int i = 0; i < size; i++) {
-			// JSONArray ja = JSON.parseArray(groups.get(i).parents);
-			// gps.add(ja.toJavaList(Long.class));
-			// }
 
 			tree(groupId, groups, ret);
 		}

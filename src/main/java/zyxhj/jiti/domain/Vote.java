@@ -17,8 +17,8 @@ public class Vote {
 	public static enum STATUS implements ENUMVALUE {
 		VOTING((byte) 0, "投票中"), //
 		WAITING((byte) 1, "等待中"), //
-		INVALID((byte) 2, "已作废"), //
-		DONE((byte) 3, "已结束"), //
+//		INVALID((byte) 2, "已作废"), //
+//		DONE((byte) 3, "已结束"), //
 		PAUSED((byte) 4, "人为作废"), //
 		;
 

@@ -71,33 +71,14 @@ public class VoteService {
 		}
 	}
 
-	public JSONObject getVotesByOrgId(DruidPooledConnection conn, Long orgId, Boolean isActive, Integer count,
-			Integer offset) throws Exception {
+	public List<Vote> getVotes(DruidPooledConnection conn, Long orgId, Byte status, Integer count, Integer offset)
+			throws Exception {
+		return voteRepository.getVotes(conn, orgId, status, count, offset);
+	}
 
-		List<Vote> vs = voteRepository.getListByKeys(conn, new String[] { "org_id", "is_active" },
-				new Object[] { orgId, isActive }, count, offset);
-
-		JSONArray waiting = new JSONArray();
-		JSONArray started = new JSONArray();
-		JSONArray fininshed = new JSONArray();
-
-		for (Vote v : vs) {
-			int tmp = compareTime(v.startTime, v.expiryTime);
-			if (tmp < 0) {
-				waiting.add(v);
-			} else if (tmp == 0) {
-				started.add(v);
-			} else {
-				fininshed.add(v);
-			}
-		}
-
-		JSONObject ret = new JSONObject();
-		ret.put("waiting", waiting);
-		ret.put("started", started);
-		ret.put("fininshed", fininshed);
-
-		return ret;
+	public List<Vote> getUserVotes(DruidPooledConnection conn, Long orgId, Long userId, Integer count, Integer offset)
+			throws Exception {
+		return voteRepository.getUserVotes(conn, orgId, userId, count, offset);
 	}
 
 	private void checkVoteTime(DruidPooledConnection conn, Long voteId) throws Exception {
@@ -286,10 +267,6 @@ public class VoteService {
 
 		return voteRepository.deleteByKey(conn, "id", voteId);
 
-	}
-
-	public List<Vote> getVotes(DruidPooledConnection conn, Long orgId, Integer count, Integer offset) throws Exception {
-		return voteRepository.getListByKey(conn, "org_id", orgId, count, offset);
 	}
 
 	public VoteOption addVoteOption(DruidPooledConnection conn, Long voteId, Boolean isAbstain, String title,

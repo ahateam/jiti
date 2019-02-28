@@ -8,6 +8,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 
 import zyxhj.jiti.service.AssetService;
+import zyxhj.jiti.service.ORGUserGroupService;
 import zyxhj.jiti.service.ORGUserTagService;
 import zyxhj.utils.ExcelUtils;
 import zyxhj.utils.Singleton;
@@ -20,6 +21,7 @@ public class EconomyAssetImporter {
 	private static AssetService assetService;
 
 	private static ORGUserTagService orgUserTagService;
+	private static ORGUserGroupService orgUserGroupService;
 
 	static {
 		DataSourceUtils.initDataSourceConfig();
@@ -29,6 +31,8 @@ public class EconomyAssetImporter {
 
 			orgUserTagService = Singleton.ins(ORGUserTagService.class);
 
+			orgUserGroupService = Singleton.ins(ORGUserGroupService.class);
+
 			conn = (DruidPooledConnection) DataSourceUtils.getDataSource("rdsDefault").openConnection();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -37,7 +41,7 @@ public class EconomyAssetImporter {
 
 	public static void main(String[] args) throws Exception {
 
-		System.out.println(JSON.toJSONString(orgUserTagService.getTagGroupTree(conn, 397005034209093L, 100L)));
+		System.out.println(JSON.toJSONString(orgUserGroupService.getTagGroupTree(conn, 397005034209093L, 100L)));
 		;
 
 		// List<List<Object>> table = ExcelUtils.readExcelFile("固定资产表.xlsx", 2, 38, 0);
@@ -189,7 +193,7 @@ public class EconomyAssetImporter {
 					keeper, businessMode, businessTime, holder, yearlyIncome, //
 					specType, estateType, area, floorArea, boundary, //
 					locationStart, locationEnd, coordinateStart, coordinateEnd, accumulateStock, //
-					treeNumber, imgs, remark);
+					treeNumber, imgs, remark, null);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -68,7 +68,13 @@ public class ORGUser {
 	public String roles;
 
 	/**
-	 * 标签(集体用户的角色role，分组group，以及其它职务和标签等都存放在这个字段)
+	 * 分组，怕长度不够2048
+	 */
+	@RDSAnnField(column = "VARCHAR(2048)")
+	public String groups;
+
+	/**
+	 * 标签
 	 */
 	@RDSAnnField(column = RDSAnnField.JSON)
 	public String tags;

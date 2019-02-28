@@ -1,5 +1,8 @@
 package zyxhj.jiti.service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -7,11 +10,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
-import zyxhj.jiti.domain.ORGUserGroup;
-import zyxhj.jiti.repository.ORGUserGroupRepository;
+import zyxhj.jiti.domain.ORGUserTagGroup;
+import zyxhj.jiti.repository.ORGUserTagGroupRepository;
 import zyxhj.utils.IDUtils;
 import zyxhj.utils.Singleton;
 
@@ -23,33 +28,59 @@ public class ORGUserGroupService {
 
 	private static Logger log = LoggerFactory.getLogger(ORGUserGroupService.class);
 
-	private static Cache<Long, ORGUserGroup> ORG_USER_GROUP_CACHE = CacheBuilder.newBuilder()//
+	/**
+	 * 系统级第三方权限，会被
+	 */
+	private static HashMap<Long, ORGUserTagGroup> SYS_ORG_USER_TAG_GROUP_MAP = new HashMap<>();
+	public static ArrayList<ORGUserTagGroup> SYS_ORG_USER_TAG_GROUP_LIST = new ArrayList<>();
+
+	static {
+		// 添加admin，member，股东，董事，监事等角色到系统中
+		SYS_ORG_USER_TAG_GROUP_MAP.put(ORGUserTagGroup.group_groups.groupId, ORGUserTagGroup.group_groups);
+		// undefine 在 groups下面，也是默认分组
+		SYS_ORG_USER_TAG_GROUP_MAP.put(ORGUserTagGroup.group_undefine.groupId, ORGUserTagGroup.group_undefine);
+
+		SYS_ORG_USER_TAG_GROUP_MAP.put(ORGUserTagGroup.group_tags.groupId, ORGUserTagGroup.group_tags);
+
+		Iterator<ORGUserTagGroup> it = SYS_ORG_USER_TAG_GROUP_MAP.values().iterator();
+		while (it.hasNext()) {
+			SYS_ORG_USER_TAG_GROUP_LIST.add(it.next());
+		}
+	}
+
+	private static Cache<Long, List<ORGUserTagGroup>> ORG_USER_TAG_GROUP_LIST_CACHE = CacheBuilder.newBuilder()//
 			.expireAfterAccess(5, TimeUnit.MINUTES)//
-			.maximumSize(1000)//
+			.maximumSize(100)//
 			.build();
 
-	private ORGUserGroupRepository orgUserGroupRepository;
+	private ORGUserTagGroupRepository groupRepository;
 
 	public ORGUserGroupService() {
 		try {
-			orgUserGroupRepository = Singleton.ins(ORGUserGroupRepository.class);
+			groupRepository = Singleton.ins(ORGUserTagGroupRepository.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
 	}
 
 	/**
-	 * 创建自定义角色
+	 * 创建自定义标签分组
 	 */
-	public ORGUserGroup createORGUserGroup(DruidPooledConnection conn, Long orgId, String name, String remark)
-			throws Exception {
-		ORGUserGroup group = new ORGUserGroup();
+	public ORGUserTagGroup createTagGroup(DruidPooledConnection conn, Long orgId, Long parentId, JSONArray parents,
+			String keyword, String remark) throws Exception {
+		ORGUserTagGroup group = new ORGUserTagGroup();
 		group.orgId = orgId;
 		group.groupId = IDUtils.getSimpleId();
-		group.name = name;
+		group.parentId = parentId;
+		if (parents == null || parents.size() <= 0) {
+			group.parents = "[]";
+		} else {
+			group.parents = JSON.toJSONString(parents);
+		}
+		group.keyword = keyword;
 		group.remark = remark;
 
-		orgUserGroupRepository.insert(conn, group);
+		groupRepository.insert(conn, group);
 
 		return group;
 	}
@@ -57,45 +88,36 @@ public class ORGUserGroupService {
 	/**
 	 * 编辑自定义角色
 	 */
-	public int editORGUserGroup(DruidPooledConnection conn, Long orgId, Long groupId, String name, String remark)
-			throws Exception {
-		ORGUserGroup renew = new ORGUserGroup();
-		renew.name = name;
+	public int editTagGroup(DruidPooledConnection conn, Long orgId, Long groupId, Long parentId, JSONArray parents,
+			String keyword, String remark) throws Exception {
+		ORGUserTagGroup renew = new ORGUserTagGroup();
+		renew.parentId = parentId;
+		if (parents == null || parents.size() <= 0) {
+			renew.parents = "[]";
+		} else {
+			renew.parents = JSON.toJSONString(parents);
+		}
+		renew.keyword = keyword;
 		renew.remark = remark;
 
-		return orgUserGroupRepository.updateByKeys(conn, new String[] { "org_id", "group_id" },
+		return groupRepository.updateByKeys(conn, new String[] { "org_id", "group_id" },
 				new Object[] { orgId, groupId }, renew, true);
 	}
 
-	/**
-	 * 删除自定义角色
-	 */
-	public int delORGUserGroup(DruidPooledConnection conn, Long orgId, Long groupId) throws Exception {
-		return orgUserGroupRepository.deleteByKeys(conn, new String[] { "org_id", "group_id" },
-				new Object[] { orgId, groupId });
-	}
-
-	public ORGUserGroup getORGUserGroupById(DruidPooledConnection conn, Long orgId, Long groupId) throws Exception {
-		// 先从系统缓存里取，再从缓存去，最后再查
-		ORGUserGroup group = ORG_USER_GROUP_CACHE.getIfPresent(groupId);
-		if (group == null) {
-			// 从数据库中获取
-			group = orgUserGroupRepository.getByKeys(conn, new String[] { "org_id", "group_id" },
-					new Object[] { orgId, groupId });
-			if (group != null) {
-				// 放入缓存
-				ORG_USER_GROUP_CACHE.put(groupId, group);
-			}
+	public List<ORGUserTagGroup> getTagGroups(DruidPooledConnection conn, Long orgId) throws Exception {
+		List<ORGUserTagGroup> ret = ORG_USER_TAG_GROUP_LIST_CACHE.getIfPresent(orgId);
+		if (ret == null) {
+			ret = groupRepository.getListByKey(conn, "org_id", orgId, 512, 0);
+			ORG_USER_TAG_GROUP_LIST_CACHE.put(orgId, ret);
 		}
-		return group;
+		return ret;
 	}
 
-	/**
-	 * 获取自定义角色列表
-	 */
-	public List<ORGUserGroup> getORGUserGroups(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)
-			throws Exception {
-		return orgUserGroupRepository.getListByKey(conn, "org_id", orgId, count, offset);
+	public int delTagGroupById(DruidPooledConnection conn, Long groupId) throws Exception {
+		return groupRepository.deleteByKey(conn, "group_id", groupId);
 	}
 
+	public JSONArray getTagGroupTree(DruidPooledConnection conn, Long orgId, Long groupId) throws Exception {
+		return groupRepository.getTagGroupTree(conn, orgId, groupId);
+	}
 }

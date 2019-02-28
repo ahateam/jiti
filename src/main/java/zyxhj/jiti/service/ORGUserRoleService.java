@@ -36,8 +36,11 @@ public class ORGUserRoleService {
 	 */
 	private static HashMap<Long, ORGUserRole> SYS_ORG_USER_ROLE_MAP = new HashMap<>();
 
+	public static ArrayList<ORGUserRole> SYS_ORG_USER_ROLE_LIST = new ArrayList<>();
+
 	static {
 		// 添加admin，member，股东，董事，监事等角色到系统中
+		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_user.roleId, ORGUserRole.role_user);
 		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_admin.roleId, ORGUserRole.role_admin);
 		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_shareHolder.roleId, ORGUserRole.role_shareHolder);
 		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_shareDeputy.roleId, ORGUserRole.role_shareDeputy);
@@ -50,6 +53,10 @@ public class ORGUserRoleService {
 		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_supChief.roleId, ORGUserRole.role_supChief);
 		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_supVice.roleId, ORGUserRole.role_supVice);
 
+		Iterator<ORGUserRole> it = SYS_ORG_USER_ROLE_MAP.values().iterator();
+		while (it.hasNext()) {
+			SYS_ORG_USER_ROLE_LIST.add(it.next());
+		}
 	}
 
 	private ORGUserRoleRepository orgUserRoleRepository;
@@ -112,21 +119,8 @@ public class ORGUserRoleService {
 	/**
 	 * 获取自定义角色列表
 	 */
-	public List<ORGUserRole> getORGUserRoles(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)
-			throws Exception {
-		return orgUserRoleRepository.getListByKey(conn, "org_id", orgId, count, offset);
-	}
-
-	/**
-	 * 获取系统角色列表
-	 */
-	public List<ORGUserRole> getSysORGUserRoles(DruidPooledConnection conn) throws Exception {
-		Iterator<ORGUserRole> it = SYS_ORG_USER_ROLE_MAP.values().iterator();
-		ArrayList<ORGUserRole> ret = new ArrayList<>();
-		while (it.hasNext()) {
-			ret.add(it.next());
-		}
-		return ret;
+	public List<ORGUserRole> getORGUserRoles(DruidPooledConnection conn, Long orgId) throws Exception {
+		return orgUserRoleRepository.getListByKey(conn, "org_id", orgId, 512, 0);
 	}
 
 }

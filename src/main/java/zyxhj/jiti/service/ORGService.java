@@ -128,7 +128,8 @@ public class ORGService {
 	/**
 	 * 普通用户注册
 	 */
-	public LoginBo registeUser(DruidPooledConnection conn, String mobile, String pwd) throws Exception {
+	public LoginBo registeUser(DruidPooledConnection conn, String mobile, String pwd, String realName, String idNumber)
+			throws Exception {
 		// 判断用户是否存在
 		User existUser = userRepository.getByKey(conn, "mobile", mobile);
 		if (null == existUser) {
@@ -137,6 +138,9 @@ public class ORGService {
 			newUser.id = IDUtils.getSimpleId();
 			newUser.createDate = new Date();
 			newUser.mobile = mobile;
+
+			newUser.realName = realName;
+			newUser.idNumber = idNumber;
 
 			newUser.pwd = pwd;// TODO 目前是明文，需要加料传输和存储
 

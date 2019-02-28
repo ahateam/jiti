@@ -33,8 +33,20 @@ public class ORGUserTagGroup {
 
 	private static Long temp = 100L;// 自增编号
 
-	public static final ORGUserTagGroup group_groups = buildSysTagGroup(temp++, 0L, null, "groups", null);
-	public static final ORGUserTagGroup group_tags = buildSysTagGroup(temp++, 0L, null, "tags", null);
+	public static final ORGUserTagGroup group_groups;
+	public static final ORGUserTagGroup group_undefine;
+	public static final ORGUserTagGroup group_tags;
+
+	static {
+		group_groups = buildSysTagGroup(temp++, 0L, null, "groups", null);
+		group_tags = buildSysTagGroup(temp++, 0L, null, "tags", null);
+
+		// 添加未分类标签分组
+		JSONArray arr = new JSONArray();
+		arr.add(group_groups.groupId);
+		group_undefine = buildSysTagGroup(temp++, group_groups.groupId, arr, "undefine", null);
+
+	}
 
 	/**
 	 * 组织编号
@@ -60,7 +72,7 @@ public class ORGUserTagGroup {
 	public String parents;
 
 	/**
-	 * 分组关键字（分类前缀 + 关键字）
+	 * 分组名称
 	 */
 	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
 	public String keyword;

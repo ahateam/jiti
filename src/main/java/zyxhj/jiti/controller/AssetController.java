@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 
 import zyxhj.jiti.service.AssetService;
 import zyxhj.utils.Singleton;
@@ -80,13 +82,13 @@ public class AssetController extends Controller {
 					"			 * imgFront 正面图片（不动产属性）\n" + //
 					"			 * imgSide 侧面图片（不动产属性）\n" + //
 					"			 * imgBack 背面图片（不动产属性）", r = false) String imgs, //
-			@P(t = "备注", r = false) String remark //
-	) throws Exception {
+			@P(t = "备注", r = false) String remark, //
+			@P(t = "分组信息，JSONArray格式", r = false) JSONArray groups) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			return APIResponse.getNewSuccessResp(assetService.createAsset(conn, orgId, originId, name, sn, resType,
 					assetType, buildTime, originPrice, location, ownership, keeper, businessMode, businessTime, holder,
 					yearlyIncome, specType, estateType, area, floorArea, boundary, locationStart, locationEnd,
-					coordinateStart, coordinateEnd, accumulateStock, treeNumber, imgs, remark));
+					coordinateStart, coordinateEnd, accumulateStock, treeNumber, imgs, remark, groups));
 		}
 	}
 
@@ -99,6 +101,7 @@ public class AssetController extends Controller {
 			ret = "所影响记录行数"//
 	)
 	public APIResponse editAsset(//
+			@P(t = "组织编号") Long orgId, //
 			@P(t = "资产编号") Long assetId, //
 			@P(t = "资产原始编号", r = false) String originId, //
 			@P(t = "资产原始名称", r = false) String name, //
@@ -140,13 +143,14 @@ public class AssetController extends Controller {
 					"			 * imgFront 正面图片（不动产属性）\n" + //
 					"			 * imgSide 侧面图片（不动产属性）\n" + //
 					"			 * imgBack 背面图片（不动产属性）", r = false) String imgs, //
-			@P(t = "备注", r = false) String remark //
+			@P(t = "备注", r = false) String remark, //
+			@P(t = "分组信息，JSONArray格式", r = false) JSONArray groups//
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(assetService.editAsset(conn, assetId, originId, name, sn, resType,
-					assetType, buildTime, originPrice, location, ownership, keeper, businessMode, businessTime, holder,
-					yearlyIncome, specType, estateType, area, floorArea, boundary, locationStart, locationEnd,
-					coordinateStart, coordinateEnd, accumulateStock, treeNumber, imgs, remark));
+			return APIResponse.getNewSuccessResp(assetService.editAsset(conn, orgId, assetId, originId, name, sn,
+					resType, assetType, buildTime, originPrice, location, ownership, keeper, businessMode, businessTime,
+					holder, yearlyIncome, specType, estateType, area, floorArea, boundary, locationStart, locationEnd,
+					coordinateStart, coordinateEnd, accumulateStock, treeNumber, imgs, remark, groups));
 		}
 	}
 
@@ -169,36 +173,21 @@ public class AssetController extends Controller {
 	 * 
 	 */
 	@POSTAPI(//
-			path = "getAssets", //
+			path = "queryAssets", //
 			des = "获取资产列表", //
 			ret = "资产列表"//
 	)
-	public APIResponse getAssets(//
-			@P(t = "组织编号") Long orgId, //
-			Integer count, //
-			Integer offset//
-	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(assetService.getAssets(conn, orgId, count, offset));
-		}
-	}
-
-	/**
-	 * 
-	 */
-	@POSTAPI(//
-			path = "searchAssets", //
-			des = "查询资产列表", //
-			ret = "资产列表"//
-	)
-	public APIResponse searchAssets(//
+	public APIResponse queryAssets(//
 			@P(t = "组织编号") Long orgId, //
 			@P(t = "资产类型(动产,不动产)", r = false) String assetType, //
+			@P(t = "分组信息，JSONArray格式", r = false) JSONArray groups, //
+			@P(t = "标签信息，JSONObject格式", r = false) JSONObject tags, //
 			Integer count, //
 			Integer offset//
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(assetService.searchAssets(conn, orgId, assetType, count, offset));
+			return APIResponse
+					.getNewSuccessResp(assetService.queryAssets(conn, orgId, assetType, groups, tags, count, offset));
 		}
 	}
 
@@ -216,6 +205,44 @@ public class AssetController extends Controller {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			assetService.importAssets(conn, orgId, url);
 			return APIResponse.getNewSuccessResp();
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getAssetsByGroups", //
+			des = "根据分组信息获取资产列表", //
+			ret = "资产列表"//
+	)
+	public APIResponse getAssetsByGroups(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "分组,JSONArray格式", r = false) JSONArray groups, //
+			Integer count, //
+			Integer offset//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(assetService.getAssetsByGroups(conn, orgId, groups, count, offset));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getAssetsByTags", //
+			des = "根据标签信息获取组织成员列表", //
+			ret = "成员列表"//
+	)
+	public APIResponse getAssetsByTags(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "角色标签对象,JSONObject格式", r = false) JSONObject tags, //
+			Integer count, //
+			Integer offset//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(assetService.getAssetsByTags(conn, orgId, tags, count, offset));
 		}
 	}
 }

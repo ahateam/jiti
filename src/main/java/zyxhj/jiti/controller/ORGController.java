@@ -197,18 +197,20 @@ public class ORGController extends Controller {
 			@P(t = "真实姓名") String realName, //
 			@P(t = "身份证号") String idNumber, //
 			@P(t = "地址") String address, //
-			@P(t = "股权证书编号") String shareCerNo, //
+			@P(t = "股权证书编号", r = false) String shareCerNo, //
 			@P(t = "股权证书图片地址") String shareCerImg, //
 			@P(t = "是否持证人") Boolean shareCerHolder, //
 			@P(t = "股份数") Integer shareAmount, //
 			@P(t = "选举权重") Integer weight, //
 			@P(t = "角色（股东，董事长，经理等）") JSONArray roles, //
 			@P(t = "分组") JSONArray groups, //
-			@P(t = "标签，包含groups,tags,以及其它自定义分组标签列表") JSONObject tags//
+			@P(t = "标签，包含groups,tags,以及其它自定义分组标签列表") JSONObject tags, //
+			@P(t = "户序号") String familyNumber, //
+			@P(t = "户主名") String familyMaster //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			orgUserService.createORGUser(conn, orgId, mobile, realName, idNumber, address, shareCerNo, shareCerImg,
-					shareCerHolder, shareAmount, weight, roles, groups, tags);
+					shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
 			return APIResponse.getNewSuccessResp();
 		}
 	}
@@ -262,19 +264,40 @@ public class ORGController extends Controller {
 			@P(t = "组织编号") Long orgId, //
 			@P(t = "用户编号") Long userId, //
 			@P(t = "地址") String address, //
-			@P(t = "股权证书编号") String shareCerNo, //
+			@P(t = "股权证书编号", r = false) String shareCerNo, //
 			@P(t = "股权证书图片地址") String shareCerImg, //
 			@P(t = "是否持证人") Boolean shareCerHolder, //
 			@P(t = "股份数") Integer shareAmount, //
 			@P(t = "选举权重") Integer weight, //
 			@P(t = "角色（股东，董事长，经理等）") JSONArray roles, //
 			@P(t = "分组") JSONArray groups, //
-			@P(t = "标签，包含groups,tags,以及其它自定义分组标签列表") JSONObject tags//
+			@P(t = "标签，包含groups,tags,以及其它自定义分组标签列表") JSONObject tags, //
+			@P(t = "户序号") String familyNumber, //
+			@P(t = "户主名") String familyMaster //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			int ret = orgUserService.editORGUser(conn, orgId, userId, address, shareCerNo, shareCerImg, shareCerHolder,
-					shareAmount, weight, roles, groups, tags);
+					shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
 			return APIResponse.getNewSuccessResp(ret);
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "batchEditORGUsersGroups", //
+			des = "获取组织的用户" //
+	)
+	public APIResponse batchEditORGUsersGroups(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "用户编号列表，JSONArray格式") JSONArray userIds, //
+			@P(t = "分组信息列表，JSONArray格式") JSONArray groups//
+
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+
+			return APIResponse.getNewSuccessResp(orgUserService.batchEditORGUsersGroups(conn, orgId, userIds, groups));
 		}
 	}
 

@@ -245,4 +245,22 @@ public class AssetController extends Controller {
 			return APIResponse.getNewSuccessResp(assetService.getAssetsByTags(conn, orgId, tags, count, offset));
 		}
 	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "batchEditAssetsGroups", //
+			des = "批量修改资产分组信息", //
+			ret = "更新的记录行数"//
+	)
+	public APIResponse batchEditAssetsGroups(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "角色标签对象,JSONArray格式") JSONArray assetIds, //
+			@P(t = "角色标签对象,JSONArray格式") JSONArray groups//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(assetService.batchEditAssetsGroups(conn, orgId, assetIds, groups));
+		}
+	}
 }

@@ -40,10 +40,12 @@ public class ORGUserRoleService {
 
 	static {
 		// 添加admin，member，股东，董事，监事等角色到系统中
+		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_outuser.roleId, ORGUserRole.role_outuser);
 		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_user.roleId, ORGUserRole.role_user);
 		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_admin.roleId, ORGUserRole.role_admin);
 		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_shareHolder.roleId, ORGUserRole.role_shareHolder);
 		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_shareDeputy.roleId, ORGUserRole.role_shareDeputy);
+		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_shareFamily.roleId, ORGUserRole.role_shareFamily);
 
 		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_director.roleId, ORGUserRole.role_director);
 		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_dirChief.roleId, ORGUserRole.role_dirChief);
@@ -52,6 +54,8 @@ public class ORGUserRoleService {
 		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_supervisor.roleId, ORGUserRole.role_supervisor);
 		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_supChief.roleId, ORGUserRole.role_supChief);
 		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_supVice.roleId, ORGUserRole.role_supVice);
+
+		
 
 		Iterator<ORGUserRole> it = SYS_ORG_USER_ROLE_MAP.values().iterator();
 		while (it.hasNext()) {

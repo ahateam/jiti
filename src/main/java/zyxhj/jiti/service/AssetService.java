@@ -196,8 +196,8 @@ public class AssetService {
 			String imgFar = ExcelUtils.getString(row.get(32));
 			String imgNear = ExcelUtils.getString(row.get(33));
 			String imgFront = ExcelUtils.getString(row.get(34));
-			String imgSide = ExcelUtils.getString(row.get(35));
-			String imgBack = ExcelUtils.getString(row.get(36));
+			String imgBack = ExcelUtils.getString(row.get(35));
+			String imgSide = ExcelUtils.getString(row.get(36));
 			JSONObject img = new JSONObject();
 			img.put("imgExt1", imgExt1);
 			img.put("imgExt2", imgExt2);
@@ -212,8 +212,8 @@ public class AssetService {
 			img.put("imgBack", imgBack);
 
 			String imgs = JSON.toJSONString(img);
-			String remark = ExcelUtils.getString(row.get(37));
-			String groups = ExcelUtils.getString(row.get(38));
+			String groups = ExcelUtils.getString(row.get(37));
+			String remark = ExcelUtils.getString(row.get(38));
 
 			JSONArray arrGroups = new JSONArray();
 			JSONArray temp = CodecUtils.convertCommaStringList2JSONArray(groups);
@@ -255,5 +255,10 @@ public class AssetService {
 	public List<Asset> getAssetsByTags(DruidPooledConnection conn, Long orgId, JSONObject tags, Integer count,
 			Integer offset) throws Exception {
 		return assetRepository.getAssetsByTags(conn, orgId, tags, count, offset);
+	}
+
+	public int batchEditAssetsGroups(DruidPooledConnection conn, Long orgId, JSONArray assetIds, JSONArray groups)
+			throws Exception {
+		return assetRepository.batchEditAssetsGroups(conn, orgId, assetIds, groups);
 	}
 }

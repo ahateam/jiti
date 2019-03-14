@@ -79,4 +79,15 @@ public class ORGUser {
 	@RDSAnnField(column = RDSAnnField.JSON)
 	public String tags;
 
+	/**
+	 * 户序号
+	 */
+	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
+	public String familyNumber;
+
+	/**
+	 * 户主名
+	 */
+	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
+	public String familyMaster;
 }

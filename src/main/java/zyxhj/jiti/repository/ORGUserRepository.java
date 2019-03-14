@@ -16,6 +16,7 @@ import zyxhj.core.domain.User;
 import zyxhj.core.repository.UserRepository;
 import zyxhj.jiti.domain.ORGUser;
 import zyxhj.jiti.domain.ORGUserRole;
+import zyxhj.jiti.domain.ORGUserTagGroup;
 import zyxhj.utils.ServiceUtils;
 import zyxhj.utils.Singleton;
 import zyxhj.utils.api.BaseRC;
@@ -169,14 +170,16 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 					"SELECT * FROM `tb_user` INNER JOIN `tb_ecm_org_user` ON `tb_user`.`id` = `tb_ecm_org_user`.`user_id` WHERE `org_id` =? AND `tb_user`.`id_number` LIKE '%");
 			sql.append(idNumber).append("%' LIMIT ? OFFSET ?");
 			try {
+				// return this.nativeGetJSONArray(conn, sql.toString(), new Object[] { orgId,
+				// count, offset });
 				return this.nativeGetList(conn, Singleton.ins(UserRepository.class), sql.toString(),
 						new Object[] { orgId, count, offset });
 			} catch (Exception e) {
 				e.printStackTrace();
-				return new ArrayList<User>();
+				return new ArrayList<>();
 			}
 		} else {
-			return new ArrayList<User>();
+			return new ArrayList<>();
 		}
 
 	}
@@ -193,15 +196,60 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 					"SELECT * FROM `tb_user` INNER JOIN `tb_ecm_org_user` ON `tb_user`.`id` = `tb_ecm_org_user`.`user_id` WHERE `org_id` =? AND `tb_user`.`real_name` LIKE '%");
 			sql.append(realName).append("%' LIMIT ? OFFSET ?");
 			try {
+				// return this.nativeGetJSONArray(conn, sql.toString(), new Object[] { orgId,
+				// count, offset });
 				return this.nativeGetList(conn, Singleton.ins(UserRepository.class), sql.toString(),
 						new Object[] { orgId, count, offset });
 			} catch (Exception e) {
 				e.printStackTrace();
-				return new ArrayList<User>();
+				return new ArrayList<>();
 			}
 		} else {
-			return new ArrayList<User>();
+			return new ArrayList<>();
 		}
 
+	}
+
+	public int batchEditORGUsersGroups(DruidPooledConnection conn, Long orgId, JSONArray userIds, JSONArray groups)
+			throws ServerException {
+
+		// SET groups="[123,456,345]"
+		StringBuffer sbset = new StringBuffer();
+		ArrayList<Object> pset = new ArrayList<>();
+
+		// 不能为空，为空需要填写默认分组
+		sbset.append("SET groups=?");
+		if (groups == null || groups.size() <= 0) {
+			// 填入未分组，避免空
+			groups = new JSONArray();
+			groups.add(ORGUserTagGroup.group_undefine.groupId);
+		}
+
+		pset.add(JSON.toJSONString(groups));
+		String set = sbset.toString();
+
+		// WHERE org_id=? AND id IN (1,2,3)
+		StringBuffer sbwhere = new StringBuffer();
+		ArrayList<Object> pwhere = new ArrayList<>();
+
+		sbwhere.append("WHERE org_id=? AND user_id IN (");
+		pwhere.add(orgId);
+
+		if (userIds != null && userIds.size() > 0) {
+			for (int i = 0; i < userIds.size(); i++) {
+				Long userId = userIds.getLong(i);
+				sbwhere.append("?,");
+				pwhere.add(userId);
+			}
+			sbwhere.deleteCharAt(sbwhere.length() - 1);
+
+			sbwhere.append(") ");
+
+			String where = sbwhere.toString();
+			System.out.println(StringUtils.join(set, " ", where));
+			return this.update(conn, set, pset.toArray(), where, pwhere.toArray());
+		} else {
+			return 0;
+		}
 	}
 }

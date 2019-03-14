@@ -5,11 +5,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.alibaba.druid.pool.DruidPooledConnection;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 import zyxhj.jiti.domain.Asset;
+import zyxhj.jiti.domain.ORGUserTagGroup;
 import zyxhj.utils.api.ServerException;
 import zyxhj.utils.data.rds.RDSRepository;
 
@@ -84,6 +88,49 @@ public class AssetRepository extends RDSRepository<Asset> {
 	public List<Asset> getAssetsByTags(DruidPooledConnection conn, Long orgId, JSONObject tags, Integer count,
 			Integer offset) throws ServerException {
 		return this.getListByTags(conn, "groups", tags, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
+	}
+
+	public int batchEditAssetsGroups(DruidPooledConnection conn, Long orgId, JSONArray assetIds, JSONArray groups)
+			throws ServerException {
+
+		// SET groups="[123,456,345]"
+		StringBuffer sbset = new StringBuffer();
+		ArrayList<Object> pset = new ArrayList<>();
+
+		// 不能为空，为空需要填写默认分组
+		sbset.append("SET groups=?");
+		if (groups == null || groups.size() <= 0) {
+			// 填入未分组，避免空
+			groups = new JSONArray();
+			groups.add(ORGUserTagGroup.group_undefine.groupId);
+		}
+
+		pset.add(JSON.toJSONString(groups));
+		String set = sbset.toString();
+
+		// WHERE org_id=? AND id IN (1,2,3)
+		StringBuffer sbwhere = new StringBuffer();
+		ArrayList<Object> pwhere = new ArrayList<>();
+
+		sbwhere.append("WHERE org_id=? AND id IN (");
+		pwhere.add(orgId);
+
+		if (assetIds != null && assetIds.size() > 0) {
+			for (int i = 0; i < assetIds.size(); i++) {
+				Long id = assetIds.getLong(i);
+				sbwhere.append("?,");
+				pwhere.add(id);
+			}
+			sbwhere.deleteCharAt(sbwhere.length() - 1);
+
+			sbwhere.append(") ");
+
+			String where = sbwhere.toString();
+			System.out.println(StringUtils.join(set, " ", where));
+			return this.update(conn, set, pset.toArray(), where, pwhere.toArray());
+		} else {
+			return 0;
+		}
 	}
 
 	// public List<Asset> getAssetsByGroups(DruidPooledConnection conn, Long orgId,

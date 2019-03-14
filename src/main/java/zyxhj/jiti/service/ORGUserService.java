@@ -149,7 +149,7 @@ public class ORGUserService {
 
 	private void insertORGUser(DruidPooledConnection conn, Long orgId, Long userId, String address, String shareCerNo,
 			String shareCerImg, Boolean shareCerHolder, Integer shareAmount, Integer weight, JSONArray roles,
-			JSONArray groups, JSONObject tags) throws Exception {
+			JSONArray groups, JSONObject tags, String familyNumber, String familyMaster) throws Exception {
 		ORGUser or = new ORGUser();
 		or.orgId = orgId;
 		or.userId = userId;
@@ -166,6 +166,9 @@ public class ORGUserService {
 		or.groups = array2JsonString(checkGroups(conn, orgId, groups));
 		or.tags = obj2JsonString(tags);
 
+		or.familyNumber = familyNumber;
+		or.familyMaster = familyMaster;
+
 		orgUserRepository.insert(conn, or);
 	}
 
@@ -174,7 +177,8 @@ public class ORGUserService {
 	 */
 	public void createORGUser(DruidPooledConnection conn, Long orgId, String mobile, String realName, String idNumber,
 			String address, String shareCerNo, String shareCerImg, Boolean shareCerHolder, Integer shareAmount,
-			Integer weight, JSONArray roles, JSONArray groups, JSONObject tags) throws Exception {
+			Integer weight, JSONArray roles, JSONArray groups, JSONObject tags, String familyNumber,
+			String familyMaster) throws Exception {
 
 		User extUser = userRepository.getByKey(conn, "id_number", idNumber);
 		if (null == extUser) {
@@ -195,7 +199,7 @@ public class ORGUserService {
 
 			// 写入股东信息表
 			insertORGUser(conn, orgId, newUser.id, address, shareCerNo, shareCerImg, shareCerHolder, shareAmount,
-					weight, roles, groups, tags);
+					weight, roles, groups, tags, familyNumber, familyMaster);
 
 		} else {
 			// 判断ORGUser是否存在
@@ -207,7 +211,7 @@ public class ORGUserService {
 
 				// 写入股东信息表
 				insertORGUser(conn, orgId, extUser.id, address, shareCerNo, shareCerImg, shareCerHolder, shareAmount,
-						weight, roles, groups, tags);
+						weight, roles, groups, tags, familyNumber, familyMaster);
 			} else {
 				throw new ServerException(BaseRC.ECM_ORG_USER_EXIST);
 			}
@@ -241,7 +245,7 @@ public class ORGUserService {
 	 */
 	public int editORGUser(DruidPooledConnection conn, Long orgId, Long userId, String address, String shareCerNo,
 			String shareCerImg, Boolean shareCerHolder, Integer shareAmount, Integer weight, JSONArray roles,
-			JSONArray groups, JSONObject tags) throws Exception {
+			JSONArray groups, JSONObject tags, String familyNumber, String familyMaster) throws Exception {
 		ORGUser renew = new ORGUser();
 		renew.address = address;
 		renew.shareCerNo = shareCerNo;
@@ -252,6 +256,9 @@ public class ORGUserService {
 		renew.weight = weight;
 		renew.roles = array2JsonString(roles);
 		renew.tags = obj2JsonString(tags);
+
+		renew.familyNumber = familyNumber;
+		renew.familyMaster = familyMaster;
 
 		return orgUserRepository.updateByKeys(conn, new String[] { "org_id", "user_id" },
 				new Object[] { orgId, userId }, renew, true);
@@ -264,55 +271,71 @@ public class ORGUserService {
 	/**
 	 * 根据组织编号和身份证号片段（生日），模糊查询
 	 */
-	public List<User> getORGUsersLikeIDNumber(DruidPooledConnection conn, Long orgId, String idNumber, Integer count,
+	public JSONArray getORGUsersLikeIDNumber(DruidPooledConnection conn, Long orgId, String idNumber, Integer count,
 			Integer offset) throws Exception {
-		return orgUserRepository.getORGUsersLikeIDNumber(conn, orgId, idNumber, count, offset);
+		List<User> users = orgUserRepository.getORGUsersLikeIDNumber(conn, orgId, idNumber, count, offset);
+		return getORGUsersInfoByUsers(conn, orgId, users);
+		// return orgUserRepository.getORGUsersLikeIDNumber(conn, orgId, idNumber,
+		// count, offset);
 	}
 
 	/**
 	 * 根据组织编号和身份证号片段（生日），模糊查询
 	 */
-	public List<User> getORGUsersLikeRealName(DruidPooledConnection conn, Long orgId, String realName, Integer count,
+	public JSONArray getORGUsersLikeRealName(DruidPooledConnection conn, Long orgId, String realName, Integer count,
 			Integer offset) throws Exception {
-		return orgUserRepository.getORGUsersLikeRealName(conn, orgId, realName, count, offset);
+		List<User> users = orgUserRepository.getORGUsersLikeRealName(conn, orgId, realName, count, offset);
+		return getORGUsersInfoByUsers(conn, orgId, users);
+
+		// return orgUserRepository.getORGUsersLikeRealName(conn, orgId, realName,
+		// count, offset);
 	}
 
 	private void importORGUsersImpl(DruidPooledConnection conn, Long orgId, List<List<Object>> table) {
 		for (List<Object> row : table) {
 
 			try {
-				String realName = ExcelUtils.getString(row.get(0));
-				String idNumber = ExcelUtils.getString(row.get(1));
-				String mobile = ExcelUtils.getString(row.get(2));
-				Integer shareAmount = ExcelUtils.parseInt(row.get(3));
-				Integer weight = ExcelUtils.parseInt(row.get(4));
+				int tt = 0;
+				String familyNumber = ExcelUtils.getString(row.get(tt++));// 户序号
 
-				String address = ExcelUtils.getString(row.get(5));
-				Boolean shareCerHolder = ExcelUtils.parseShiFou(row.get(6));
-				String shareCerNo = ExcelUtils.getString(row.get(7));
+				if (StringUtils.isBlank(familyNumber)) {
+					// 户序号为空，直接跳过
+					log.error("---->>户序号为空");
+					continue;
+				}
 
-				String dutyShareholders = ExcelUtils.getString(row.get(8));
-				String dutyDirectors = ExcelUtils.getString(row.get(9));
-				String dutyVisors = ExcelUtils.getString(row.get(10));
-				String dutyOthers = ExcelUtils.getString(row.get(11));
-				String dutyAdmins = ExcelUtils.getString(row.get(12));
+				String realName = ExcelUtils.getString(row.get(tt++));
+				String idNumber = ExcelUtils.getString(row.get(tt++));
+				String mobile = ExcelUtils.getString(row.get(tt++));
+				Integer shareAmount = ExcelUtils.parseInt(row.get(tt++));
 
-				String groups = ExcelUtils.getString(row.get(13));
-				String tags = ExcelUtils.getString(row.get(14));
+				Integer weight = ExcelUtils.parseInt(row.get(tt++));
+				String address = ExcelUtils.getString(row.get(tt++));
+				String familyMaster = ExcelUtils.getString(row.get(tt++));
+				Boolean shareCerHolder = ExcelUtils.parseShiFou(row.get(tt++));
+				String shareCerNo = ExcelUtils.getString(row.get(tt++));
+
+				String dutyShareholders = ExcelUtils.getString(row.get(tt++));
+				String dutyDirectors = ExcelUtils.getString(row.get(tt++));
+				String dutyVisors = ExcelUtils.getString(row.get(tt++));
+				String dutyOthers = ExcelUtils.getString(row.get(tt++));
+				String dutyAdmins = ExcelUtils.getString(row.get(tt++));
+
+				String groups = ExcelUtils.getString(row.get(tt++));
+				String tags = ExcelUtils.getString(row.get(tt++));
 
 				// 合并roles
 				JSONArray roles = new JSONArray();
 				JSONArray temp = null;
 				{
 					// 股东成员职务
-					// public static final String role_shareHolder = "股东";
-					// public static final String role_shareDeputy = "股东代表";
-
 					String ts = StringUtils.trim(dutyShareholders);
 					if (ts.equals(ORGUserRole.role_shareHolder.name)) {
-						roles.add(ORGUserRole.role_shareHolder.roleId);
+						roles.add(ORGUserRole.role_shareHolder.roleId);// 股东
 					} else if (ts.equals(ORGUserRole.role_shareDeputy.name)) {
-						roles.add(ORGUserRole.role_shareDeputy.roleId);
+						roles.add(ORGUserRole.role_shareDeputy.roleId);// 股东代表
+					} else if (ts.equals(ORGUserRole.role_shareFamily.name)) {
+						roles.add(ORGUserRole.role_shareFamily.roleId);// 股东户代表
 					} else {
 						// 无，不加
 					}
@@ -320,17 +343,13 @@ public class ORGUserService {
 
 				{
 					// 董事会职务
-					// public static final String role_director = "董事";
-					// public static final String role_dirChief = "董事长";
-					// public static final String role_dirVice = "副董事长";
-
 					String ts = StringUtils.trim(dutyDirectors);
 					if (ts.equals(ORGUserRole.role_director.name)) {
-						roles.add(ORGUserRole.role_director.roleId);
+						roles.add(ORGUserRole.role_director.roleId);// 董事
 					} else if (ts.equals(ORGUserRole.role_dirChief.name)) {
-						roles.add(ORGUserRole.role_dirChief.roleId);
+						roles.add(ORGUserRole.role_dirChief.roleId);// 董事长
 					} else if (ts.equals(ORGUserRole.role_dirVice.name)) {
-						roles.add(ORGUserRole.role_dirVice.roleId);
+						roles.add(ORGUserRole.role_dirVice.roleId);// 副董事长
 					} else {
 						// 无，不加
 					}
@@ -338,37 +357,34 @@ public class ORGUserService {
 
 				{
 					// 监事会职务
-					// public static final String role_supervisor = "监事";
-					// public static final String role_supChief = "监事长";
-					// public static final String role_supVice = "副监事长";
-
 					String ts = StringUtils.trim(dutyVisors);
 					if (ts.equals(ORGUserRole.role_supervisor.name)) {
-						roles.add(ORGUserRole.role_supervisor.roleId);
+						roles.add(ORGUserRole.role_supervisor.roleId);// 监事
 					} else if (ts.equals(ORGUserRole.role_supChief.name)) {
-						roles.add(ORGUserRole.role_supChief.roleId);
+						roles.add(ORGUserRole.role_supChief.roleId);// 监事长
 					} else if (ts.equals(ORGUserRole.role_supVice.name)) {
-						roles.add(ORGUserRole.role_supVice.roleId);
+						roles.add(ORGUserRole.role_supVice.roleId);// 副监事长
 					} else {
 						// 无，不加
 					}
 				}
 
 				{
-					// 管理角色
-					// public static final String role_user = "用户";
-					// public static final String role_admin = "管理员";
+					// 其它管理角色
 
 					temp = CodecUtils.convertCommaStringList2JSONArray(dutyAdmins);
 					for (int i = 0; i < temp.size(); i++) {
 						String ts = StringUtils.trim(temp.getString(i));
 
 						if (ts.equals(ORGUserRole.role_user.name)) {
-							roles.add(ORGUserRole.role_user.roleId);
+							roles.add(ORGUserRole.role_user.roleId);// 用户
+						} else if (ts.equals(ORGUserRole.role_outuser.name)) {
+							roles.add(ORGUserRole.role_outuser.roleId);// 外部人员
 						} else if (ts.equals(ORGUserRole.role_admin.name)) {
-							roles.add(ORGUserRole.role_admin.roleId);
+							roles.add(ORGUserRole.role_admin.roleId);// 管理员
 						} else {
-							// 无，不加
+							// 无，不填默认当作用户
+							roles.add(ORGUserRole.role_user.roleId);// 用户
 						}
 					}
 				}
@@ -430,8 +446,16 @@ public class ORGUserService {
 
 				// System.out.println("----------" + JSON.toJSONString(joTags));
 
+				// 处理idNunber为空的问题
+				if (StringUtils.isBlank(idNumber)) {
+					idNumber = StringUtils.join(orgId, "-", familyNumber, "-", IDUtils.getHexSimpleId());
+				}
+				if (StringUtils.isBlank(mobile)) {
+					mobile = StringUtils.join(orgId, "-", familyNumber, "-", IDUtils.getHexSimpleId());
+				}
+
 				createORGUser(conn, orgId, mobile, realName, idNumber, address, shareCerNo, "", shareCerHolder,
-						shareAmount, weight, roles, arrGroups, joTags);
+						shareAmount, weight, roles, arrGroups, joTags, familyNumber, familyMaster);
 			} catch (Exception e) {
 				log.error(e.getMessage());
 			}
@@ -442,13 +466,13 @@ public class ORGUserService {
 	 * 导入组织用户列表
 	 */
 	public void importORGUsers(DruidPooledConnection conn, Long orgId, String url) throws Exception {
-		List<List<Object>> table = ExcelUtils.readExcelOnline(url, 1, 15, 0);
+		List<List<Object>> table = ExcelUtils.readExcelOnline(url, 1, 17, 0);
 
 		importORGUsersImpl(conn, orgId, table);
 	}
 
 	public void importORGUsersOffline(DruidPooledConnection conn, Long orgId, String fileName) throws Exception {
-		List<List<Object>> table = ExcelUtils.readExcelFile(fileName, 1, 15, 0);
+		List<List<Object>> table = ExcelUtils.readExcelFile(fileName, 1, 17, 0);
 		importORGUsersImpl(conn, orgId, table);
 	}
 
@@ -508,6 +532,40 @@ public class ORGUserService {
 		return getORGUsersInfo(conn, ors);
 	}
 
+	private JSONArray getORGUsersInfoByUsers(DruidPooledConnection conn, Long orgId, List<User> ors) throws Exception {
+		if (ors == null || ors.size() == 0) {
+			return new JSONArray();
+		} else {
+			String[] values = new String[ors.size()];
+			for (int i = 0; i < ors.size(); i++) {
+				values[i] = ors.get(i).id.toString();
+			}
+
+			List<ORGUser> us = orgUserRepository.getListWhereKeyInValues(conn, "WHERE org_id=?", "user_id", values,
+					new String[] { Long.toString(orgId) });
+			JSONArray ret = new JSONArray();
+			for (int i = 0; i < ors.size(); i++) {
+				User u = ors.get(i);
+				for (int j = 0; j < us.size(); j++) {
+					ORGUser or = us.get(j);
+					u.pwd = null;
+					if (u.id.equals(or.userId)) {
+						// 找到匹配的
+						JSONObject jo = new JSONObject();
+						jo.put("user", u);
+						jo.put("orgUser", or);
+						ret.add(jo);
+						break;
+					}
+				}
+			}
+			return ret;
+		}
+	}
+
+	/**
+	 * 根据ORGUser列表，进一步查询并返回User信息
+	 */
 	private JSONArray getORGUsersInfo(DruidPooledConnection conn, List<ORGUser> ors) throws Exception {
 		if (ors == null || ors.size() == 0) {
 			return new JSONArray();
@@ -535,5 +593,10 @@ public class ORGUserService {
 			}
 			return ret;
 		}
+	}
+
+	public int batchEditORGUsersGroups(DruidPooledConnection conn, Long orgId, JSONArray userIds, JSONArray groups)
+			throws Exception {
+		return orgUserRepository.batchEditORGUsersGroups(conn, orgId, userIds, groups);
 	}
 }

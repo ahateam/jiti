@@ -342,4 +342,9 @@ public class ORGService {
 		return loginORG(conn, user, orgUser);
 	}
 
+	public ORGLoginBo areaAdminLoginInORG(DruidPooledConnection conn, Long userId, Long orgId) throws Exception {
+		// TODO xxx
+		return null;
+	}
+
 }

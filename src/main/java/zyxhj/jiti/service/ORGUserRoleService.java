@@ -54,7 +54,8 @@ public class ORGUserRoleService {
 		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_supervisor.roleId, ORGUserRole.role_supervisor);
 		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_supChief.roleId, ORGUserRole.role_supChief);
 		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_supVice.roleId, ORGUserRole.role_supVice);
-
+		
+		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_area_admin.roleId, ORGUserRole.role_area_admin);
 		
 
 		Iterator<ORGUserRole> it = SYS_ORG_USER_ROLE_MAP.values().iterator();

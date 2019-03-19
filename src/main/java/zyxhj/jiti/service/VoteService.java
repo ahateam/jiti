@@ -375,7 +375,7 @@ public class VoteService {
 	private boolean hasPrmission(String strCrowd, ORGUser ou) {
 		JSONObject crowd = JSON.parseObject(strCrowd);
 
-		if (crowd.containsKey("roles") || crowd.containsKey("tags")) {
+		if (crowd.containsKey("roles") || crowd.containsKey("tags") || crowd.containsKey("groups")) {
 			// 包含权限要求，需要进一步判断
 
 			if (crowd.containsKey("roles")) {
@@ -386,9 +386,22 @@ public class VoteService {
 				if (comparePromissionArray(cRoles, uRoles)) {
 					return true;
 				}
+				
 
 				// 没有匹配的权限，什么都不做跳过进入后续的权限判断
 			}
+			
+			if (crowd.containsKey("groups")) {
+				// 如果有角色权限要求，则判定角色
+				JSONArray cGroups = crowd.getJSONArray("groups");
+				JSONArray uGroups = JSON.parseArray(ou.groups);
+
+				if (comparePromissionArray(cGroups, uGroups)) {
+					return true;
+				}
+				// 没有匹配的权限，什么都不做跳过进入后续的权限判断
+			}
+				
 
 			if (crowd.containsKey("tags")) {
 				// 如果有标签权限要求，则判定标签
@@ -499,34 +512,39 @@ public class VoteService {
 				if (selections.size() <= 0) {
 					return;
 				}
-
-				VoteTicket vt = new VoteTicket();
-				vt.voteId = voteId;
-				vt.userId = userId;
-				vt.voteTime = new Date();
-				vt.ballotCount = ballotCount;
-				vt.selection = JSON.toJSONString(selections);
-				vt.remark = remark;
-
-				// 创建选票
-				ticketRepository.insert(conn, vt);
-
-				// 计票
-				String[] ids = new String[selections.size()];
-				for (int i = 0; i < ids.length; i++) {
-					ids[i] = selections.getLong(i).toString();
-				}
-				optionRepository.countTicket(conn, ids, ballotCount);
+				//添加选票
+				addVoteTicket(conn, orgId, voteId, userId, selections, ballotCount, remark);
 
 			} else {
-				// 不再创建，更新
+				// 不再创建，更新   
+				//该用户没有选择投票选项
+				if (selections.size() <= 0) {
+					return;
+				}
+				
+				VoteTicket gvt = getVoteTicket(conn, voteId, userId);
+				JSONArray json = JSONArray.parseArray(gvt.selection);
+				
+				//删除当前用户的投票
+				delVoteTicket(conn, voteId, userId);
+				
+				// 计票-1
+				String[] ids = new String[json.size()];
+				for (int i = 0; i < ids.length; i++) {
+					ids[i] = json.getLong(i).toString();
+				}
+				optionRepository.subTicket(conn, ids, ballotCount);
+				
+				addVoteTicket(conn, orgId, voteId, userId, selections, ballotCount, remark);
 
-				// 目前不让再投了
-				throw new ServerException(BaseRC.ECM_TICKET_EXIST);
 			}
 		} else {
 			throw new ServerException(BaseRC.ECM_VOTE_NO_PROMISS);
 		}
+	}
+
+	private void delVoteTicket(DruidPooledConnection conn, Long voteId, Long userId) {
+		
 	}
 
 	/**
@@ -553,5 +571,38 @@ public class VoteService {
 	 */
 	public VoteTicket getVoteTicket(DruidPooledConnection conn, Long voteId, Long userId) throws Exception {
 		return ticketRepository.getByKeys(conn, new String[] { "vote_id", "user_id" }, new Object[] { voteId, userId });
+	}
+	
+	/**
+	 * 添加选票
+	 * @param conn
+	 * @param orgId
+	 * @param voteId
+	 * @param userId
+	 * @param selections
+	 * @param ballotCount
+	 * @param remark
+	 * @throws Exception
+	 */
+	public void addVoteTicket(DruidPooledConnection conn, Long orgId, Long voteId, Long userId, JSONArray selections,
+			Integer ballotCount, String remark) throws Exception{
+		
+		//添加票
+		VoteTicket vt = new VoteTicket();
+		vt.voteId = voteId;
+		vt.userId = userId;
+		vt.voteTime = new Date();
+		vt.ballotCount = ballotCount;
+		vt.selection = JSON.toJSONString(selections);
+		vt.remark = remark;
+		// 创建选票
+		ticketRepository.insert(conn, vt);
+	
+		//计票
+		String[] id = new String[selections.size()];
+		for (int i = 0; i < id.length; i++) {
+			id[i] = selections.getLong(i).toString();
+		}
+		optionRepository.countTicket(conn, id, ballotCount);
 	}
 }

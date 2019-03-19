@@ -57,7 +57,7 @@ public class VoteController extends Controller {
 			@P(t = "投票模版，Vote.TEMPLATE") Byte template, //
 			@P(t = "投票类型，Vote.TYPE") Byte type, //
 			@P(t = "最多选择的数量") Byte choiceCount, //
-			@P(t = "参加投票项目的人群（JSONObject，包含roles及tags两个结构）") JSONObject crowd, //
+			@P(t = "参加投票项目的人群（JSONObject，包含roles、groups及tags三个结构）") JSONObject crowd, //
 			@P(t = "用户在有效期内是否可以重新编辑选票") Boolean reeditable, //
 			@P(t = "是否实名制") Boolean realName, //
 			@P(t = "是否内部投票（外部可允许任何人参与，用于意见采集）") Boolean isInternal, //
@@ -90,7 +90,7 @@ public class VoteController extends Controller {
 			@P(t = "投票编号") Long voteId, //
 			@P(t = "投票类型，Vote.TYPE") Byte type, //
 			@P(t = "最多选择的数量") Byte choiceCount, //
-			@P(t = "参加投票项目的人群（JSONObject，包含roles及tags两个结构）") JSONObject crowd, //
+			@P(t = "参加投票项目的人群（JSONObject，包含roles、groups及tags三个结构）") JSONObject crowd, //
 			@P(t = "用户在有效期内是否可以重新编辑选票") Boolean reeditable, //
 			@P(t = "是否实名制") Boolean realName, //
 			@P(t = "是否内部投票（外部可允许任何人参与，用于意见采集）") Boolean isInternal, //

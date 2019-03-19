@@ -1,8 +1,10 @@
 package zyxhj.jiti.repository;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
@@ -251,5 +253,24 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		} else {
 			return 0;
 		}
+	}
+
+	public Map<String,Integer> countRole(DruidPooledConnection conn) throws Exception{
+		Map<String,Integer> map = new HashMap<String, Integer>();
+		//SELECT  COUNT(*) FROM tb_ecm_org_user WHERE  JSON_CONTAINS(roles, '105')
+		int a104 = this.count(conn, "WHERE JSON_CONTAINS(roles, '104')", new Object[]{});
+		map.put("104", a104);
+		int a105 = this.count(conn, "WHERE JSON_CONTAINS(roles, '105')", new Object[]{});
+		map.put("105", a105);
+		int a106 = this.count(conn, "WHERE JSON_CONTAINS(roles, '106')", new Object[]{});
+		map.put("106", a106);
+		int a107 = this.count(conn, "WHERE JSON_CONTAINS(roles, '107')", new Object[]{});
+		map.put("107", a107);
+		int a108 = this.count(conn, "WHERE JSON_CONTAINS(roles, '108')", new Object[]{});
+		map.put("108", a108);
+		int a109 = this.count(conn, "WHERE JSON_CONTAINS(roles, '109')", new Object[]{});
+		map.put("109", a109);
+		return map;
+		
 	}
 }

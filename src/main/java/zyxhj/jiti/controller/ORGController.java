@@ -84,6 +84,57 @@ public class ORGController extends Controller {
 					district, address, imgOrg, imgAuth, shareAmount));
 		}
 	}
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(path = "createORGApply", //
+			des = "创建组织申请", //
+			ret = "所创建的对象"//
+	)
+	public APIResponse createORGApply(//
+			@P(t = "创建者用户编号") Long userId, //
+			@P(t = "组织名称") String name, //
+			@P(t = "组织机构代码") String code, //
+			@P(t = "省") String province, //
+			@P(t = "市") String city, //
+			@P(t = "区") String district, //
+			@P(t = "街道地址") String address, //
+			@P(t = "组织机构证书图片地址", r = false) String imgOrg, //
+			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
+			@P(t = "总股份数") Integer shareAmount//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.createORGApply(conn, userId, name, code, province, city,
+					district, address, imgOrg, imgAuth, shareAmount));
+		}
+	}
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(path = "upORGApply", //
+			des = "创建组织申请", //
+			ret = "所创建的对象"//
+	)
+	public APIResponse upORGApply(//
+			@P(t = "组织id") Long orgExamineId, //
+			@P(t = "创建者用户编号") Long userId, //
+			@P(t = "组织名称") String name, //
+			@P(t = "组织机构代码") String code, //
+			@P(t = "省") String province, //
+			@P(t = "市") String city, //
+			@P(t = "区") String district, //
+			@P(t = "街道地址") String address, //
+			@P(t = "组织机构证书图片地址", r = false) String imgOrg, //
+			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
+			@P(t = "总股份数") Integer shareAmount,//
+			@P(t = "申请状态") String examine//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.upORGApply(conn, orgExamineId, examine, userId, name, code, province, city, district, address, imgOrg, imgAuth, shareAmount));
+		}
+	}
 
 	/**
 	 * 
@@ -386,6 +437,24 @@ public class ORGController extends Controller {
 					.getNewSuccessResp(ServiceUtils.checkNull(orgService.adminLoginInORG(conn, userId, orgId)));
 		}
 	}
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "areaAdminLoginInORG", //
+			des = "区管理员登录到组织", //
+			ret = "ORGLoginBo对象，包含user，session及org等信息"//
+	)
+	public APIResponse areaAdminLoginInORG(//
+			@P(t = "用户编号") Long userId, //
+			@P(t = "组织编号") Long orgId//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse
+					.getNewSuccessResp(ServiceUtils.checkNull(orgService.areaAdminLoginInORG(conn, userId, orgId)));
+		}
+	}
 
 	/**
 	 * 
@@ -639,4 +708,35 @@ public class ORGController extends Controller {
 		}
 	}
 
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getORGExamine", //
+			des = "查询组织申请列表", //
+			ret = "返回查询值")
+	public APIResponse getORGExamine(//
+			@P(t = "区编号") Long areaId, //
+			 Integer count,//
+			 Integer offset//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.getORGExamine(conn, areaId, count, offset));
+		}
+	}
+	
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "countRole", //
+			des = "统计组织角色", //
+			ret = "返回角色统计值")
+	public APIResponse countRole(//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.countRole(conn));
+		}
+	}
 }

@@ -3,6 +3,7 @@ package zyxhj.jiti.service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,9 +18,11 @@ import zyxhj.core.domain.User;
 import zyxhj.core.domain.UserSession;
 import zyxhj.core.repository.UserRepository;
 import zyxhj.jiti.domain.ORG;
+import zyxhj.jiti.domain.ORGExamine;
 import zyxhj.jiti.domain.ORGLoginBo;
 import zyxhj.jiti.domain.ORGUser;
 import zyxhj.jiti.domain.ORGUserRole;
+import zyxhj.jiti.repository.ORGExamineRepository;
 import zyxhj.jiti.repository.ORGRepository;
 import zyxhj.jiti.repository.ORGUserRepository;
 import zyxhj.utils.CacheCenter;
@@ -36,12 +39,14 @@ public class ORGService {
 	private ORGRepository orgRepository;
 	private ORGUserRepository orgUserRepository;
 	private UserRepository userRepository;
+	private ORGExamineRepository orgExamineRepository;
 
 	public ORGService() {
 		try {
 			orgRepository = Singleton.ins(ORGRepository.class);
 			orgUserRepository = Singleton.ins(ORGUserRepository.class);
 			userRepository = Singleton.ins(UserRepository.class);
+			orgExamineRepository = Singleton.ins(ORGExamineRepository.class);
 
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
@@ -275,10 +280,8 @@ public class ORGService {
 	/**
 	 * 成员登录
 	 * 
-	 * @param mobile
-	 *            电话号码
-	 * @param pwd
-	 *            密码
+	 * @param mobile 电话号码
+	 * @param pwd    密码
 	 * @param 登录业务对象
 	 */
 	public LoginBo loginByMobile(DruidPooledConnection conn, String mobile, String pwd) throws Exception {
@@ -342,9 +345,76 @@ public class ORGService {
 		return loginORG(conn, user, orgUser);
 	}
 
+	// 区级管理员登陆
 	public ORGLoginBo areaAdminLoginInORG(DruidPooledConnection conn, Long userId, Long orgId) throws Exception {
-		// TODO xxx
-		return null;
+		ORGUser orgUser = orgUserRepository.checkORGUserRoles(conn, orgId, userId,
+				new ORGUserRole[] { ORGUserRole.role_area_admin }); // 检查权限为区管理员
+		User user = userRepository.getByKey(conn, "id", userId); // 获取用户信息
+		ServiceUtils.checkNull(user); // 用户信息是否为空
+		return loginORG(conn, user, orgUser); // 用户登录
+	}
+
+	/**
+	 * 创建组织申请
+	 */
+	public ORGExamine createORGApply(DruidPooledConnection conn, Long userId, String name, String code, String province,
+			String city, String district, String address, String imgOrg, String imgAuth, Integer shareAmount)
+			throws Exception {
+		ORG existORG = orgRepository.getByKey(conn, "code", code);
+		if (null == existORG) {
+			// 组织不存在
+			ORGExamine newORG = new ORGExamine();
+
+			newORG.id = IDUtils.getSimpleId();
+			newORG.createTime = new Date();
+			newORG.name = name;
+			newORG.code = code;
+			newORG.province = province;
+			newORG.city = city;
+			newORG.district = district;
+			newORG.address = address;
+			newORG.imgOrg = imgOrg;
+			newORG.imgAuth = imgAuth;
+			newORG.shareAmount = shareAmount;
+			newORG.examine = ORGExamine.examine_undetermined;
+
+			orgExamineRepository.insert(conn, newORG);
+
+			return newORG;
+		} else {
+			// 组织已存在
+			throw new ServerException(BaseRC.ECM_ORG_EXIST);
+		}
+	}
+
+	// 修改组织申请状态
+	public ORGExamine upORGApply(DruidPooledConnection conn, Long orgExamineId, String examine, Long userId,
+			String name, String code, String province, String city, String district, String address, String imgOrg,
+			String imgAuth, Integer shareAmount) throws Exception {
+
+		ORGExamine newORG = new ORGExamine();
+
+		newORG.id = orgExamineId;
+		newORG.examine = examine;
+		if (examine.equals(ORGExamine.examine_pass)) {
+			orgExamineRepository.updateByKey(conn, "id", orgExamineId, newORG, true);
+			this.createORG(conn, userId, name, code, province, city, district, address, imgOrg, imgAuth, shareAmount);
+		} else if (examine.equals(ORGExamine.examine_notpass)) {
+			orgExamineRepository.updateByKey(conn, "id", orgExamineId, newORG, true);
+		}
+
+		return newORG;
+	}
+
+	// 查询组织申请列表
+	public List<ORGExamine> getORGExamine(DruidPooledConnection conn, Long areaId, Integer count, Integer offset)
+			throws Exception {
+		return orgExamineRepository.getListByKey(conn, "examine", ORGExamine.examine_undetermined, count, offset);
+	}
+
+	//统计组织角色
+	public Map<String, Integer> countRole(DruidPooledConnection conn) throws Exception {
+		return orgUserRepository.countRole(conn);
 	}
 
 }

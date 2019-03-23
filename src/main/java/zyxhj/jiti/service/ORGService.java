@@ -17,11 +17,13 @@ import zyxhj.core.domain.LoginBo;
 import zyxhj.core.domain.User;
 import zyxhj.core.domain.UserSession;
 import zyxhj.core.repository.UserRepository;
+import zyxhj.jiti.domain.Family;
 import zyxhj.jiti.domain.ORG;
 import zyxhj.jiti.domain.ORGExamine;
 import zyxhj.jiti.domain.ORGLoginBo;
 import zyxhj.jiti.domain.ORGUser;
 import zyxhj.jiti.domain.ORGUserRole;
+import zyxhj.jiti.repository.FamilyRepository;
 import zyxhj.jiti.repository.ORGExamineRepository;
 import zyxhj.jiti.repository.ORGRepository;
 import zyxhj.jiti.repository.ORGUserRepository;
@@ -40,6 +42,7 @@ public class ORGService {
 	private ORGUserRepository orgUserRepository;
 	private UserRepository userRepository;
 	private ORGExamineRepository orgExamineRepository;
+	private FamilyRepository familyRepository;
 
 	public ORGService() {
 		try {
@@ -47,7 +50,7 @@ public class ORGService {
 			orgUserRepository = Singleton.ins(ORGUserRepository.class);
 			userRepository = Singleton.ins(UserRepository.class);
 			orgExamineRepository = Singleton.ins(ORGExamineRepository.class);
-
+			familyRepository = Singleton.ins(FamilyRepository.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -266,12 +269,15 @@ public class ORGService {
 	 */
 	public List<ORG> getUserORGs(DruidPooledConnection conn, Long userId) throws Exception {
 		List<ORGUser> ors = orgUserRepository.getListByKey(conn, "user_id", userId, 512, 0);
+		ORGUser byKey = orgUserRepository.getByKey(conn, "user_id", userId);
+		System.out.println(byKey);
 		if (ors == null || ors.size() == 0) {
 			return new ArrayList<ORG>();
 		} else {
 			String[] values = new String[ors.size()];
 			for (int i = 0; i < ors.size(); i++) {
 				values[i] = ors.get(i).orgId.toString();
+				System.out.println(values[i]);
 			}
 			return orgRepository.getListByKeyInValues(conn, "id", values);
 		}
@@ -367,6 +373,7 @@ public class ORGService {
 
 			newORG.id = IDUtils.getSimpleId();
 			newORG.createTime = new Date();
+			newORG.userId = userId;
 			newORG.name = name;
 			newORG.code = code;
 			newORG.province = province;
@@ -376,7 +383,7 @@ public class ORGService {
 			newORG.imgOrg = imgOrg;
 			newORG.imgAuth = imgAuth;
 			newORG.shareAmount = shareAmount;
-			newORG.examine = ORGExamine.examine_undetermined;
+			newORG.examine = ORGExamine.STATUS.VOTING.v();
 
 			orgExamineRepository.insert(conn, newORG);
 
@@ -388,18 +395,20 @@ public class ORGService {
 	}
 
 	// 修改组织申请状态
-	public ORGExamine upORGApply(DruidPooledConnection conn, Long orgExamineId, String examine, Long userId,
+	public ORGExamine upORGApply(DruidPooledConnection conn, Long orgExamineId, byte examine, Long userId,
 			String name, String code, String province, String city, String district, String address, String imgOrg,
 			String imgAuth, Integer shareAmount) throws Exception {
 
 		ORGExamine newORG = new ORGExamine();
 
-		newORG.id = orgExamineId;
 		newORG.examine = examine;
-		if (examine.equals(ORGExamine.examine_pass)) {
+		if (examine == ORGExamine.STATUS.WAITING.v()) {
+			
 			orgExamineRepository.updateByKey(conn, "id", orgExamineId, newORG, true);
+			
 			this.createORG(conn, userId, name, code, province, city, district, address, imgOrg, imgAuth, shareAmount);
-		} else if (examine.equals(ORGExamine.examine_notpass)) {
+		} else if (examine == ORGExamine.STATUS.INVALID.v()) {
+			
 			orgExamineRepository.updateByKey(conn, "id", orgExamineId, newORG, true);
 		}
 
@@ -409,12 +418,52 @@ public class ORGService {
 	// 查询组织申请列表
 	public List<ORGExamine> getORGExamine(DruidPooledConnection conn, Long areaId, Integer count, Integer offset)
 			throws Exception {
-		return orgExamineRepository.getListByKey(conn, "examine", ORGExamine.examine_undetermined, count, offset);
+		return orgExamineRepository.getListByKey(conn, "examine", (Object)ORGExamine.STATUS.VOTING.v(), count, offset);
 	}
 
+	//查询自己提交的申请
+	public List<ORGExamine> getORGExamineByUser(DruidPooledConnection conn,Long userId,Integer count,Integer offset) throws Exception{
+		return orgExamineRepository.getListByKey(conn, "user_id", userId, count, offset);
+	}
+	
 	//统计组织角色
-	public Map<String, Integer> countRole(DruidPooledConnection conn) throws Exception {
-		return orgUserRepository.countRole(conn);
+	public Map<String, Integer> countRole(DruidPooledConnection conn,Long orgId,JSONArray roles) throws Exception {
+		return orgUserRepository.countRole(conn,orgId,roles);
 	}
 
+	//添加分户
+	public Family createFamily(DruidPooledConnection conn,Long orgId,String familyNumber,String familyMaster) throws Exception{
+		Family fa = new Family();
+		fa.id = IDUtils.getSimpleId();
+		fa.orgId = orgId;
+		fa.familyNumber = familyNumber;
+		fa.familyMaster = familyMaster;
+		//检查户序号是否已经存在
+		Family fn = familyRepository.getByKey(conn, "family_number", familyNumber);
+		if(fn == null ) {
+			 familyRepository.insert(conn, fa);
+			 return fa;
+		}else {
+			// 户已存在
+			throw new ServerException(BaseRC.ECM_ORG_FAMILY_EXIST);
+		}
+	}
+	
+	//修改分户																									
+	public int editFamily(DruidPooledConnection conn,Long orgId,String familyNumber,String familyMaster) throws Exception{
+		Family fa = new Family();
+		fa.orgId = orgId;
+		fa.familyNumber = familyNumber;
+		fa.familyMaster = familyMaster;
+		//检查户序号是否已经存在
+	//	Family fn = familyRepository.getByKey(conn, "family_number", familyNumber);
+		
+		return familyRepository.updateByKey(conn, "org_id", orgId, fa, true);
+	}
+	
+	//所有户列表
+	public List<Family> getFamilyAll(DruidPooledConnection conn,Long orgId,Integer count,Integer offset) throws Exception{
+		return familyRepository.getListByKey(conn, "org_id", orgId, count, offset);
+	}
+	
 }

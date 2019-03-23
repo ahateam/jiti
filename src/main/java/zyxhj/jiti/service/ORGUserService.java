@@ -15,9 +15,11 @@ import com.alibaba.fastjson.JSONObject;
 
 import zyxhj.core.domain.User;
 import zyxhj.core.repository.UserRepository;
+import zyxhj.jiti.domain.Family;
 import zyxhj.jiti.domain.ORGUser;
 import zyxhj.jiti.domain.ORGUserRole;
 import zyxhj.jiti.domain.ORGUserTagGroup;
+import zyxhj.jiti.repository.FamilyRepository;
 import zyxhj.jiti.repository.ORGUserRepository;
 import zyxhj.utils.CodecUtils;
 import zyxhj.utils.ExcelUtils;
@@ -35,6 +37,7 @@ public class ORGUserService {
 
 	private ORGUserRoleService orgUserRoleService;
 	private ORGUserGroupService orgUserGroupService;
+	private FamilyRepository familyRepository;
 
 	public ORGUserService() {
 		try {
@@ -43,6 +46,7 @@ public class ORGUserService {
 
 			orgUserRoleService = Singleton.ins(ORGUserRoleService.class);
 			orgUserGroupService = Singleton.ins(ORGUserGroupService.class);
+			familyRepository = Singleton.ins(FamilyRepository.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -151,6 +155,7 @@ public class ORGUserService {
 			String shareCerImg, Boolean shareCerHolder, Integer shareAmount, Integer weight, JSONArray roles,
 			JSONArray groups, JSONObject tags, String familyNumber, String familyMaster) throws Exception {
 		ORGUser or = new ORGUser();
+		Family fa = new Family();
 		or.orgId = orgId;
 		or.userId = userId;
 
@@ -169,6 +174,33 @@ public class ORGUserService {
 		or.familyNumber = familyNumber;
 		or.familyMaster = familyMaster;
 
+		if (StringUtils.isNotBlank(familyNumber)) {
+			// 查询户序号在family表里是否拥有 有则把usreid插入到户成员下 无则添加户
+			Family fn = familyRepository.getByKey(conn, "family_number", familyNumber);
+			if (fn == null) {
+				// 添加户
+				fa.id = IDUtils.getSimpleId();
+				fa.orgId = orgId;
+				fa.familyNumber = familyNumber;
+				fa.familyMaster = familyMaster;
+				
+				// 将当前用户的id插入到户成员里
+				JSONArray json = new JSONArray();
+				json.add(userId);
+				fa.familyMember = json.toString();
+				familyRepository.insert(conn, fa);
+			} else {
+				// 添加到户成员下
+				JSONArray json = JSONArray.parseArray(fn.familyMember);
+				json.add(userId);
+
+				fa.familyNumber = familyNumber;
+				fa.familyMaster = familyMaster;
+				fa.familyMember = json.toString();
+
+				familyRepository.updateByKey(conn, "family_number", familyNumber, fa, true);
+			}
+		}
 		orgUserRepository.insert(conn, or);
 	}
 

@@ -543,8 +543,8 @@ public class VoteService {
 		}
 	}
 
-	private void delVoteTicket(DruidPooledConnection conn, Long voteId, Long userId) {
-		
+	public void delVoteTicket(DruidPooledConnection conn, Long voteId, Long userId) throws Exception{
+		voteRepository.deleteByKeys(conn, new String[]{"vote_id","user_id"}, new Object[] {voteId,userId});
 	}
 
 	/**
@@ -575,14 +575,6 @@ public class VoteService {
 	
 	/**
 	 * 添加选票
-	 * @param conn
-	 * @param orgId
-	 * @param voteId
-	 * @param userId
-	 * @param selections
-	 * @param ballotCount
-	 * @param remark
-	 * @throws Exception
 	 */
 	public void addVoteTicket(DruidPooledConnection conn, Long orgId, Long voteId, Long userId, JSONArray selections,
 			Integer ballotCount, String remark) throws Exception{
@@ -605,4 +597,9 @@ public class VoteService {
 		}
 		optionRepository.countTicket(conn, id, ballotCount);
 	}
+	
+	public List<VoteTicket> getUserBySel(DruidPooledConnection conn,Long voteId,String selection,Integer count,Integer offset) throws Exception{
+		return ticketRepository.getUserBySel(conn,voteId,selection,count,offset);
+	}
+	
 }

@@ -7,6 +7,7 @@ import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
+import zyxhj.jiti.domain.ORGExamine;
 import zyxhj.jiti.service.ORGService;
 import zyxhj.jiti.service.ORGUserGroupService;
 import zyxhj.jiti.service.ORGUserRoleService;
@@ -41,6 +42,9 @@ public class ORGController extends Controller {
 		}
 	}
 
+	@ENUM(des = "投票状态")
+	public ORGExamine.STATUS[] voteStatus = ORGExamine.STATUS.values();
+	
 	/**
 	 * 
 	 */
@@ -85,56 +89,6 @@ public class ORGController extends Controller {
 		}
 	}
 	
-	/**
-	 * 
-	 */
-	@POSTAPI(path = "createORGApply", //
-			des = "创建组织申请", //
-			ret = "所创建的对象"//
-	)
-	public APIResponse createORGApply(//
-			@P(t = "创建者用户编号") Long userId, //
-			@P(t = "组织名称") String name, //
-			@P(t = "组织机构代码") String code, //
-			@P(t = "省") String province, //
-			@P(t = "市") String city, //
-			@P(t = "区") String district, //
-			@P(t = "街道地址") String address, //
-			@P(t = "组织机构证书图片地址", r = false) String imgOrg, //
-			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
-			@P(t = "总股份数") Integer shareAmount//
-	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.createORGApply(conn, userId, name, code, province, city,
-					district, address, imgOrg, imgAuth, shareAmount));
-		}
-	}
-	
-	/**
-	 * 
-	 */
-	@POSTAPI(path = "upORGApply", //
-			des = "创建组织申请", //
-			ret = "所创建的对象"//
-	)
-	public APIResponse upORGApply(//
-			@P(t = "组织id") Long orgExamineId, //
-			@P(t = "创建者用户编号") Long userId, //
-			@P(t = "组织名称") String name, //
-			@P(t = "组织机构代码") String code, //
-			@P(t = "省") String province, //
-			@P(t = "市") String city, //
-			@P(t = "区") String district, //
-			@P(t = "街道地址") String address, //
-			@P(t = "组织机构证书图片地址", r = false) String imgOrg, //
-			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
-			@P(t = "总股份数") Integer shareAmount,//
-			@P(t = "申请状态") String examine//
-	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.upORGApply(conn, orgExamineId, examine, userId, name, code, province, city, district, address, imgOrg, imgAuth, shareAmount));
-		}
-	}
 
 	/**
 	 * 
@@ -708,6 +662,59 @@ public class ORGController extends Controller {
 		}
 	}
 
+	
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(path = "createORGApply", //
+			des = "创建组织申请", //
+			ret = "所创建的对象"//
+	)
+	public APIResponse createORGApply(//
+			@P(t = "创建者用户编号") Long userId, //
+			@P(t = "组织名称") String name, //
+			@P(t = "组织机构代码") String code, //
+			@P(t = "省") String province, //
+			@P(t = "市") String city, //
+			@P(t = "区") String district, //
+			@P(t = "街道地址") String address, //
+			@P(t = "组织机构证书图片地址", r = false) String imgOrg, //
+			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
+			@P(t = "总股份数") Integer shareAmount//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.createORGApply(conn, userId, name, code, province, city,
+					district, address, imgOrg, imgAuth, shareAmount));
+		}
+	}
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(path = "upORGApply", //
+			des = "修改组织申请", //
+			ret = "所创建的对象"//
+	)
+	public APIResponse upORGApply(//
+			@P(t = "组织id") Long orgExamineId, //
+			@P(t = "创建者用户编号") Long userId, //
+			@P(t = "组织名称") String name, //
+			@P(t = "组织机构代码") String code, //
+			@P(t = "省") String province, //
+			@P(t = "市") String city, //
+			@P(t = "区") String district, //
+			@P(t = "街道地址") String address, //
+			@P(t = "组织机构证书图片地址", r = false) String imgOrg, //
+			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
+			@P(t = "总股份数") Integer shareAmount,//
+			@P(t = "申请状态") Byte examine//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.upORGApply(conn, orgExamineId, examine, userId, name, code, province, city, district, address, imgOrg, imgAuth, shareAmount));
+		}
+	}
+
 	/**
 	 * 
 	 */
@@ -730,13 +737,88 @@ public class ORGController extends Controller {
 	 * 
 	 */
 	@POSTAPI(//
+			path = "getORGExamineByUser", //
+			des = "查看用户自己的申请", //
+			ret = "返回查询值")
+	public APIResponse getORGExamineByUser(//
+			@P(t = "用户编号") Long userId, //
+			Integer count,//
+			Integer offset//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.getORGExamineByUser(conn,userId,count,offset));
+		}
+	}
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(//
 			path = "countRole", //
 			des = "统计组织角色", //
 			ret = "返回角色统计值")
 	public APIResponse countRole(//
-	) throws Exception {
+			@P(t = "组织编号") Long orgId , //
+			@P(t = "角色编号  使用JSONArray数组存") JSONArray roles  //
+			
+			) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.countRole(conn));
+			return APIResponse.getNewSuccessResp(orgService.countRole(conn,orgId,roles));
 		}
 	}
+	
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "createFamily", //
+			des = "添加户", //
+			ret = "返回添加信息")
+	public APIResponse createFamily(//
+			@P(t = "组织编号") Long orgId , //
+			@P(t = "户序号") String familyNumber , //
+			@P(t = "户主名") String familyMaster  //
+			
+			) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.createFamily(conn,orgId,familyNumber,familyMaster));
+		}
+	}
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "editFamily", //
+			des = "修改户", //
+			ret = "返回修改信息")
+	public APIResponse editFamily(//
+			@P(t = "组织编号") Long orgId , //
+			@P(t = "户序号") String familyNumber , //
+			@P(t = "户主名") String familyMaster  //
+			) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.editFamily(conn,orgId,familyNumber,familyMaster));
+		}
+	}
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getFamilyAll", //
+			des = "所有户列表", //
+			ret = "返回查询信息")
+	public APIResponse getFamilyAll(//
+			@P(t = "组织编号",r=false) Long orgId , //
+			@P(t = "查询数",r=false)Integer count,//
+			@P(t = "开始位置",r=false)Integer offset
+			) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.getFamilyAll(conn,orgId,count,offset));
+		}
+	}
+	
 }
+

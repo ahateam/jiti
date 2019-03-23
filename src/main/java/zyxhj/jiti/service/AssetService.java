@@ -2,6 +2,7 @@ package zyxhj.jiti.service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -261,4 +262,30 @@ public class AssetService {
 			throws Exception {
 		return assetRepository.batchEditAssetsGroups(conn, orgId, assetIds, groups);
 	}
+	
+	
+	public List<Asset> getOriORNameBySn(DruidPooledConnection conn,Long orgId,String assetNum,Integer count,Integer offset) throws Exception{
+		return assetRepository.getOriORNameBySn(conn,orgId,assetNum,count,offset);
+	}
+	
+	public List<Asset> getOriORNameByName(DruidPooledConnection conn, Long orgId, String assetNum, Integer count,
+			Integer offset) throws Exception {
+		return assetRepository.getOriORNameByName(conn, orgId, assetNum, count, offset);
+	}
+	
+	public List<Asset> getAssetByYear(DruidPooledConnection conn,Long orgId,String buildTime,Integer count,Integer offset) throws Exception{
+		return assetRepository.getAssetByYear(conn,orgId,buildTime,count,offset);
+	}
+	
+	public JSONArray sumAsset(DruidPooledConnection conn,Long orgId,JSONArray groups) throws Exception {
+		return assetRepository.sumAsset(conn, orgId,groups);
+	}
+	
+	
+	public JSONArray sumAssetByDis(DruidPooledConnection conn,Long distractId) throws Exception{
+		return assetRepository.sumAssetByDis(conn,distractId);
+	}
+
+	
+	
 }

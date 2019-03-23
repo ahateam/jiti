@@ -133,6 +133,71 @@ public class AssetRepository extends RDSRepository<Asset> {
 		}
 	}
 
+	public List<Asset> getOriORNameBySn(DruidPooledConnection conn, Long orgId, String assetNum, Integer count,
+			Integer offset) throws Exception {
+		// SELECT * FROM tb_ecm_org_user WHERE family_master LIKE '%文%' OR user_id LIKE
+		// "3755%"
+		StringBuffer sb = new StringBuffer();
+		// 按编号模糊查询
+		sb.append("WHERE org_id = ? AND sn LIKE '%").append(assetNum).append("%'");
+		return this.getList(conn, sb.toString(), new Object[] { orgId }, count, offset);
+	}
+
+	public List<Asset> getOriORNameByName(DruidPooledConnection conn, Long orgId, String assetNum, Integer count,
+			Integer offset) throws Exception {
+		// SELECT * FROM tb_ecm_org_user WHERE family_master LIKE '%文%' OR user_id LIKE
+		// "3755%"
+		StringBuffer sb = new StringBuffer();
+		// 按名称模糊查询
+		sb.append("WHERE org_id = ?  name LIKE '%").append(assetNum).append("%')");
+		return this.getList(conn, sb.toString(), new Object[] { orgId }, count, offset);
+
+	}
+
+	public List<Asset> getAssetByYear(DruidPooledConnection conn, Long orgId, String buildTime, Integer count,
+			Integer offset) throws Exception {
+		return this.getList(conn, "WHERE org_id = ? AND build_time = ? ", new Object[] { orgId, buildTime }, count,
+				offset);
+	}
+
+	public JSONArray sumAsset(DruidPooledConnection conn, Long orgId, JSONArray groups) throws Exception {
+		// 获取年份 SELECT * FROM tb_ecm_asset GROUP BY build_time
+		List<Asset> li = getList(conn, " GROUP BY build_time ", new Object[] {}, 128, 0);
+
+		JSONArray js = new JSONArray();
+		String[] gr = new String[groups.size()];
+		for (int i = 0; i < gr.length; i++) {
+			gr[i] = groups.getLong(i).toString();
+			StringBuffer sb = new StringBuffer(
+					" SELECT sum(origin_price) originPrice , sum(yearly_income) yearlyIncome FROM tb_ecm_asset WHERE org_id = ? AND build_time = ? ");
+			//如果分组不为空  则加入条件进行查询
+			if (StringUtils.isNotBlank(gr[i])) {
+				sb.append("AND JSON_CONTAINS(groups,'").append(gr[i]).append("','$')");
+			}
+			for (Asset asset : li) {
+				// 传入sql 对原产值和年产值求和
+				js.add(nativeGetJSONArray(conn, sb.toString(), new Object[] { orgId, asset.buildTime }));
+			}
+		}
+		return js;
+
+	}
+
+	public JSONArray sumAssetByDis(DruidPooledConnection conn, Long distractId) throws Exception {
+		// 获取年份 SELECT * FROM tb_ecm_asset GROUP BY build_time
+		List<Asset> li = getList(conn, " GROUP BY build_time ", new Object[] {}, 128, 0);
+
+		StringBuffer sb = new StringBuffer(
+				" SELECT build_time,sum(origin_price) originPrice , sum(yearly_income) yearlyIncome FROM tb_ecm_asset WHERE build_time = ? ");
+		JSONArray js = new JSONArray();
+
+		for (Asset asset : li) {
+			// 传入sql 对原产值和年产值求和
+			js.add(nativeGetJSONArray(conn, sb.toString(), new Object[] { asset.buildTime }));
+		}
+		return js;
+	}
+
 	// public List<Asset> getAssetsByGroups(DruidPooledConnection conn, Long orgId,
 	// JSONArray groups, Integer count,
 	// Integer offset) throws ServerException {

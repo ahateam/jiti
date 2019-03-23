@@ -2,24 +2,54 @@ package zyxhj.jiti.domain;
 
 import java.util.Date;
 
+import zyxhj.utils.api.Controller.ENUMVALUE;
 import zyxhj.utils.data.rds.RDSAnnEntity;
 import zyxhj.utils.data.rds.RDSAnnField;
 import zyxhj.utils.data.rds.RDSAnnID;
 
 /**
- * 组织
+ * 组织申请审核表
  *
  */
 @RDSAnnEntity(alias = "tb_ecm_org_examine")
 public class ORGExamine {
 	
-	public static final String examine_undetermined = "待定";
-	public static final String examine_pass = "通过";
-	public static final String examine_notpass = "未通过";
+	public static enum STATUS implements ENUMVALUE {
+		VOTING((byte) 0, "待定"), //
+		WAITING((byte) 1, "通过"), //
+		INVALID((byte) 2, "未通过"), //
+		;
+
+		private byte v;
+		private String txt;
+
+		private STATUS(byte v, String txt) {
+			this.v = v;
+			this.txt = txt;
+		}
+
+		@Override
+		public byte v() {
+			return v;
+		}
+
+		@Override
+		public String txt() {
+			return txt;
+		}
+	}
+
+	
 
 	@RDSAnnID
 	@RDSAnnField(column = RDSAnnField.ID)
 	public Long id;
+	
+	/**
+	 * 用户id
+	 */
+	@RDSAnnField(column = RDSAnnField.ID)
+	public Long userId;
 
 	/**
 	 * 创建时间
@@ -136,10 +166,10 @@ public class ORGExamine {
 	public Double valuation;
 	
 	/**
-	 * 状态
+	 * 审核状态
 	 */
-	@RDSAnnField(column = RDSAnnField.SHORT_TEXT)
-	public String examine;
+	@RDSAnnField(column = RDSAnnField.BYTE)
+	public byte examine;
 	
 	
 }

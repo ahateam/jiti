@@ -338,4 +338,24 @@ public class VoteController extends Controller {
 			return APIResponse.getNewSuccessResp(voteService.getVoteTicket(conn, voteId, userId));
 		}
 	}
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getUserBySel", //
+			des = "获取用户的选票", //
+			ret = "用户选票对象"//
+	)
+	public APIResponse getUserBySel(//
+			@P(t = "投票编号") Long voteId, //
+			@P(t = "用户编号") String selection ,//
+			Integer count,//
+			Integer offset //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(voteService.getUserBySel(conn, voteId, selection,count,offset));
+		}
+	}
+	
 }

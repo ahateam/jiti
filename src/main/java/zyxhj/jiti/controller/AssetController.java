@@ -263,4 +263,97 @@ public class AssetController extends Controller {
 			return APIResponse.getNewSuccessResp(assetService.batchEditAssetsGroups(conn, orgId, assetIds, groups));
 		}
 	}
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getOriORNameBySn", //
+			des = "根据证件号模糊查询对应的资产", //
+			ret = "返回查询结果"//
+	)
+	public APIResponse getOriORNameBySn(//
+			@P(t = "组织id") Long orgId, //
+			@P(t = "证件号/名称") String assetNum, //
+			Integer count, //
+			Integer offset //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(assetService.getOriORNameBySn(conn,orgId,assetNum, count,offset));
+		}
+	}
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getOriORNameByName", //
+			des = "根据名称模糊查询对应的资产", //
+			ret = "返回查询结果"//
+	)
+	public APIResponse getOriORNameByName(//
+			@P(t = "组织id") Long orgId, //
+			@P(t = "证件号/名称") String assetNum, //
+			Integer count, //
+			Integer offset //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(assetService.getOriORNameByName(conn,orgId,assetNum, count,offset));
+		}
+	}
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getAssetByYear", //
+			des = "查询当前组织下的输入的年份下所有资产信息", //
+			ret = "返回查询结果"//
+	)
+	public APIResponse getAssetByYear(//
+			@P(t = "组织id") Long orgId, //
+			@P(t = "年份") String buildTime, //
+			Integer count, //
+			Integer offset //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(assetService.getAssetByYear(conn,orgId,buildTime, count,offset));
+		}
+	}
+	
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "sumAsset", //
+			des = "按组织id 查询总的报表信息", //
+			ret = "返回统计结果"//
+	)
+	public APIResponse sumAsset(//
+			@P(t = "组织id") Long orgId ,//
+			@P(t = "分组信息" ,r = false) JSONArray groups //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(assetService.sumAsset(conn,orgId,groups));
+		}
+	}
+	
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "sumAssetByDis", //
+			des = "按区级id 查询总的报表信息", //
+			ret = "返回统计结果"//
+	)
+	public APIResponse sumAssetByDis(//
+			@P(t = "区id") Long distractId //
+			
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(assetService.sumAssetByDis(conn,distractId));
+		}
+	}
 }

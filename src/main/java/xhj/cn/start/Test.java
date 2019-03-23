@@ -3,6 +3,7 @@ package xhj.cn.start;
 import com.alibaba.druid.pool.DruidPooledConnection;
 
 import zyxhj.jiti.domain.Asset;
+import zyxhj.jiti.domain.Family;
 import zyxhj.jiti.domain.ORGExamine;
 import zyxhj.utils.data.DataSource;
 import zyxhj.utils.data.DataSourceUtils;
@@ -31,12 +32,12 @@ public class Test {
 
 	private static void testDB() {
 		System.out.println("testDB");
-		try {
+		try { 
 			DataSource dsRds = DataSourceUtils.getDataSource("rdsDefault");
 
 			// RDSUtils.dropTableByEntity(dsRds, Tunnel.class);
 
-			RDSUtils.createTableByEntity(dsRds, ORGExamine.class);
+			RDSUtils.createTableByEntity(dsRds, Family.class);
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

@@ -1,10 +1,13 @@
 package zyxhj.jiti.repository;
 
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
 
 import zyxhj.jiti.domain.VoteOption;
+import zyxhj.jiti.domain.VoteTicket;
 import zyxhj.utils.api.BaseRC;
 import zyxhj.utils.api.ServerException;
 import zyxhj.utils.data.rds.RDSRepository;
@@ -30,4 +33,6 @@ public class VoteOptionRepository extends RDSRepository<VoteOption> {
 				StringUtils.join("SET ballot_count=ballot_count-1 , weight=weight-", weight), ids);
 		}
 	}
+
+
 }

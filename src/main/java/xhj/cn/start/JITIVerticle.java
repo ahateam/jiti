@@ -7,6 +7,7 @@ import zyxhj.core.controller.TestController;
 import zyxhj.core.controller.UserController;
 import zyxhj.custom.controller.WxEventController;
 import zyxhj.jiti.controller.AssetController;
+import zyxhj.jiti.controller.DemonstrationController;
 import zyxhj.jiti.controller.ORGController;
 import zyxhj.jiti.controller.VoteController;
 import zyxhj.utils.Singleton;
@@ -45,6 +46,8 @@ public class JITIVerticle extends ZeroVerticle {
 		initCtrl(ctrlMap, Singleton.ins(WxEventController.class, "wx"));
 
 		initCtrl(ctrlMap, Singleton.ins(ContentController.class, "content"));
+		
+		initCtrl(ctrlMap, Singleton.ins(DemonstrationController.class, "demon"));
 	}
 
 }

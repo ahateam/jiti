@@ -245,6 +245,8 @@ public class ORGUserService {
 				insertORGUser(conn, orgId, extUser.id, address, shareCerNo, shareCerImg, shareCerHolder, shareAmount,
 						weight, roles, groups, tags, familyNumber, familyMaster);
 			} else {
+//				System.out
+//						.println(StringUtils.join("xxxx>>orgId>", orgId, " - userId>", extUser.id, " - id=", idNumber));
 				throw new ServerException(BaseRC.ECM_ORG_USER_EXIST);
 			}
 		}
@@ -488,6 +490,7 @@ public class ORGUserService {
 
 				createORGUser(conn, orgId, mobile, realName, idNumber, address, shareCerNo, "", shareCerHolder,
 						shareAmount, weight, roles, arrGroups, joTags, familyNumber, familyMaster);
+				Thread.sleep(5L);
 			} catch (Exception e) {
 				log.error(e.getMessage());
 			}

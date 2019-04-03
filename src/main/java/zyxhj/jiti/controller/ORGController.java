@@ -755,7 +755,7 @@ public class ORGController extends Controller {
 			 Integer offset//
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.getORGExamine(conn,examine, areaId, count, offset));
+			return APIResponse.getNewSuccessResp(orgService.getORGExamineByStatus(conn,examine, areaId, count, offset));
 		}
 	}
 	

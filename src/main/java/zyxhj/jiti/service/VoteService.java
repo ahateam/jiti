@@ -614,12 +614,20 @@ public class VoteService {
 		Map<String, Integer> ma = new HashMap<String, Integer>();
 		Integer a = 0, b = 0;
 		for (int i = 0; i < orgIds.size(); i++) {
+			
+			
 			List<Vote> getVote = voteRepository.getListByKey(conn, "org_id", orgIds.getString(i), null, null);
 			for (Vote v : getVote) {
 				ma.put("countQuorum", a = a + v.quorum);
 			}
+			
+			//TODO 
+			xxx
 			int co = ticketRepository.countByKey(conn, "org_id", orgIds.getString(i));
 			ma.put("countTicket", b = b + co);
+			
+			
+			
 		}
 
 		System.out.println(ma);
@@ -627,15 +635,18 @@ public class VoteService {
 	}
 
 	// 根据组织分类查询投票列表 可能为多个组织
+	// TODO 接口可能重复
 	public List<Vote> getVotesByOrgId(DruidPooledConnection conn, Long districtId, JSONArray orgIds, Byte status,
 			Integer count, Integer offset) throws Exception {
 		return voteRepository.getVotesByOrgId(conn, districtId, orgIds, status, count, offset);
 	}
 
 	// 查询用户投票列表
+	// TODO 可以用一个查询做
 	public List<Vote> getVoteTicketByUserId(DruidPooledConnection conn, Long userId, Integer count, Integer offset)
 			throws Exception {
 		// 查询用户投票记录
+		// TODO orgId
 		List<VoteTicket> li = ticketRepository.getListByKey(conn, "user_id", userId, count, offset);
 
 		// 获取到投票记录的voidId 在Vote表里进行匹配

@@ -165,9 +165,9 @@ public class ORGService {
 	/**
 	 * 创建组织，按组织机构代码证排重
 	 */
-	public JSONObject createORG(DruidPooledConnection conn,Long orgExamineId, Long userId, String name, String code, String province,
-			String city, String district, String address, String imgOrg, String imgAuth, Integer shareAmount)
-			throws Exception {
+	public JSONObject createORG(DruidPooledConnection conn, Long orgExamineId, Long userId, String name, String code,
+			String province, String city, String district, String address, String imgOrg, String imgAuth,
+			Integer shareAmount) throws Exception {
 		ORG existORG = orgRepository.getByKey(conn, "code", code);
 		if (null == existORG) {
 			// 组织不存在
@@ -251,7 +251,7 @@ public class ORGService {
 	}
 
 	/**
-	 * 获取全部组织列表
+	 * 获取全部组织列表 TODO 区id
 	 */
 	public List<ORG> getORGs(DruidPooledConnection conn, int count, int offset) throws Exception {
 		return orgRepository.getList(conn, count, offset);
@@ -286,8 +286,10 @@ public class ORGService {
 	/**
 	 * 成员登录
 	 * 
-	 * @param mobile 电话号码
-	 * @param pwd    密码
+	 * @param mobile
+	 *            电话号码
+	 * @param pwd
+	 *            密码
 	 * @param 登录业务对象
 	 */
 	public LoginBo loginByMobile(DruidPooledConnection conn, String mobile, String pwd) throws Exception {
@@ -395,44 +397,47 @@ public class ORGService {
 	}
 
 	// 修改组织申请状态
-	public ORGExamine upORGApply(DruidPooledConnection conn, Long orgExamineId, byte examine, Long userId,
-			String name, String code, String province, String city, String district, String address, String imgOrg,
-			String imgAuth, Integer shareAmount) throws Exception {
+	// TODO 重新审核
+	public ORGExamine upORGApply(DruidPooledConnection conn, Long orgExamineId, byte examine, Long userId, String name,
+			String code, String province, String city, String district, String address, String imgOrg, String imgAuth,
+			Integer shareAmount) throws Exception {
 
 		ORGExamine newORG = new ORGExamine();
 
 		newORG.examine = examine;
 		if (examine == ORGExamine.STATUS.WAITING.v()) {
-			
+
 			orgExamineRepository.updateByKey(conn, "id", orgExamineId, newORG, true);
-			
+
 			ORG getOrg = orgRepository.getByKey(conn, "id", orgExamineId);
-			if(getOrg != null) {
+			if (getOrg != null) {
 				orgRepository.deleteByKey(conn, "id", orgExamineId);
 			}
-			this.createORG(conn,orgExamineId, userId, name, code, province, city, district, address, imgOrg, imgAuth, shareAmount);
+			this.createORG(conn, orgExamineId, userId, name, code, province, city, district, address, imgOrg, imgAuth,
+					shareAmount);
 		} else if (examine == ORGExamine.STATUS.INVALID.v()) {
 			ORG orgById = this.getORGById(conn, orgExamineId);
-			if(orgById != null) {
+			if (orgById != null) {
 				orgRepository.deleteByKey(conn, "id", orgExamineId);
-			}  
+			}
 			orgExamineRepository.updateByKey(conn, "id", orgExamineId, newORG, true);
 		}
 
 		return newORG;
 	}
-	
-	//再次提交组织申请
-	public int oRGApplyAgain(DruidPooledConnection conn, Long orgExamineId,  Long userId,
-			String name, String code, String province, String city, String district, String address, String imgOrg,
-			String imgAuth, Integer shareAmount) throws Exception {
-		
+
+	// 再次提交组织申请
+	// TODO 有问题
+	public int oRGApplyAgain(DruidPooledConnection conn, Long orgExamineId, Long userId, String name, String code,
+			String province, String city, String district, String address, String imgOrg, String imgAuth,
+			Integer shareAmount) throws Exception {
+
 		ORG getOrg = orgRepository.getByKey(conn, "id", orgExamineId);
-		
-		if(getOrg != null) {
+
+		if (getOrg != null) {
 			orgRepository.deleteByKey(conn, "id", orgExamineId);
 		}
-		
+
 		ORGExamine newORG = new ORGExamine();
 
 		newORG.createTime = new Date();
@@ -447,74 +452,77 @@ public class ORGService {
 		newORG.imgAuth = imgAuth;
 		newORG.shareAmount = shareAmount;
 		newORG.examine = ORGExamine.STATUS.VOTING.v();
-		
+
 		return orgExamineRepository.updateByKey(conn, "id", orgExamineId, newORG, true);
-		
+
 	}
-	
-	
 
 	// 查询组织申请列表
-	public List<ORGExamine> getORGExamine(DruidPooledConnection conn,Byte examine, Long areaId, Integer count, Integer offset)
-			throws Exception {
-		return orgExamineRepository.getListByKey(conn, "examine",examine, count, offset);
+	public List<ORGExamine> getORGExamineByStatus(DruidPooledConnection conn, Byte status, Long areaId, Integer count,
+			Integer offset) throws Exception {
+		return orgExamineRepository.getListByKey(conn, "examine", status, count, offset);
 	}
 
-	//查询自己提交的申请
-	public List<ORGExamine> getORGExamineByUser(DruidPooledConnection conn,Long userId,Integer count,Integer offset) throws Exception{
+	// 查询自己提交的申请
+	public List<ORGExamine> getORGExamineByUser(DruidPooledConnection conn, Long userId, Integer count, Integer offset)
+			throws Exception {
 		return orgExamineRepository.getListByKey(conn, "user_id", userId, count, offset);
 	}
-	
-	//删除申请
-	public void delORGExamine(DruidPooledConnection conn,Long examineId) throws Exception{
-		orgExamineRepository.deleteByKey(conn,"id",examineId);
-	}
-	
-	
-	//统计组织角色
-	public Map<String, Integer> countRole(DruidPooledConnection conn,Long orgId,JSONArray roles) throws Exception {
-		return orgUserRepository.countRole(conn,orgId,roles);
+
+	// 删除申请
+	public void delORGExamine(DruidPooledConnection conn, Long examineId) throws Exception {
+		orgExamineRepository.deleteByKey(conn, "id", examineId);
 	}
 
-	//添加分户
-	public Family createFamily(DruidPooledConnection conn,Long orgId,String familyNumber,String familyMaster) throws Exception{
+	// 统计组织角色
+	public Map<String, Integer> countRole(DruidPooledConnection conn, Long orgId, JSONArray roles) throws Exception {
+		return orgUserRepository.countRole(conn, orgId, roles);
+	}
+
+	// 添加分户
+	public Family createFamily(DruidPooledConnection conn, Long orgId, String familyNumber, String familyMaster)
+			throws Exception {
 		Family fa = new Family();
 		fa.id = IDUtils.getSimpleId();
 		fa.orgId = orgId;
 		fa.familyNumber = familyNumber;
 		fa.familyMaster = familyMaster;
-		//检查户序号是否已经存在
+		// 检查户序号是否已经存在
+
+		// TODO orgId 希望做一个familyRepositroy的createFamily方法，然后ORGService和ORGUserService都用
+		xxx
 		Family fn = familyRepository.getByKey(conn, "family_number", familyNumber);
-		if(fn == null ) {
-			 familyRepository.insert(conn, fa);
-			 return fa;
-		}else {
+		if (fn == null) {
+			familyRepository.insert(conn, fa);
+			return fa;
+		} else {
 			// 户已存在
 			throw new ServerException(BaseRC.ECM_ORG_FAMILY_EXIST);
 		}
 	}
-	
-	//修改分户		TODO 未完善																							
-	public int editFamily(DruidPooledConnection conn,Long orgId,String familyNumber,String familyMaster) throws Exception{
+
+	// 修改分户 TODO 未完善
+	public int editFamily(DruidPooledConnection conn, Long orgId, String familyNumber, String familyMaster)
+			throws Exception {
 		Family fa = new Family();
 		fa.orgId = orgId;
 		fa.familyNumber = familyNumber;
 		fa.familyMaster = familyMaster;
-		//检查户序号是否已经存在
-	//	Family fn = familyRepository.getByKey(conn, "family_number", familyNumber);
-		
+		// 检查户序号是否已经存在
+		// Family fn = familyRepository.getByKey(conn, "family_number", familyNumber);
+
 		return familyRepository.updateByKey(conn, "org_id", orgId, fa, true);
 	}
-	
-	//所有户列表
-	public List<Family> getFamilyAll(DruidPooledConnection conn,Long orgId,Integer count,Integer offset) throws Exception{
+
+	// 所有户列表
+	public List<Family> getFamilyAll(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)
+			throws Exception {
 		return familyRepository.getListByKey(conn, "org_id", orgId, count, offset);
 	}
-	
-	//TODO  现区级未完 区id以后再添加到查询内
-	public List<ORG> getORGSByDistrictId(DruidPooledConnection conn,Long districtId) throws Exception{
+
+	// TODO 现区级未完 区id以后再添加到查询内
+	public List<ORG> getORGSByDistrictId(DruidPooledConnection conn, Long districtId) throws Exception {
 		return orgRepository.getList(conn, 512, 0);
 	}
-	
-	
+
 }

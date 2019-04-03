@@ -263,14 +263,14 @@ public class AssetService {
 		return assetRepository.batchEditAssetsGroups(conn, orgId, assetIds, groups);
 	}
 
-	public List<Asset> getOriORNameBySn(DruidPooledConnection conn, Long orgId, String assetNum, Integer count,
-			Integer offset) throws Exception {
-		return assetRepository.getOriORNameBySn(conn, orgId, assetNum, count, offset);
+	public List<Asset> getAssetsBySn(DruidPooledConnection conn, Long orgId, String sn, Integer count, Integer offset)
+			throws Exception {
+		return assetRepository.getAssetsBySn(conn, orgId, sn, count, offset);
 	}
 
-	public List<Asset> getOriORNameByName(DruidPooledConnection conn, Long orgId, String assetNum, Integer count,
+	public List<Asset> getAssetsByName(DruidPooledConnection conn, Long orgId, String name, Integer count,
 			Integer offset) throws Exception {
-		return assetRepository.getOriORNameByName(conn, orgId, assetNum, count, offset);
+		return assetRepository.getAssetsByName(conn, orgId, name, count, offset);
 	}
 
 	public List<Asset> getAssetByYear(DruidPooledConnection conn, Long orgId, String buildTime, Integer count,
@@ -278,15 +278,21 @@ public class AssetService {
 		return assetRepository.getAssetByYear(conn, orgId, buildTime, count, offset);
 	}
 
-	public JSONArray ORGsumAssetBYGRAB(DruidPooledConnection conn, Long orgId, String buildTime, JSONArray groups,
+	/**
+	 * TODO GRAB??
+	 */
+	public JSONArray sumAssetBYGRAB(DruidPooledConnection conn, Long orgId, String buildTime, JSONArray groups,
 			JSONArray resType, JSONArray assetType, JSONArray businessMode) throws Exception {
-		return assetRepository.ORGsumAssetBYGRAB(conn, orgId, buildTime, groups, resType, assetType, businessMode);
+		return assetRepository.sumAssetBYGRAB(conn, orgId, buildTime, groups, resType, assetType, businessMode);
 	}
 
-//	public JSONArray sumAssetByDstrictId(DruidPooledConnection conn,Long districtId,JSONArray buildTime,JSONArray orgId, JSONArray groups, JSONArray resType,
-//			JSONArray assetType, JSONArray businessMode) throws Exception{
-//		return assetRepository.sumAssetByDstrictId(conn,districtId, buildTime,orgId,groups, resType, assetType, businessMode);
-//	}
+	// public JSONArray sumAssetByDstrictId(DruidPooledConnection conn,Long
+	// districtId,JSONArray buildTime,JSONArray orgId, JSONArray groups, JSONArray
+	// resType,
+	// JSONArray assetType, JSONArray businessMode) throws Exception{
+	// return assetRepository.sumAssetByDstrictId(conn,districtId,
+	// buildTime,orgId,groups, resType, assetType, businessMode);
+	// }
 
 	// 区管理员统计某一年的数据
 	public JSONArray districtCountByYear(DruidPooledConnection conn, Long districtId, String buildTime, JSONArray orgId,
@@ -358,7 +364,7 @@ public class AssetService {
 				count, offset);
 	}
 
-	//根据区id获取资产列表
+	// 根据区id获取资产列表
 	public List<Asset> getAssetListByTypes(DruidPooledConnection conn, Long districtId, JSONArray buildTimes,
 			JSONArray orgIds, JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes,
 			Integer count, Integer offset) throws Exception {

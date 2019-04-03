@@ -133,7 +133,7 @@ public class AssetRepository extends RDSRepository<Asset> {
 		}
 	}
 
-	public List<Asset> getOriORNameBySn(DruidPooledConnection conn, Long orgId, String assetNum, Integer count,
+	public List<Asset> getAssetsBySn(DruidPooledConnection conn, Long orgId, String assetNum, Integer count,
 			Integer offset) throws Exception {
 		// SELECT * FROM tb_ecm_org_user WHERE family_master LIKE '%文%' OR user_id LIKE
 		// "3755%"
@@ -143,15 +143,14 @@ public class AssetRepository extends RDSRepository<Asset> {
 		return this.getList(conn, sb.toString(), new Object[] { orgId }, count, offset);
 	}
 
-	public List<Asset> getOriORNameByName(DruidPooledConnection conn, Long orgId, String assetNum, Integer count,
+	public List<Asset> getAssetsByName(DruidPooledConnection conn, Long orgId, String assetNum, Integer count,
 			Integer offset) throws Exception {
 		// SELECT * FROM tb_ecm_org_user WHERE family_master LIKE '%文%' OR user_id LIKE
 		// "3755%"
 		StringBuffer sb = new StringBuffer();
 		// 按名称模糊查询
-		sb.append("WHERE org_id = ?  name LIKE '%").append(assetNum).append("%')");
+		sb.append("WHERE org_id = ? AND name LIKE '%").append(assetNum).append("%')");
 		return this.getList(conn, sb.toString(), new Object[] { orgId }, count, offset);
-
 	}
 
 	public List<Asset> getAssetByYear(DruidPooledConnection conn, Long orgId, String buildTime, Integer count,
@@ -163,7 +162,7 @@ public class AssetRepository extends RDSRepository<Asset> {
 	// 组织统计某一年报表
 	public JSONArray orgCountByYear(DruidPooledConnection conn, Long orgId, String buildTime, JSONArray orgIds,
 			JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes) throws Exception {
-		return this.ORGsumAssetBYGRAB(conn, orgId, buildTime, groups, resTypes, assetTypes, businessModes);
+		return this.sumAssetBYGRAB(conn, orgId, buildTime, groups, resTypes, assetTypes, businessModes);
 	}
 
 	// 组织统计多年报表
@@ -172,7 +171,7 @@ public class AssetRepository extends RDSRepository<Asset> {
 		JSONArray json = new JSONArray();
 		for (int i = 0; i < buildTimes.size(); i++) {
 			String bu = buildTimes.getString(i);
-			String s = this.ORGsumAssetBYGRAB(conn, orgId, bu, groups, resTypes, assetTypes, businessModes).toString();
+			String s = this.sumAssetBYGRAB(conn, orgId, bu, groups, resTypes, assetTypes, businessModes).toString();
 			s = s.substring(1, s.length());// 移除前[
 			s = s.substring(0, s.length() - 1);// 移除后]
 			json.add(JSONArray.parse(s));
@@ -183,18 +182,17 @@ public class AssetRepository extends RDSRepository<Asset> {
 	/**
 	 * 根据年份，资产类型等条件，统计资源原值，产值等
 	 * 
-	 * @param groups       分组
-	 * @param resType      资源类型
-	 * @param assetType    资产类型
-	 * @param businessMode 经营方式
+	 * @param groups
+	 *            分组
+	 * @param resType
+	 *            资源类型
+	 * @param assetType
+	 *            资产类型
+	 * @param businessMode
+	 *            经营方式
 	 */
-	public JSONArray ORGsumAssetBYGRAB(DruidPooledConnection conn, Long orgId, String buildTime, JSONArray groups,
+	public JSONArray sumAssetBYGRAB(DruidPooledConnection conn, Long orgId, String buildTime, JSONArray groups,
 			JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes) throws Exception {
-		// 获取年份 SELECT * FROM tb_ecm_asset GROUP BY build_time
-		// List<Asset> li = getList(conn, " GROUP BY build_time ", new Object[] {}, 128,
-		// 0);
-
-		// JSONArray js = new JSONArray();
 
 		// SELECT sum FROM table WHERE org_id=? AND build_time=? AND(...)
 		// (groups) AND (resType) AND (xxx) AND (yyy)
@@ -276,31 +274,33 @@ public class AssetRepository extends RDSRepository<Asset> {
 			sb.append(")");
 		}
 
-//		String s = nativeGetJSONArray(conn, sb.toString(), new Object[] { orgId, buildTime }).toString();
-//		s = s.substring(1, s.length());// 移除前[
-//		s = s.substring(0, s.length() - 1);// 移除后]
-//		js.add(JSONArray.parse(s));
+		// String s = nativeGetJSONArray(conn, sb.toString(), new Object[] { orgId,
+		// buildTime }).toString();
+		// s = s.substring(1, s.length());// 移除前[
+		// s = s.substring(0, s.length() - 1);// 移除后]
+		// js.add(JSONArray.parse(s));
 
 		return nativeGetJSONArray(conn, sb.toString(), new Object[] { orgId, buildTime });
 	}
 
-//		int xxx = 4;
-//		
-//		for(int i = 0;i < xxx;i++) {
-//			//按年分别查询不同条件下的资产统计数据
-//			
-//			StringBuffer sb = new StringBuffer(
-//					" SELECT build_time,sum(origin_price) originPrice , sum(yearly_income) yearlyIncome FROM tb_ecm_asset WHERE org_id = ? AND build_time = ? ");
-//			
-//			//处理group筛选信息
-//			for (int j = 0; j < groups.size(); j++) {
-//				// 如果分组不为空 则加入条件进行查询
-//			}
-//			
-//			//处理assetType资源分类筛选信息
-//			for (int j = 0; j < assType.size(); j++) {
-//				// 如果分组不为空 则加入条件进行查询
-//			}
+	// int xxx = 4;
+	//
+	// for(int i = 0;i < xxx;i++) {
+	// //按年分别查询不同条件下的资产统计数据
+	//
+	// StringBuffer sb = new StringBuffer(
+	// " SELECT build_time,sum(origin_price) originPrice , sum(yearly_income)
+	// yearlyIncome FROM tb_ecm_asset WHERE org_id = ? AND build_time = ? ");
+	//
+	// //处理group筛选信息
+	// for (int j = 0; j < groups.size(); j++) {
+	// // 如果分组不为空 则加入条件进行查询
+	// }
+	//
+	// //处理assetType资源分类筛选信息
+	// for (int j = 0; j < assType.size(); j++) {
+	// // 如果分组不为空 则加入条件进行查询
+	// }
 
 	// 区管理员统计某一年报表
 	public JSONArray districtCountByYear(DruidPooledConnection conn, Long districtId, String buildTime,
@@ -331,11 +331,18 @@ public class AssetRepository extends RDSRepository<Asset> {
 	/**
 	 * 区管理员统计
 	 * 
-	 * @param orgIds       组织id
-	 * @param groups       分组
-	 * @param resType      资源类型
-	 * @param assetType    资产类型
-	 * @param businessMode 经营方式
+	 * TODO 多年一起查询，可以尝试了。。。
+	 * 
+	 * @param orgIds
+	 *            组织id
+	 * @param groups
+	 *            分组
+	 * @param resType
+	 *            资源类型
+	 * @param assetType
+	 *            资产类型
+	 * @param businessMode
+	 *            经营方式
 	 */
 	public JSONArray sumAssetByDstrictId(DruidPooledConnection conn, Long districtId, String buildTime,
 			JSONArray orgIds, JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes)
@@ -432,10 +439,11 @@ public class AssetRepository extends RDSRepository<Asset> {
 			sb.append(")");
 		}
 
-//		String s = nativeGetJSONArray(conn, sb.toString(), new Object[] { buildTime }).toString();
-//		s = s.substring(1, s.length());// 移除前[
-//		s = s.substring(0, s.length() - 1);// 移除后]
-//		js.add(JSONArray.parse(s));
+		// String s = nativeGetJSONArray(conn, sb.toString(), new Object[] { buildTime
+		// }).toString();
+		// s = s.substring(1, s.length());// 移除前[
+		// s = s.substring(0, s.length() - 1);// 移除后]
+		// js.add(JSONArray.parse(s));
 		System.out.println(sb.toString());
 
 		return nativeGetJSONArray(conn, sb.toString(), new Object[] { buildTime });
@@ -449,10 +457,10 @@ public class AssetRepository extends RDSRepository<Asset> {
 		// 先判断用户传了哪些值过来 ,对值进行拼接
 		// select * from xxxxx where 以后添加区id (...)
 		// (build_time) And (org_id) AND (xxx)
-		
+
 		StringBuffer sb = new StringBuffer();
 
-		//如果有条件进入 则插入条件进行查询  如果没有 则返回所有列表
+		// 如果有条件进入 则插入条件进行查询 如果没有 则返回所有列表
 		if ((buildTimes != null && buildTimes.size() > 0) || (orgIds != null && orgIds.size() > 0)
 				|| (groups != null && groups.size() > 0) || (resTypes != null && resTypes.size() > 0)
 				|| (assetTypes != null && assetTypes.size() > 0)
@@ -632,7 +640,7 @@ public class AssetRepository extends RDSRepository<Asset> {
 				}
 			}
 		}
-		System.out.println( sb.toString());
+		System.out.println(sb.toString());
 		return list;
 	}
 

@@ -279,7 +279,7 @@ public class AssetController extends Controller {
 			Integer offset //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(assetService.getOriORNameBySn(conn,orgId,assetNum, count,offset));
+			return APIResponse.getNewSuccessResp(assetService.getAssetsBySn(conn,orgId,assetNum, count,offset));
 		}
 	}
 	
@@ -298,7 +298,7 @@ public class AssetController extends Controller {
 			Integer offset //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(assetService.getOriORNameByName(conn,orgId,assetNum, count,offset));
+			return APIResponse.getNewSuccessResp(assetService.getAssetsByName(conn,orgId,assetNum, count,offset));
 		}
 	}
 	
@@ -339,7 +339,7 @@ public class AssetController extends Controller {
 			@P(t = "经营方式" ,r = false) JSONArray businessMode //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(assetService.ORGsumAssetBYGRAB(conn,orgId,buildTime,groups, resType, assetType, businessMode));
+			return APIResponse.getNewSuccessResp(assetService.sumAssetBYGRAB(conn,orgId,buildTime,groups, resType, assetType, businessMode));
 		}
 	}
 	

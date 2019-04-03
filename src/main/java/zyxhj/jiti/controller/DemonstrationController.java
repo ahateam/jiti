@@ -37,16 +37,45 @@ public class DemonstrationController extends Controller {
 	@POSTAPI(//
 			path = "getAsset", //
 			des = "获取资产信息", //
-			ret = "用户选票对象"//
+			ret = "返回分组信息"//
 	)
 	public APIResponse getAsset(//
-			@P(t = "投票编号") String groups, //
-			@P(t = "总记录",r=false) Integer count,//
-			@P(t = "第几条纪录开始",r=false) Integer offset //
+			@P(t = "分组编号") String groups //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(demonstrationService.getAsset(conn, groups,count,offset));
+			return APIResponse.getNewSuccessResp(demonstrationService.getAsset(conn, groups));
 		}
 	}
 	
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getGroup", //
+			des = "获取 所有的分组列表", //
+			ret = "分组列表"//
+	)
+	public APIResponse getGroup(//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(demonstrationService.getGroup(conn));
+		}
+	}
+	
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getAssetById", //
+			des = "根据资产id查询资产列表", //
+			ret = "资产列表"//
+	)
+	public APIResponse getAssetById(//
+			@P(t = "资产id") Long assetId //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(demonstrationService.getAssetById(conn,assetId));
+		}
+	}
 }

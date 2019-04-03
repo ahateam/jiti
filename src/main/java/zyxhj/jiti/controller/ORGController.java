@@ -64,30 +64,30 @@ public class ORGController extends Controller {
 		}
 	}
 
-	/**
-	 * 
-	 */
-	@POSTAPI(path = "createORG", //
-			des = "创建组织", //
-			ret = "所创建的对象"//
-	)
-	public APIResponse createORG(//
-			@P(t = "创建者用户编号") Long userId, //
-			@P(t = "组织名称") String name, //
-			@P(t = "组织机构代码") String code, //
-			@P(t = "省") String province, //
-			@P(t = "市") String city, //
-			@P(t = "区") String district, //
-			@P(t = "街道地址") String address, //
-			@P(t = "组织机构证书图片地址", r = false) String imgOrg, //
-			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
-			@P(t = "总股份数") Integer shareAmount//
-	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.createORG(conn, userId, name, code, province, city,
-					district, address, imgOrg, imgAuth, shareAmount));
-		}
-	}
+//	/**
+//	 * 
+//	 */
+//	@POSTAPI(path = "createORG", //
+//			des = "创建组织", //
+//			ret = "所创建的对象"//
+//	)
+//	public APIResponse createORG(//
+//			@P(t = "创建者用户编号") Long userId, //
+//			@P(t = "组织名称") String name, //
+//			@P(t = "组织机构代码") String code, //
+//			@P(t = "省") String province, //
+//			@P(t = "市") String city, //
+//			@P(t = "区") String district, //
+//			@P(t = "街道地址") String address, //
+//			@P(t = "组织机构证书图片地址", r = false) String imgOrg, //
+//			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
+//			@P(t = "总股份数") Integer shareAmount//
+//	) throws Exception {
+//		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+//			return APIResponse.getNewSuccessResp(orgService.createORG(conn, userId, name, code, province, city,
+//					district, address, imgOrg, imgAuth, shareAmount));
+//		}
+//	}
 	
 
 	/**
@@ -714,6 +714,32 @@ public class ORGController extends Controller {
 			return APIResponse.getNewSuccessResp(orgService.upORGApply(conn, orgExamineId, examine, userId, name, code, province, city, district, address, imgOrg, imgAuth, shareAmount));
 		}
 	}
+	
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(path = "oRGApplyAgain", //
+			des = "修改组织申请", //
+			ret = "所创建的对象"//
+	)
+	public APIResponse oRGApplyAgain(//
+			@P(t = "组织id") Long orgExamineId, //
+			@P(t = "创建者用户编号") Long userId, //
+			@P(t = "组织名称") String name, //
+			@P(t = "组织机构代码") String code, //
+			@P(t = "省") String province, //
+			@P(t = "市") String city, //
+			@P(t = "区") String district, //
+			@P(t = "街道地址") String address, //
+			@P(t = "组织机构证书图片地址", r = false) String imgOrg, //
+			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
+			@P(t = "总股份数") Integer shareAmount //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.oRGApplyAgain(conn, orgExamineId,  userId, name, code, province, city, district, address, imgOrg, imgAuth, shareAmount));
+		}
+	}
 
 	/**
 	 * 
@@ -724,11 +750,12 @@ public class ORGController extends Controller {
 			ret = "返回查询值")
 	public APIResponse getORGExamine(//
 			@P(t = "区编号") Long areaId, //
+			@P(t = "状态") Byte examine, //
 			 Integer count,//
 			 Integer offset//
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.getORGExamine(conn, areaId, count, offset));
+			return APIResponse.getNewSuccessResp(orgService.getORGExamine(conn,examine, areaId, count, offset));
 		}
 	}
 	
@@ -749,6 +776,25 @@ public class ORGController extends Controller {
 			return APIResponse.getNewSuccessResp(orgService.getORGExamineByUser(conn,userId,count,offset));
 		}
 	}
+	
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "delORGExamine", //
+			des = "删除申请", //
+			ret = "")
+	public APIResponse delORGExamine(//
+			@P(t = "申请编号") Long examineId //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			orgService.delORGExamine(conn,examineId);
+			return APIResponse.getNewSuccessResp();
+		}
+	}
+	
+	
 	
 	/**
 	 * 
@@ -817,6 +863,21 @@ public class ORGController extends Controller {
 			) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.getFamilyAll(conn,orgId,count,offset));
+		}
+	}
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getORGSByDistrictId", //
+			des = "按区id查询当前区下所有组织信息", //
+			ret = "返回查询信息")
+	public APIResponse getORGSByDistrictId(//
+			@P(t = "区id") Long districtId //
+			) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.getORGSByDistrictId(conn,districtId));
 		}
 	}
 	

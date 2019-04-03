@@ -8,7 +8,9 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.druid.pool.DruidPooledConnection;
 
 import zyxhj.jiti.domain.Asset;
+import zyxhj.jiti.domain.ORGUserTagGroup;
 import zyxhj.jiti.repository.DemonstrationRepository;
+import zyxhj.jiti.repository.ORGUserTagGroupRepository;
 import zyxhj.utils.Singleton;
 
 public class DemonstrationService {
@@ -16,20 +18,28 @@ public class DemonstrationService {
 	private static Logger log = LoggerFactory.getLogger(DemonstrationService.class);
 
 	private DemonstrationRepository demonstrationRepository;
+	private ORGUserTagGroupRepository orgUserTagGroupRepository;
 
 	public DemonstrationService() {
 		try {
 			demonstrationRepository = Singleton.ins(DemonstrationRepository.class);
+			orgUserTagGroupRepository = Singleton.ins(ORGUserTagGroupRepository.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
 	}
 
-	public List<Asset> getAsset(DruidPooledConnection conn, String groups, Integer count, Integer offset) throws Exception{
-		return demonstrationRepository.getAsset(conn,groups,count,offset);
+	public List<Asset> getAsset(DruidPooledConnection conn, String groups) throws Exception{
+		return demonstrationRepository.getAsset(conn,groups,500,0);
 	}
 
 	
+	public List<ORGUserTagGroup> getGroup(DruidPooledConnection conn) throws Exception{
+		return orgUserTagGroupRepository.getList(conn, 500, 0);
+	}
 	
+	public Asset getAssetById(DruidPooledConnection conn,Long assetId) throws Exception {
+		return demonstrationRepository.getByKey(conn, "id", assetId);
+	}
 	
 }

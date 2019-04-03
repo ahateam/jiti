@@ -2,8 +2,10 @@ package zyxhj.jiti.service;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
@@ -386,11 +388,10 @@ public class VoteService {
 				if (comparePromissionArray(cRoles, uRoles)) {
 					return true;
 				}
-				
 
 				// 没有匹配的权限，什么都不做跳过进入后续的权限判断
 			}
-			
+
 			if (crowd.containsKey("groups")) {
 				// 如果有角色权限要求，则判定角色
 				JSONArray cGroups = crowd.getJSONArray("groups");
@@ -401,7 +402,6 @@ public class VoteService {
 				}
 				// 没有匹配的权限，什么都不做跳过进入后续的权限判断
 			}
-				
 
 			if (crowd.containsKey("tags")) {
 				// 如果有标签权限要求，则判定标签
@@ -512,29 +512,29 @@ public class VoteService {
 				if (selections.size() <= 0) {
 					return;
 				}
-				//添加选票
+				// 添加选票
 				addVoteTicket(conn, orgId, voteId, userId, selections, ballotCount, remark);
 
 			} else {
-				// 不再创建，更新   
-				//该用户没有选择投票选项
+				// 不再创建，更新
+				// 该用户没有选择投票选项
 				if (selections.size() <= 0) {
 					return;
 				}
-				
+
 				VoteTicket gvt = getVoteTicket(conn, voteId, userId);
 				JSONArray json = JSONArray.parseArray(gvt.selection);
-				
-				//删除当前用户的投票
+
+				// 删除当前用户的投票
 				delVoteTicket(conn, voteId, userId);
-				
+
 				// 计票-1
 				String[] ids = new String[json.size()];
 				for (int i = 0; i < ids.length; i++) {
 					ids[i] = json.getLong(i).toString();
 				}
 				optionRepository.subTicket(conn, ids, ballotCount);
-				
+
 				addVoteTicket(conn, orgId, voteId, userId, selections, ballotCount, remark);
 
 			}
@@ -543,8 +543,8 @@ public class VoteService {
 		}
 	}
 
-	public void delVoteTicket(DruidPooledConnection conn, Long voteId, Long userId) throws Exception{
-		voteRepository.deleteByKeys(conn, new String[]{"vote_id","user_id"}, new Object[] {voteId,userId});
+	public void delVoteTicket(DruidPooledConnection conn, Long voteId, Long userId) throws Exception {
+		voteRepository.deleteByKeys(conn, new String[] { "vote_id", "user_id" }, new Object[] { voteId, userId });
 	}
 
 	/**
@@ -572,16 +572,17 @@ public class VoteService {
 	public VoteTicket getVoteTicket(DruidPooledConnection conn, Long voteId, Long userId) throws Exception {
 		return ticketRepository.getByKeys(conn, new String[] { "vote_id", "user_id" }, new Object[] { voteId, userId });
 	}
-	
+
 	/**
 	 * 添加选票
 	 */
 	public void addVoteTicket(DruidPooledConnection conn, Long orgId, Long voteId, Long userId, JSONArray selections,
-			Integer ballotCount, String remark) throws Exception{
-		
-		//添加票
+			Integer ballotCount, String remark) throws Exception {
+
+		// 添加票
 		VoteTicket vt = new VoteTicket();
 		vt.voteId = voteId;
+		vt.orgId = orgId;
 		vt.userId = userId;
 		vt.voteTime = new Date();
 		vt.ballotCount = ballotCount;
@@ -589,17 +590,82 @@ public class VoteService {
 		vt.remark = remark;
 		// 创建选票
 		ticketRepository.insert(conn, vt);
-	
-		//计票
+
+		// 计票
 		String[] id = new String[selections.size()];
 		for (int i = 0; i < id.length; i++) {
 			id[i] = selections.getLong(i).toString();
 		}
 		optionRepository.countTicket(conn, id, ballotCount);
 	}
-	
-	public List<VoteTicket> getUserBySel(DruidPooledConnection conn,Long voteId,String selection,Integer count,Integer offset) throws Exception{
-		return ticketRepository.getUserBySel(conn,voteId,selection,count,offset);
+
+	public List<VoteTicket> getUserBySelection(DruidPooledConnection conn, Long voteId, String selection, Integer count,
+			Integer offset) throws Exception {
+		return ticketRepository.getUserBySelection(conn, voteId, selection, count, offset);
 	}
-	
+
+	// 区级统计投票的积极性
+	public Map<String, Integer> countVoteTurnout(DruidPooledConnection conn, Long districtId, JSONArray orgIds)
+			throws Exception {
+		// voteRepository.countNumberByOrgId( conn, orgId);
+		// for(遍历org)
+		// 查询当前org下的投票
+		// 将可投票的人数进行相加
+		Map<String, Integer> ma = new HashMap<String, Integer>();
+		Integer a = 0, b = 0;
+		for (int i = 0; i < orgIds.size(); i++) {
+			List<Vote> getVote = voteRepository.getListByKey(conn, "org_id", orgIds.getString(i), null, null);
+			for (Vote v : getVote) {
+				ma.put("countQuorum", a = a + v.quorum);
+			}
+			int co = ticketRepository.countByKey(conn, "org_id", orgIds.getString(i));
+			ma.put("countTicket", b = b + co);
+		}
+
+		System.out.println(ma);
+		return ma;
+	}
+
+	// 根据组织分类查询投票列表 可能为多个组织
+	public List<Vote> getVotesByOrgId(DruidPooledConnection conn, Long districtId, JSONArray orgIds, Byte status,
+			Integer count, Integer offset) throws Exception {
+		return voteRepository.getVotesByOrgId(conn, districtId, orgIds, status, count, offset);
+	}
+
+	// 查询用户投票列表
+	public List<Vote> getVoteTicketByUserId(DruidPooledConnection conn, Long userId, Integer count, Integer offset)
+			throws Exception {
+		// 查询用户投票记录
+		List<VoteTicket> li = ticketRepository.getListByKey(conn, "user_id", userId, count, offset);
+
+		// 获取到投票记录的voidId 在Vote表里进行匹配
+		if (li != null && li.size() > 0) {
+			String[] s = new String[li.size()];
+			for (int i = 0; i < li.size(); i++) {
+				s[i] = li.get(i).voteId.toString();
+			}
+			return voteRepository.getListByKeyInValues(conn, "id", s);
+		} else {
+			return new ArrayList<Vote>();
+		}
+	}
+
+	// 查询用户所投选项
+	public List<VoteOption> getOptionByUserSelection(DruidPooledConnection conn, Long userId, Long voteId)
+			throws Exception {
+		VoteTicket getTicket = ticketRepository.getByKeys(conn, new String[] { "vote_id", "user_id" },
+				new Object[] { voteId, userId });
+		JSONArray js = JSON.parseArray(getTicket.selection);
+
+		if (js != null && js.size() > 0) {
+			String[] s = new String[js.size()];
+			for (int i = 0; i < js.size(); i++) {
+				s[i] = js.get(i).toString();
+			}
+			return optionRepository.getListByKeyInValues(conn, "id", s);
+		} else {
+			return new ArrayList<VoteOption>();
+		}
+	}
+
 }

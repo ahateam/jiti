@@ -165,7 +165,7 @@ public class ORGService {
 	/**
 	 * 创建组织，按组织机构代码证排重
 	 */
-	public JSONObject createORG(DruidPooledConnection conn, Long userId, String name, String code, String province,
+	public JSONObject createORG(DruidPooledConnection conn,Long orgExamineId, Long userId, String name, String code, String province,
 			String city, String district, String address, String imgOrg, String imgAuth, Integer shareAmount)
 			throws Exception {
 		ORG existORG = orgRepository.getByKey(conn, "code", code);
@@ -173,7 +173,7 @@ public class ORGService {
 			// 组织不存在
 			ORG newORG = new ORG();
 
-			newORG.id = IDUtils.getSimpleId();
+			newORG.id = orgExamineId;
 			newORG.createTime = new Date();
 			newORG.name = name;
 			newORG.code = code;
@@ -258,7 +258,7 @@ public class ORGService {
 	}
 
 	/**
-	 * 获取全部组织列表
+	 * 获取组织
 	 */
 	public ORG getORGById(DruidPooledConnection conn, Long orgId) throws Exception {
 		return orgRepository.getByKey(conn, "id", orgId);
@@ -406,25 +406,70 @@ public class ORGService {
 			
 			orgExamineRepository.updateByKey(conn, "id", orgExamineId, newORG, true);
 			
-			this.createORG(conn, userId, name, code, province, city, district, address, imgOrg, imgAuth, shareAmount);
+			ORG getOrg = orgRepository.getByKey(conn, "id", orgExamineId);
+			if(getOrg != null) {
+				orgRepository.deleteByKey(conn, "id", orgExamineId);
+			}
+			this.createORG(conn,orgExamineId, userId, name, code, province, city, district, address, imgOrg, imgAuth, shareAmount);
 		} else if (examine == ORGExamine.STATUS.INVALID.v()) {
-			
+			ORG orgById = this.getORGById(conn, orgExamineId);
+			if(orgById != null) {
+				orgRepository.deleteByKey(conn, "id", orgExamineId);
+			}  
 			orgExamineRepository.updateByKey(conn, "id", orgExamineId, newORG, true);
 		}
 
 		return newORG;
 	}
+	
+	//再次提交组织申请
+	public int oRGApplyAgain(DruidPooledConnection conn, Long orgExamineId,  Long userId,
+			String name, String code, String province, String city, String district, String address, String imgOrg,
+			String imgAuth, Integer shareAmount) throws Exception {
+		
+		ORG getOrg = orgRepository.getByKey(conn, "id", orgExamineId);
+		
+		if(getOrg != null) {
+			orgRepository.deleteByKey(conn, "id", orgExamineId);
+		}
+		
+		ORGExamine newORG = new ORGExamine();
+
+		newORG.createTime = new Date();
+		newORG.userId = userId;
+		newORG.name = name;
+		newORG.code = code;
+		newORG.province = province;
+		newORG.city = city;
+		newORG.district = district;
+		newORG.address = address;
+		newORG.imgOrg = imgOrg;
+		newORG.imgAuth = imgAuth;
+		newORG.shareAmount = shareAmount;
+		newORG.examine = ORGExamine.STATUS.VOTING.v();
+		
+		return orgExamineRepository.updateByKey(conn, "id", orgExamineId, newORG, true);
+		
+	}
+	
+	
 
 	// 查询组织申请列表
-	public List<ORGExamine> getORGExamine(DruidPooledConnection conn, Long areaId, Integer count, Integer offset)
+	public List<ORGExamine> getORGExamine(DruidPooledConnection conn,Byte examine, Long areaId, Integer count, Integer offset)
 			throws Exception {
-		return orgExamineRepository.getListByKey(conn, "examine", (Object)ORGExamine.STATUS.VOTING.v(), count, offset);
+		return orgExamineRepository.getListByKey(conn, "examine",examine, count, offset);
 	}
 
 	//查询自己提交的申请
 	public List<ORGExamine> getORGExamineByUser(DruidPooledConnection conn,Long userId,Integer count,Integer offset) throws Exception{
 		return orgExamineRepository.getListByKey(conn, "user_id", userId, count, offset);
 	}
+	
+	//删除申请
+	public void delORGExamine(DruidPooledConnection conn,Long examineId) throws Exception{
+		orgExamineRepository.deleteByKey(conn,"id",examineId);
+	}
+	
 	
 	//统计组织角色
 	public Map<String, Integer> countRole(DruidPooledConnection conn,Long orgId,JSONArray roles) throws Exception {
@@ -449,7 +494,7 @@ public class ORGService {
 		}
 	}
 	
-	//修改分户																									
+	//修改分户		TODO 未完善																							
 	public int editFamily(DruidPooledConnection conn,Long orgId,String familyNumber,String familyMaster) throws Exception{
 		Family fa = new Family();
 		fa.orgId = orgId;
@@ -465,5 +510,11 @@ public class ORGService {
 	public List<Family> getFamilyAll(DruidPooledConnection conn,Long orgId,Integer count,Integer offset) throws Exception{
 		return familyRepository.getListByKey(conn, "org_id", orgId, count, offset);
 	}
+	
+	//TODO  现区级未完 区id以后再添加到查询内
+	public List<ORG> getORGSByDistrictId(DruidPooledConnection conn,Long districtId) throws Exception{
+		return orgRepository.getList(conn, 512, 0);
+	}
+	
 	
 }

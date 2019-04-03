@@ -19,13 +19,20 @@ public class VoteTicket {
 	@RDSAnnID
 	@RDSAnnField(column = RDSAnnField.ID)
 	public Long voteId;
-
+	
 	/**
 	 * 用户编号
 	 */
 	@RDSAnnID
 	@RDSAnnField(column = RDSAnnField.ID)
 	public Long userId;
+	
+	/**
+	 * 组织编号
+	 */
+	@RDSAnnID
+	@RDSAnnField(column = RDSAnnField.ID)
+	public Long orgId;
 
 	/**
 	 * 创建时间

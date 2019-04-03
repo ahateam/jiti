@@ -160,42 +160,480 @@ public class AssetRepository extends RDSRepository<Asset> {
 				offset);
 	}
 
-	public JSONArray sumAsset(DruidPooledConnection conn, Long orgId, JSONArray groups) throws Exception {
-		// 获取年份 SELECT * FROM tb_ecm_asset GROUP BY build_time
-		List<Asset> li = getList(conn, " GROUP BY build_time ", new Object[] {}, 128, 0);
+	// 组织统计某一年报表
+	public JSONArray orgCountByYear(DruidPooledConnection conn, Long orgId, String buildTime, JSONArray orgIds,
+			JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes) throws Exception {
+		return this.ORGsumAssetBYGRAB(conn, orgId, buildTime, groups, resTypes, assetTypes, businessModes);
+	}
 
-		JSONArray js = new JSONArray();
-		String[] gr = new String[groups.size()];
-		for (int i = 0; i < gr.length; i++) {
-			gr[i] = groups.getLong(i).toString();
-			StringBuffer sb = new StringBuffer(
-					" SELECT sum(origin_price) originPrice , sum(yearly_income) yearlyIncome FROM tb_ecm_asset WHERE org_id = ? AND build_time = ? ");
-			//如果分组不为空  则加入条件进行查询
-			if (StringUtils.isNotBlank(gr[i])) {
-				sb.append("AND JSON_CONTAINS(groups,'").append(gr[i]).append("','$')");
-			}
-			for (Asset asset : li) {
-				// 传入sql 对原产值和年产值求和
-				js.add(nativeGetJSONArray(conn, sb.toString(), new Object[] { orgId, asset.buildTime }));
-			}
+	// 组织统计多年报表
+	public JSONArray orgCountByYears(DruidPooledConnection conn, Long orgId, JSONArray buildTimes, JSONArray orgIds,
+			JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes) throws Exception {
+		JSONArray json = new JSONArray();
+		for (int i = 0; i < buildTimes.size(); i++) {
+			String bu = buildTimes.getString(i);
+			String s = this.ORGsumAssetBYGRAB(conn, orgId, bu, groups, resTypes, assetTypes, businessModes).toString();
+			s = s.substring(1, s.length());// 移除前[
+			s = s.substring(0, s.length() - 1);// 移除后]
+			json.add(JSONArray.parse(s));
 		}
-		return js;
+		return json;
+	}
+
+	/**
+	 * 根据年份，资产类型等条件，统计资源原值，产值等
+	 * 
+	 * @param groups       分组
+	 * @param resType      资源类型
+	 * @param assetType    资产类型
+	 * @param businessMode 经营方式
+	 */
+	public JSONArray ORGsumAssetBYGRAB(DruidPooledConnection conn, Long orgId, String buildTime, JSONArray groups,
+			JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes) throws Exception {
+		// 获取年份 SELECT * FROM tb_ecm_asset GROUP BY build_time
+		// List<Asset> li = getList(conn, " GROUP BY build_time ", new Object[] {}, 128,
+		// 0);
+
+		// JSONArray js = new JSONArray();
+
+		// SELECT sum FROM table WHERE org_id=? AND build_time=? AND(...)
+		// (groups) AND (resType) AND (xxx) AND (yyy)
+
+		StringBuffer sb = new StringBuffer(
+				" SELECT build_time,sum(origin_price) originPrice , sum(yearly_income) yearlyIncome FROM tb_ecm_asset WHERE org_id = ? AND build_time = ? ");
+
+		if ((groups != null && groups.size() > 0) || (resTypes != null && resTypes.size() > 0)
+				|| (assetTypes != null && assetTypes.size() > 0)
+				|| (businessModes != null && businessModes.size() > 0)) {
+			sb.append(" AND (");
+
+			boolean flg = false;
+
+			if (groups != null && groups.size() > 0) {
+				flg = true;
+				sb.append("(");
+				for (int i = 0; i < groups.size(); i++) {
+					String group = groups.getString(i);
+					sb.append("JSON_CONTAINS(groups, '").append(group).append("', '$')");
+					if (i < groups.size() - 1) {
+						sb.append(" OR ");
+					}
+				}
+				sb.append(")");
+
+				sb.append(" AND ");
+			}
+
+			if (resTypes != null && resTypes.size() > 0) {
+				flg = true;
+				sb.append("(");
+				for (int i = 0; i < resTypes.size(); i++) {
+					sb.append("res_type=").append("'").append(resTypes.getString(i)).append("'");
+					if (i < resTypes.size() - 1) {
+						sb.append(" OR ");
+					}
+				}
+				sb.append(")");
+
+				sb.append(" AND ");
+			}
+
+			if (assetTypes != null && assetTypes.size() > 0) {
+				flg = true;
+				sb.append("(");
+				for (int i = 0; i < assetTypes.size(); i++) {
+					sb.append("asset_type=").append("'").append(assetTypes.getString(i)).append("'");
+					if (i < assetTypes.size() - 1) {
+						sb.append(" OR ");
+					}
+				}
+				sb.append(")");
+
+				sb.append(" AND ");
+			}
+
+			if (businessModes != null && businessModes.size() > 0) {
+				// 最后一个节点，不设置开关
+				// flg = true;
+				sb.append("(");
+				for (int i = 0; i < businessModes.size(); i++) {
+					sb.append("business_mode=").append("'").append(businessModes.getString(i)).append("'");
+					if (i < businessModes.size() - 1) {
+						sb.append(" OR ");
+					}
+				}
+				sb.append(")");
+
+				// 最后一个节点，不加AND连接符号
+				// sb.append(" AND ");
+			} else {
+				// 前面有节点，加过AND ，但最后没有节点，因此语句需要删除AND
+				if (flg) {
+					sb.delete(sb.length() - 4, sb.length() - 1);// 移除最后的 OR
+				}
+			}
+
+			sb.append(")");
+		}
+
+//		String s = nativeGetJSONArray(conn, sb.toString(), new Object[] { orgId, buildTime }).toString();
+//		s = s.substring(1, s.length());// 移除前[
+//		s = s.substring(0, s.length() - 1);// 移除后]
+//		js.add(JSONArray.parse(s));
+
+		return nativeGetJSONArray(conn, sb.toString(), new Object[] { orgId, buildTime });
+	}
+
+//		int xxx = 4;
+//		
+//		for(int i = 0;i < xxx;i++) {
+//			//按年分别查询不同条件下的资产统计数据
+//			
+//			StringBuffer sb = new StringBuffer(
+//					" SELECT build_time,sum(origin_price) originPrice , sum(yearly_income) yearlyIncome FROM tb_ecm_asset WHERE org_id = ? AND build_time = ? ");
+//			
+//			//处理group筛选信息
+//			for (int j = 0; j < groups.size(); j++) {
+//				// 如果分组不为空 则加入条件进行查询
+//			}
+//			
+//			//处理assetType资源分类筛选信息
+//			for (int j = 0; j < assType.size(); j++) {
+//				// 如果分组不为空 则加入条件进行查询
+//			}
+
+	// 区管理员统计某一年报表
+	public JSONArray districtCountByYear(DruidPooledConnection conn, Long districtId, String buildTime,
+			JSONArray orgIds, JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes)
+			throws Exception {
+		return this.sumAssetByDstrictId(conn, districtId, buildTime, orgIds, groups, resTypes, assetTypes,
+				businessModes);
+	}
+
+	// 区管理员统计多年报表
+	public JSONArray districtCountByYears(DruidPooledConnection conn, Long districtId, JSONArray buildTimes,
+			JSONArray orgIds, JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes)
+			throws Exception {
+		JSONArray json = new JSONArray();
+		for (int i = 0; i < buildTimes.size(); i++) {
+			String bu = buildTimes.getString(i);
+			String s = this
+					.sumAssetByDstrictId(conn, districtId, bu, orgIds, groups, resTypes, assetTypes, businessModes)
+					.toString();
+			s = s.substring(1, s.length());// 移除前[
+			s = s.substring(0, s.length() - 1);// 移除后]
+			json.add(JSONArray.parse(s));
+		}
+
+		return json;
+	}
+
+	/**
+	 * 区管理员统计
+	 * 
+	 * @param orgIds       组织id
+	 * @param groups       分组
+	 * @param resType      资源类型
+	 * @param assetType    资产类型
+	 * @param businessMode 经营方式
+	 */
+	public JSONArray sumAssetByDstrictId(DruidPooledConnection conn, Long districtId, String buildTime,
+			JSONArray orgIds, JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes)
+			throws Exception {
+		// SELECT sum FROM table WHERE build_time=? AND(...)
+		// (groups) AND (resType) AND (xxx) AND (yyy)
+
+		// JSONArray js = new JSONArray();
+
+		StringBuffer sb = new StringBuffer(" SELECT build_time,sum(origin_price) originPrice , "
+				+ "sum(yearly_income) yearlyIncome FROM tb_ecm_asset WHERE build_time = ? ");// TODO
+																								// 未开发区级平台
+																								// 开发完成后需修改添加区id
+		if ((orgIds != null && orgIds.size() > 0) || (groups != null && groups.size() > 0)
+				|| (resTypes != null && resTypes.size() > 0) || (assetTypes != null && assetTypes.size() > 0)
+				|| (businessModes != null && businessModes.size() > 0)) {
+			boolean flg = false;
+			sb.append(" AND (");
+
+			if (orgIds != null && orgIds.size() > 0) {
+				flg = true;
+				sb.append("(");
+				for (int i = 0; i < orgIds.size(); i++) {
+					sb.append("org_id =").append(orgIds.getString(i));
+					if (i < orgIds.size() - 1) {
+						sb.append(" OR ");
+					}
+				}
+				sb.append(")");
+				sb.append(" AND ");
+			}
+
+			if (groups != null && groups.size() > 0) {
+				flg = true;
+				sb.append("(");
+				for (int i = 0; i < groups.size(); i++) {
+					String group = groups.getString(i);
+					sb.append("JSON_CONTAINS(groups, '").append(group).append("', '$')");
+					if (i < groups.size() - 1) {
+						sb.append(" OR ");
+					}
+				}
+				sb.append(")");
+				sb.append(" AND ");
+			}
+
+			if (resTypes != null && resTypes.size() > 0) {
+				flg = true;
+				sb.append("(");
+				for (int i = 0; i < resTypes.size(); i++) {
+					sb.append("res_type=").append("'").append(resTypes.getString(i)).append("'");
+					if (i < resTypes.size() - 1) {
+						sb.append(" OR ");
+					}
+				}
+				sb.append(")");
+				sb.append(" AND ");
+			}
+
+			if (assetTypes != null && assetTypes.size() > 0) {
+				flg = true;
+				sb.append("(");
+				for (int i = 0; i < assetTypes.size(); i++) {
+					sb.append("asset_type=").append("'").append(assetTypes.getString(i)).append("'");
+					if (i < assetTypes.size() - 1) {
+						sb.append(" OR ");
+					}
+				}
+				sb.append(")");
+
+				sb.append(" AND ");
+			}
+
+			if (businessModes != null && businessModes.size() > 0) {
+				// 最后一个节点，不设置开关
+				// flg = true;
+				sb.append("(");
+				for (int i = 0; i < businessModes.size(); i++) {
+					sb.append("business_mode=").append("'").append(businessModes.getString(i)).append("' ");
+					if (i < businessModes.size() - 1) {
+						sb.append(" OR ");
+					}
+				}
+				sb.append(")");
+
+				// 最后一个节点，不加AND连接符号
+				// sb.append(" AND ");
+			} else {
+				// 前面有节点，加过AND ，但最后没有节点，因此语句需要删除AND
+				if (flg) {
+					sb.delete(sb.length() - 4, sb.length() - 1);// 移除最后的 OR
+				}
+			}
+			sb.append(")");
+		}
+
+//		String s = nativeGetJSONArray(conn, sb.toString(), new Object[] { buildTime }).toString();
+//		s = s.substring(1, s.length());// 移除前[
+//		s = s.substring(0, s.length() - 1);// 移除后]
+//		js.add(JSONArray.parse(s));
+		System.out.println(sb.toString());
+
+		return nativeGetJSONArray(conn, sb.toString(), new Object[] { buildTime });
+	}
+
+	// 根据类型获取资产列表
+	public List<Asset> getAssetListByTypes(DruidPooledConnection conn, Long districtId, JSONArray buildTimes,
+			JSONArray orgIds, JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes,
+			Integer count, Integer offset) throws Exception {
+
+		// 先判断用户传了哪些值过来 ,对值进行拼接
+		// select * from xxxxx where 以后添加区id (...)
+		// (build_time) And (org_id) AND (xxx)
+		
+		StringBuffer sb = new StringBuffer();
+
+		//如果有条件进入 则插入条件进行查询  如果没有 则返回所有列表
+		if ((buildTimes != null && buildTimes.size() > 0) || (orgIds != null && orgIds.size() > 0)
+				|| (groups != null && groups.size() > 0) || (resTypes != null && resTypes.size() > 0)
+				|| (assetTypes != null && assetTypes.size() > 0)
+				|| (businessModes != null && businessModes.size() > 0)) {
+
+			boolean flg = false;
+			sb.append(" WHERE (");
+
+			if (buildTimes != null && buildTimes.size() > 0) {
+				flg = true;
+				sb.append("(");
+				for (int i = 0; i < buildTimes.size(); i++) {
+					sb.append("build_time =").append("'").append(buildTimes.getString(i)).append("'");
+					if (i < buildTimes.size() - 1) {
+						sb.append(" OR ");
+					}
+				}
+				sb.append(")");
+				sb.append(" AND ");
+			}
+
+			if (orgIds != null && orgIds.size() > 0) {
+				flg = true;
+				sb.append("(");
+				for (int i = 0; i < orgIds.size(); i++) {
+					sb.append("org_id =").append(orgIds.getString(i));
+					if (i < orgIds.size() - 1) {
+						sb.append(" OR ");
+					}
+				}
+				sb.append(")");
+				sb.append(" AND ");
+			}
+
+			if (groups != null && groups.size() > 0) {
+				flg = true;
+				sb.append("(");
+				for (int i = 0; i < groups.size(); i++) {
+					String group = groups.getString(i);
+					sb.append("JSON_CONTAINS(groups, '").append(group).append("', '$')");
+					if (i < groups.size() - 1) {
+						sb.append(" OR ");
+					}
+				}
+				sb.append(")");
+				sb.append(" AND ");
+			}
+
+			if (resTypes != null && resTypes.size() > 0) {
+				flg = true;
+				sb.append("(");
+				for (int i = 0; i < resTypes.size(); i++) {
+					sb.append("res_type=").append("'").append(resTypes.getString(i)).append("'");
+					if (i < resTypes.size() - 1) {
+						sb.append(" OR ");
+					}
+				}
+				sb.append(")");
+				sb.append(" AND ");
+			}
+
+			if (assetTypes != null && assetTypes.size() > 0) {
+				flg = true;
+				sb.append("(");
+				for (int i = 0; i < assetTypes.size(); i++) {
+					sb.append("asset_type=").append("'").append(assetTypes.getString(i)).append("'");
+					if (i < assetTypes.size() - 1) {
+						sb.append(" OR ");
+					}
+				}
+				sb.append(")");
+
+				sb.append(" AND ");
+			}
+
+			if (businessModes != null && businessModes.size() > 0) {
+				// 最后一个节点，不设置开关
+				// flg = true;
+				sb.append("(");
+				for (int i = 0; i < businessModes.size(); i++) {
+					sb.append("business_mode=").append("'").append(businessModes.getString(i)).append("' ");
+					if (i < businessModes.size() - 1) {
+						sb.append(" OR ");
+					}
+				}
+				sb.append(")");
+
+				// 最后一个节点，不加AND连接符号
+				// sb.append(" AND ");
+			} else {
+				// 前面有节点，加过AND ，但最后没有节点，因此语句需要删除AND
+				if (flg) {
+					sb.delete(sb.length() - 4, sb.length() - 1);// 移除最后的 OR
+				}
+			}
+			sb.append(")");
+		}
+		System.out.println(sb.toString());
+		return this.getList(conn, sb.toString(), new Object[] {}, count, offset);
 
 	}
 
-	public JSONArray sumAssetByDis(DruidPooledConnection conn, Long distractId) throws Exception {
-		// 获取年份 SELECT * FROM tb_ecm_asset GROUP BY build_time
-		List<Asset> li = getList(conn, " GROUP BY build_time ", new Object[] {}, 128, 0);
+	// TODO 现区级未完 区id以后再添加到查询内
+	public List<String> getAssetType(DruidPooledConnection conn, Long districtId) throws Exception {
+		// SELECT * FROM xxxx WHERE district_id = ? and org_id = ?
 
-		StringBuffer sb = new StringBuffer(
-				" SELECT build_time,sum(origin_price) originPrice , sum(yearly_income) yearlyIncome FROM tb_ecm_asset WHERE build_time = ? ");
-		JSONArray js = new JSONArray();
+		return this.getColumnStrings(conn, "asset_type", " GROUP BY asset_type", new Object[] {}, 512, 0);
+	}
 
-		for (Asset asset : li) {
-			// 传入sql 对原产值和年产值求和
-			js.add(nativeGetJSONArray(conn, sb.toString(), new Object[] { asset.buildTime }));
+	// TODO 现区级未完 区id以后再添加到查询内
+	public List<String> getResType(DruidPooledConnection conn, Long districtId) throws Exception {
+		return this.getColumnStrings(conn, "res_type", " GROUP BY res_type", new Object[] {}, 512, 0);
+	}
+
+	// TODO 现区级未完 区id以后再添加到查询内
+	public List<String> getBuildTime(DruidPooledConnection conn, Long districtId) throws Exception {
+		return this.getColumnStrings(conn, "build_time", " GROUP BY build_time", new Object[] {}, 512, 0);
+	}
+
+	// TODO 现区级未完 区id以后再添加到查询内
+	public List<String> getBusinessMode(DruidPooledConnection conn, Long districtId) throws Exception {
+		return this.getColumnStrings(conn, "business_mode", " GROUP BY business_mode", new Object[] {}, 512, 0);
+	}
+
+	// 根据区id查询类型
+	public List<String> getTypeBydistrictId(DruidPooledConnection conn, Long districtId, Long orgId, String buildTime,
+			String assetType, String resType, String businessMode, Integer count, Integer offset) throws Exception {
+		List<String> list = new ArrayList<String>();
+		StringBuffer sb = new StringBuffer(); // TODO 以后添加区id进行查询
+
+		if (orgId != null) {
+			sb.append("WHERE org_id =").append(orgId);
 		}
-		return js;
+
+		if (StringUtils.isNotBlank(buildTime) && "buildTime".equals(buildTime)) {
+			sb.append(" GROUP BY build_time ");
+			List<String> bu = this.getColumnStrings(conn, "build_time", sb.toString(), new Object[] {}, count, offset);
+			for (String s : bu) {
+				if (s.isEmpty()) {
+				} else {
+					list.add(s);
+				}
+			}
+		}
+
+		if (StringUtils.isNotBlank(assetType) && "assetType".equals(assetType)) {
+			sb = new StringBuffer();
+			sb.append(" GROUP BY asset_type ");
+			List<String> bu = this.getColumnStrings(conn, "asset_type", sb.toString(), new Object[] {}, count, offset);
+			for (String s : bu) {
+				if (s.isEmpty()) {
+				} else {
+					list.add(s);
+				}
+			}
+		}
+
+		if (StringUtils.isNotBlank(resType) && "resType".equals(resType)) {
+			sb.append(" GROUP BY res_type ");
+			List<String> bu = this.getColumnStrings(conn, "res_type", sb.toString(), new Object[] {}, count, offset);
+			for (String s : bu) {
+				if (s.isEmpty()) {
+				} else {
+					list.add(s);
+				}
+			}
+		}
+
+		if (StringUtils.isNotBlank(businessMode) && "businessMode".equals(businessMode)) {
+			sb.append(" GROUP BY business_mode");
+			List<String> bu = this.getColumnStrings(conn, "business_mode", sb.toString(), new Object[] {}, count,
+					offset);
+			for (String s : bu) {
+				if (s.isEmpty()) {
+				} else {
+					list.add(s);
+				}
+			}
+		}
+		System.out.println( sb.toString());
+		return list;
 	}
 
 	// public List<Asset> getAssetsByGroups(DruidPooledConnection conn, Long orgId,

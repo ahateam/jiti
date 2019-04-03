@@ -326,16 +326,20 @@ public class AssetController extends Controller {
 	 * 
 	 */
 	@POSTAPI(//
-			path = "sumAsset", //
+			path = "ORGsumAssetBYGRAB", //
 			des = "按组织id 查询总的报表信息", //
 			ret = "返回统计结果"//
 	)
-	public APIResponse sumAsset(//
+	public APIResponse ORGsumAssetBYGRAB(//
 			@P(t = "组织id") Long orgId ,//
-			@P(t = "分组信息" ,r = false) JSONArray groups //
+			@P(t = "分组信息" ,r = false) JSONArray groups ,//
+			@P(t = "年份" ,r = false) String buildTime ,//
+			@P(t = "资源类型" ,r = false) JSONArray resType ,//
+			@P(t = "资产类型" ,r = false) JSONArray assetType ,//
+			@P(t = "经营方式" ,r = false) JSONArray businessMode //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(assetService.sumAsset(conn,orgId,groups));
+			return APIResponse.getNewSuccessResp(assetService.ORGsumAssetBYGRAB(conn,orgId,buildTime,groups, resType, assetType, businessMode));
 		}
 	}
 	
@@ -344,16 +348,158 @@ public class AssetController extends Controller {
 	 * 
 	 */
 	@POSTAPI(//
-			path = "sumAssetByDis", //
-			des = "按区级id 查询总的报表信息", //
+			path = "districtCountByYear", //
+			des = "按区级id 查询某一年的数据", //
 			ret = "返回统计结果"//
 	)
-	public APIResponse sumAssetByDis(//
-			@P(t = "区id") Long distractId //
+	public APIResponse districtCountByYear(//
+			@P(t = "区id") Long districtId ,//
+			@P(t = "年份" ) String buildTime ,//
+			@P(t = "组织id" , r = false) JSONArray orgId ,//
+			@P(t = "分组信息" ,r = false) JSONArray groups ,//
+			@P(t = "资源类型" ,r = false) JSONArray resTypes ,//
+			@P(t = "资产类型" ,r = false) JSONArray assetTypes ,//
+			@P(t = "经营方式" ,r = false) JSONArray businessModes //
 			
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(assetService.sumAssetByDis(conn,distractId));
+			return APIResponse.getNewSuccessResp(assetService.districtCountByYear(conn,districtId,buildTime,orgId,groups,resTypes,assetTypes,businessModes));
 		}
 	}
+	
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "districtCountByYears", //
+			des = "按区级id 查询多年的数据", //
+			ret = "返回统计结果"//
+	)
+	public APIResponse districtCountByYears(//
+			@P(t = "区id") Long districtId ,//
+			@P(t = "年份" ) JSONArray buildTimes ,//
+			@P(t = "组织id" , r = false) JSONArray orgIds ,//
+			@P(t = "分组信息" ,r = false) JSONArray groups ,//
+			@P(t = "资源类型" ,r = false) JSONArray resTypes ,//
+			@P(t = "资产类型" ,r = false) JSONArray assetTypes ,//
+			@P(t = "经营方式" ,r = false) JSONArray businessModes //
+			
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(assetService.districtCountByYears(conn,districtId,buildTimes,orgIds,groups,resTypes,assetTypes,businessModes));
+		}
+	}
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getAssetType", //
+			des = "查询资产类型", //
+			ret = "返回统计结果"//
+	)
+	public APIResponse getAssetType(//
+			@P(t = "区id") Long districtId //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(assetService.getAssetType(conn,districtId));
+		}
+	}
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getResType", //
+			des = "查询资源类型", //
+			ret = "返回统计结果"//
+	)
+	public APIResponse getResType(//
+			@P(t = "区id") Long districtId //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(assetService.getResType(conn,districtId));
+		}
+	}
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getBuildTime", //
+			des = "查询创建时间（年份）", //
+			ret = "返回统计结果"//
+	)
+	public APIResponse getBuildTime(//
+			@P(t = "区id") Long districtId //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(assetService.getBuildTime(conn,districtId));
+		}
+	}
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getBusinessMode", //
+			des = "查询经营方式", //
+			ret = "返回统计结果"//
+	)
+	public APIResponse getBusinessMode(//
+			@P(t = "区id") Long districtId //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(assetService.getBusinessMode(conn,districtId));
+		}
+	}
+
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getTypeBydistrictId", //
+			des = "根据区id查询类型", //
+			ret = "返回类型"//
+	)
+	public APIResponse getTypeBydistrictId(//
+			@P(t = "区id") Long districtId, //
+			@P(t = "组织id" , r = false) Long orgId, //
+			@P(t = "年份" , r = false) String buildTime, //
+			@P(t = "资产类型" , r = false) String assetType, //
+			@P(t = "资源类型" , r = false) String resType, //
+			@P(t = "经营方式" , r = false) String businessMode, //
+			Integer  count, //
+			Integer  offset //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(assetService.getTypeBydistrictId(conn,districtId,orgId,buildTime,assetType,resType,businessMode,count,offset));
+		}
+	}
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getAssetListByTypes", //
+			des = "按区级id 查询数据列表", //
+			ret = "返回列表"//
+	)
+	public APIResponse getAssetListByTypes(//
+			@P(t = "区id") Long districtId ,//
+			@P(t = "年份" ,r = false) JSONArray buildTimes ,//
+			@P(t = "组织id" , r = false) JSONArray orgIds ,//
+			@P(t = "分组信息" ,r = false) JSONArray groups ,//
+			@P(t = "资源类型" ,r = false) JSONArray resTypes ,//
+			@P(t = "资产类型" ,r = false) JSONArray assetTypes ,//
+			@P(t = "经营方式" ,r = false) JSONArray businessModes, //
+			Integer count, 
+			Integer offset
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(assetService.getAssetListByTypes(conn,districtId,buildTimes,orgIds,groups,resTypes,assetTypes,businessModes,count,offset));
+		}
+	}
+	
 }

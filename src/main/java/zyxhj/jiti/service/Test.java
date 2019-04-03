@@ -1,8 +1,4 @@
 package zyxhj.jiti.service;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import com.alibaba.fastjson.JSONArray;
 
@@ -26,11 +22,13 @@ public class Test {
 //		}
 //		System.out.println(map);
 		
-		String a = "[123]";
-		JSONArray json = JSONArray.parseArray(a);
-		json.add(234);
-		// json.add(103);
+		String a = "123";
+	//	JSONArray json = JSONArray.parseArray();
+		JSONArray json = new JSONArray();
+		json.add(JSONArray.parse(a));
+		 json.add(103);
 		
+		System.out.println(json);
 		System.out.println(json);
 		}
 

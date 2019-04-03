@@ -3,6 +3,7 @@ package zyxhj.jiti.service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -12,6 +13,8 @@ import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 
 import zyxhj.core.domain.User;
 import zyxhj.core.repository.UserRepository;
@@ -151,6 +154,14 @@ public class ORGUserService {
 
 	}
 
+	/**
+	 * 户缓存，缓存2分钟
+	 */
+	public static Cache<String, Family> FAMILY_CACHE = CacheBuilder.newBuilder()//
+			.expireAfterAccess(30, TimeUnit.SECONDS)// 缓存对象有效时间，2天
+			.maximumSize(100)//
+			.build();
+
 	private void insertORGUser(DruidPooledConnection conn, Long orgId, Long userId, String address, String shareCerNo,
 			String shareCerImg, Boolean shareCerHolder, Integer shareAmount, Integer weight, JSONArray roles,
 			JSONArray groups, JSONObject tags, String familyNumber, String familyMaster) throws Exception {
@@ -176,14 +187,27 @@ public class ORGUserService {
 
 		if (StringUtils.isNotBlank(familyNumber)) {
 			// 查询户序号在family表里是否拥有 有则把usreid插入到户成员下 无则添加户
-			Family fn = familyRepository.getByKey(conn, "family_number", familyNumber);
+
+			Family fn = FAMILY_CACHE.getIfPresent(familyNumber);
 			if (fn == null) {
+				// 缓存中没有，从数据库中获取
+				fn = familyRepository.getByKeys(conn, new String[] { "org_id", "family_number" },
+						new Object[] { orgId,familyNumber });
+				if (fn != null) {
+					// 放入缓存
+					FAMILY_CACHE.put(familyNumber, fn);
+				}
+			}
+			
+			//从缓存和数据库都取了一遍，
+			if (fn == null) {
+				// 如果空需要创建
 				// 添加户
 				fa.id = IDUtils.getSimpleId();
 				fa.orgId = orgId;
 				fa.familyNumber = familyNumber;
 				fa.familyMaster = familyMaster;
-				
+
 				// 将当前用户的id插入到户成员里
 				JSONArray json = new JSONArray();
 				json.add(userId);
@@ -199,7 +223,10 @@ public class ORGUserService {
 				fa.familyMember = json.toString();
 
 				familyRepository.updateByKey(conn, "family_number", familyNumber, fa, true);
+
 			}
+			
+
 		}
 		orgUserRepository.insert(conn, or);
 	}

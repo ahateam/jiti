@@ -1,8 +1,8 @@
 package zyxhj.jiti.service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -262,30 +262,107 @@ public class AssetService {
 			throws Exception {
 		return assetRepository.batchEditAssetsGroups(conn, orgId, assetIds, groups);
 	}
-	
-	
-	public List<Asset> getOriORNameBySn(DruidPooledConnection conn,Long orgId,String assetNum,Integer count,Integer offset) throws Exception{
-		return assetRepository.getOriORNameBySn(conn,orgId,assetNum,count,offset);
+
+	public List<Asset> getOriORNameBySn(DruidPooledConnection conn, Long orgId, String assetNum, Integer count,
+			Integer offset) throws Exception {
+		return assetRepository.getOriORNameBySn(conn, orgId, assetNum, count, offset);
 	}
-	
+
 	public List<Asset> getOriORNameByName(DruidPooledConnection conn, Long orgId, String assetNum, Integer count,
 			Integer offset) throws Exception {
 		return assetRepository.getOriORNameByName(conn, orgId, assetNum, count, offset);
 	}
-	
-	public List<Asset> getAssetByYear(DruidPooledConnection conn,Long orgId,String buildTime,Integer count,Integer offset) throws Exception{
-		return assetRepository.getAssetByYear(conn,orgId,buildTime,count,offset);
-	}
-	
-	public JSONArray sumAsset(DruidPooledConnection conn,Long orgId,JSONArray groups) throws Exception {
-		return assetRepository.sumAsset(conn, orgId,groups);
-	}
-	
-	
-	public JSONArray sumAssetByDis(DruidPooledConnection conn,Long distractId) throws Exception{
-		return assetRepository.sumAssetByDis(conn,distractId);
+
+	public List<Asset> getAssetByYear(DruidPooledConnection conn, Long orgId, String buildTime, Integer count,
+			Integer offset) throws Exception {
+		return assetRepository.getAssetByYear(conn, orgId, buildTime, count, offset);
 	}
 
-	
-	
+	public JSONArray ORGsumAssetBYGRAB(DruidPooledConnection conn, Long orgId, String buildTime, JSONArray groups,
+			JSONArray resType, JSONArray assetType, JSONArray businessMode) throws Exception {
+		return assetRepository.ORGsumAssetBYGRAB(conn, orgId, buildTime, groups, resType, assetType, businessMode);
+	}
+
+//	public JSONArray sumAssetByDstrictId(DruidPooledConnection conn,Long districtId,JSONArray buildTime,JSONArray orgId, JSONArray groups, JSONArray resType,
+//			JSONArray assetType, JSONArray businessMode) throws Exception{
+//		return assetRepository.sumAssetByDstrictId(conn,districtId, buildTime,orgId,groups, resType, assetType, businessMode);
+//	}
+
+	// 区管理员统计某一年的数据
+	public JSONArray districtCountByYear(DruidPooledConnection conn, Long districtId, String buildTime, JSONArray orgId,
+			JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes) throws Exception {
+		return assetRepository.districtCountByYear(conn, districtId, buildTime, orgId, groups, resTypes, assetTypes,
+				businessModes);
+	}
+
+	// 区管理员统计多年的数据
+	public JSONArray districtCountByYears(DruidPooledConnection conn, Long districtId, JSONArray buildTimes,
+			JSONArray orgIds, JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes)
+			throws Exception {
+		return assetRepository.districtCountByYears(conn, districtId, buildTimes, orgIds, groups, resTypes, assetTypes,
+				businessModes);
+	}
+
+	public List<String> getAssetType(DruidPooledConnection conn, Long districtId) throws Exception {
+		List<String> asset = assetRepository.getAssetType(conn, districtId);
+		List<String> bu = new ArrayList<String>();
+		for (String string : asset) {
+			if (string.isEmpty()) {
+			} else {
+				bu.add(string);
+			}
+		}
+		return bu;
+	}
+
+	public List<String> getResType(DruidPooledConnection conn, Long districtId) throws Exception {
+		List<String> res = assetRepository.getResType(conn, districtId);
+		List<String> bu = new ArrayList<String>();
+		for (String string : res) {
+			if (string.isEmpty()) {
+			} else {
+				bu.add(string);
+			}
+		}
+		return bu;
+	}
+
+	public List<String> getBuildTime(DruidPooledConnection conn, Long districtId) throws Exception {
+		List<String> buildTime = assetRepository.getBuildTime(conn, districtId);
+		List<String> bu = new ArrayList<String>();
+		for (String string : buildTime) {
+			if (string.isEmpty()) {
+			} else {
+				bu.add(string);
+			}
+		}
+		return bu;
+	}
+
+	public List<String> getBusinessMode(DruidPooledConnection conn, Long districtId) throws Exception {
+		List<String> businessMode = assetRepository.getBusinessMode(conn, districtId);
+		List<String> bu = new ArrayList<String>();
+		for (String string : businessMode) {
+			if (string.isEmpty()) {
+			} else {
+				bu.add(string);
+			}
+		}
+		return bu;
+	}
+
+	// 根据区id获取类型
+	public List<String> getTypeBydistrictId(DruidPooledConnection conn, Long districtId, Long orgId, String buildTime,
+			String assetType, String resType, String businessMode, Integer count, Integer offset) throws Exception {
+		return assetRepository.getTypeBydistrictId(conn, districtId, orgId, buildTime, assetType, resType, businessMode,
+				count, offset);
+	}
+
+	//根据区id获取资产列表
+	public List<Asset> getAssetListByTypes(DruidPooledConnection conn, Long districtId, JSONArray buildTimes,
+			JSONArray orgIds, JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes,
+			Integer count, Integer offset) throws Exception {
+		return assetRepository.getAssetListByTypes(conn, districtId, buildTimes, orgIds, groups, resTypes, assetTypes,
+				businessModes, count, offset);
+	}
 }

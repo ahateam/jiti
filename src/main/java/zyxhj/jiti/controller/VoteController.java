@@ -338,24 +338,98 @@ public class VoteController extends Controller {
 			return APIResponse.getNewSuccessResp(voteService.getVoteTicket(conn, voteId, userId));
 		}
 	}
-	
+
 	/**
 	 * 
 	 */
 	@POSTAPI(//
-			path = "getUserBySel", //
-			des = "获取用户的选票", //
+			path = "getUserBySelection", //
+			des = "查看当前选项有哪些用户投", //
 			ret = "用户选票对象"//
 	)
-	public APIResponse getUserBySel(//
+	public APIResponse getUserBySelection(//
 			@P(t = "投票编号") Long voteId, //
-			@P(t = "用户编号") String selection ,//
-			Integer count,//
+			@P(t = "选项") String selection, //
+			Integer count, //
 			Integer offset //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(voteService.getUserBySel(conn, voteId, selection,count,offset));
+			return APIResponse
+					.getNewSuccessResp(voteService.getUserBySelection(conn, voteId, selection, count, offset));
 		}
 	}
-	
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "countVoteTurnout", //
+			des = "统计投票", //
+			ret = "投票数量以及有多少人能投"//
+	)
+	public APIResponse countVoteTurnout(//
+			@P(t = "区编号") Long districtId, //
+			@P(t = "组织编号") JSONArray orgIds //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(voteService.countVoteTurnout(conn, districtId, orgIds));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getVotesByOrgId", //
+			des = "根据组织分类查询投票列表 可能为多个组织", //
+			ret = "返回投票列表"//
+	)
+	public APIResponse getVotesByOrgId(//
+			@P(t = "区编号") Long districtId, //
+			@P(t = "组织编号") JSONArray orgIds, //
+			@P(t = "投票编号", r = false) Byte status, //
+			Integer count, //
+			Integer offset //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse
+					.getNewSuccessResp(voteService.getVotesByOrgId(conn, districtId, orgIds, status, count, offset));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getVoteTicketByUserId", // 
+			des = "查询此用户的投票列表", //
+			ret = "返回投票列表"//
+	)
+	public APIResponse getVoteTicketByUserId(//
+			@P(t = "用户编号") Long userId, //
+			Integer count, //
+			Integer offset //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(voteService.getVoteTicketByUserId(conn, userId, count, offset));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getOptionByUserSelection", //
+			des = "查询用户所投选项", //
+			ret = "返回投票列表"//
+	)
+	public APIResponse getOptionByUserSelection(//
+			@P(t = "用户编号") Long userId, //
+			@P(t = "投票编号") Long voteId //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(voteService.getOptionByUserSelection(conn, userId, voteId));
+		}
+	}
+
 }

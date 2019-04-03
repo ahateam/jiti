@@ -14,7 +14,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
-import io.vertx.core.json.JsonArray;
 import zyxhj.core.domain.User;
 import zyxhj.core.repository.UserRepository;
 import zyxhj.jiti.domain.ORGUser;
@@ -79,6 +78,9 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		StringBuffer sb = new StringBuffer();
 		boolean flg = false;
 		sb.append("WHERE org_id=? AND (");
+		
+		//TODO BUG
+		
 		if (roles != null && roles.size() > 0) {
 			for (int i = 0; i < roles.size(); i++) {
 				String role = roles.getString(i);
@@ -259,14 +261,13 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 	public Map<String,Integer> countRole(DruidPooledConnection conn,Long orgId,JSONArray roles) throws Exception{
 		Map<String,Integer> map = new HashMap<String, Integer>();
 		
-		String[] ro = new String[roles.size()];
-		for(int  i = 0 ; i < ro.length ; i++) {
+		for(int  i = 0 ; i < roles.size() ; i++) {
 			StringBuffer sb = new StringBuffer();
 			//获取roles值
-			ro[i] = roles.getLong(i).toString();
-			sb.append("WHERE JSON_CONTAINS(roles, '").append(ro[i]).append("','$')");
+			String ro = roles.getString(i);
+			sb.append("WHERE JSON_CONTAINS(roles, '").append(ro).append("','$')");
 			int c = count(conn, sb.toString(), new Object[]{});
-			map.put(ro[i], c);
+			map.put(ro, c);
 		}
 		//SELECT  COUNT(*) FROM tb_ecm_org_user WHERE  JSON_CONTAINS(roles, '105','$')
 //		int a104 = this.count(conn, "WHERE JSON_CONTAINS(roles, '104')", new Object[]{});

@@ -169,7 +169,7 @@ public class ORGExamine {
 	 * 审核状态
 	 */
 	@RDSAnnField(column = RDSAnnField.BYTE)
-	public byte examine;
+	public Byte examine;
 	
 	
 }

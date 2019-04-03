@@ -18,7 +18,7 @@ public class VoteTicketRepository extends RDSRepository<VoteTicket> {
 		return countByKey(conn, "vote_id", voteId);
 	}
 
-	public List<VoteTicket> getUserBySel(DruidPooledConnection conn, Long voteId, String selection, Integer count,
+	public List<VoteTicket> getUserBySelection(DruidPooledConnection conn, Long voteId, String selection, Integer count,
 			Integer offset) throws Exception {
 		// SELECT * FROM tb_ecm_vote_ticket WHERE vote_id = 397557883853724 AND JSON_CONTAINS(selection, '397557885981598','$')
 		StringBuffer sb = new StringBuffer(" WHERE vote_id = ? AND JSON_CONTAINS(selection,'").append(selection).append("','$')");

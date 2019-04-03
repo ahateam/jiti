@@ -9,7 +9,7 @@ import zyxhj.utils.data.rds.RDSAnnID;
  * 分户
  *
  */
-@RDSAnnEntity(alias = "tb_ecm_fanily")
+@RDSAnnEntity(alias = "tb_ecm_family")
 public class Family {
 
 	@RDSAnnID

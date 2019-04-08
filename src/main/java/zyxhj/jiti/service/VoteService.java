@@ -622,7 +622,7 @@ public class VoteService {
 			}
 			
 			//TODO 
-			xxx
+//			xxx
 			int co = ticketRepository.countByKey(conn, "org_id", orgIds.getString(i));
 			ma.put("countTicket", b = b + co);
 			

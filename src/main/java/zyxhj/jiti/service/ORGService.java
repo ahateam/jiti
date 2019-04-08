@@ -490,7 +490,7 @@ public class ORGService {
 		// 检查户序号是否已经存在
 
 		// TODO orgId 希望做一个familyRepositroy的createFamily方法，然后ORGService和ORGUserService都用
-		xxx
+//		xxx
 		Family fn = familyRepository.getByKey(conn, "family_number", familyNumber);
 		if (fn == null) {
 			familyRepository.insert(conn, fa);

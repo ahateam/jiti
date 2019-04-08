@@ -177,7 +177,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 			try {
 				// return this.nativeGetJSONArray(conn, sql.toString(), new Object[] { orgId,
 				// count, offset });
-				return this.nativeGetList(conn, Singleton.ins(UserRepository.class), sql.toString(),
+				return this.sqlGetList(conn, Singleton.ins(UserRepository.class), sql.toString(),
 						new Object[] { orgId, count, offset });
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -203,7 +203,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 			try {
 				// return this.nativeGetJSONArray(conn, sql.toString(), new Object[] { orgId,
 				// count, offset });
-				return this.nativeGetList(conn, Singleton.ins(UserRepository.class), sql.toString(),
+				return this.sqlGetList(conn, Singleton.ins(UserRepository.class), sql.toString(),
 						new Object[] { orgId, count, offset });
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -252,7 +252,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 
 			String where = sbwhere.toString();
 			System.out.println(StringUtils.join(set, " ", where));
-			return this.update(conn, set, pset.toArray(), where, pwhere.toArray());
+			return this.nativeUpdate(conn, set, pset.toArray(), where, pwhere.toArray());
 		} else {
 			return 0;
 		}

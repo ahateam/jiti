@@ -127,7 +127,7 @@ public class AssetRepository extends RDSRepository<Asset> {
 
 			String where = sbwhere.toString();
 			System.out.println(StringUtils.join(set, " ", where));
-			return this.update(conn, set, pset.toArray(), where, pwhere.toArray());
+			return this.nativeUpdate(conn, set, pset.toArray(), where, pwhere.toArray());
 		} else {
 			return 0;
 		}
@@ -280,7 +280,7 @@ public class AssetRepository extends RDSRepository<Asset> {
 		// s = s.substring(0, s.length() - 1);// 移除后]
 		// js.add(JSONArray.parse(s));
 
-		return nativeGetJSONArray(conn, sb.toString(), new Object[] { orgId, buildTime });
+		return sql(conn, sb.toString(), new Object[] { orgId, buildTime });
 	}
 
 	// int xxx = 4;
@@ -446,7 +446,7 @@ public class AssetRepository extends RDSRepository<Asset> {
 		// js.add(JSONArray.parse(s));
 		System.out.println(sb.toString());
 
-		return nativeGetJSONArray(conn, sb.toString(), new Object[] { buildTime });
+		return sql(conn, sb.toString(), new Object[] { buildTime });
 	}
 
 	// 根据类型获取资产列表

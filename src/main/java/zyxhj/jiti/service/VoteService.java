@@ -529,9 +529,9 @@ public class VoteService {
 				delVoteTicket(conn, voteId, userId);
 
 				// 计票-1
-				String[] ids = new String[json.size()];
-				for (int i = 0; i < ids.length; i++) {
-					ids[i] = json.getLong(i).toString();
+				List<String> ids = new ArrayList<>(selections.size());
+				for (int i = 0; i < ids.size(); i++) {
+					ids.set(i, selections.getLong(i).toString()) ;
 				}
 				optionRepository.subTicket(conn, ids, ballotCount);
 
@@ -592,11 +592,11 @@ public class VoteService {
 		ticketRepository.insert(conn, vt);
 
 		// 计票
-		String[] id = new String[selections.size()];
-		for (int i = 0; i < id.length; i++) {
-			id[i] = selections.getLong(i).toString();
+		List<String> ids = new ArrayList<>(selections.size());
+		for (int i = 0; i < ids.size(); i++) {
+			ids.set(i, selections.getLong(i).toString()) ;
 		}
-		optionRepository.countTicket(conn, id, ballotCount);
+		optionRepository.countTicket(conn, ids, ballotCount);
 	}
 
 	public List<VoteTicket> getUserBySelection(DruidPooledConnection conn, Long voteId, String selection, Integer count,

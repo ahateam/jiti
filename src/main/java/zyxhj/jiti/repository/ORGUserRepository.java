@@ -78,9 +78,9 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		StringBuffer sb = new StringBuffer();
 		boolean flg = false;
 		sb.append("WHERE org_id=? AND (");
-		
-		//TODO BUG
-		
+
+		// TODO BUG
+
 		if (roles != null && roles.size() > 0) {
 			for (int i = 0; i < roles.size(); i++) {
 				String role = roles.getString(i);
@@ -177,7 +177,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 			try {
 				// return this.nativeGetJSONArray(conn, sql.toString(), new Object[] { orgId,
 				// count, offset });
-				return this.sqlGetList(conn, Singleton.ins(UserRepository.class), sql.toString(),
+				return this.sqlGetOtherList(conn, Singleton.ins(UserRepository.class), sql.toString(),
 						new Object[] { orgId, count, offset });
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -203,7 +203,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 			try {
 				// return this.nativeGetJSONArray(conn, sql.toString(), new Object[] { orgId,
 				// count, offset });
-				return this.sqlGetList(conn, Singleton.ins(UserRepository.class), sql.toString(),
+				return this.sqlGetOtherList(conn, Singleton.ins(UserRepository.class), sql.toString(),
 						new Object[] { orgId, count, offset });
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -252,38 +252,43 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 
 			String where = sbwhere.toString();
 			System.out.println(StringUtils.join(set, " ", where));
-			return this.nativeUpdate(conn, set, pset.toArray(), where, pwhere.toArray());
+			return this.update(conn, set, pset.toArray(), where, pwhere.toArray());
 		} else {
 			return 0;
 		}
 	}
 
-	public Map<String,Integer> countRole(DruidPooledConnection conn,Long orgId,JSONArray roles) throws Exception{
-		Map<String,Integer> map = new HashMap<String, Integer>();
-		
-		for(int  i = 0 ; i < roles.size() ; i++) {
+	public Map<String, Integer> countRole(DruidPooledConnection conn, Long orgId, JSONArray roles) throws Exception {
+		Map<String, Integer> map = new HashMap<String, Integer>();
+
+		for (int i = 0; i < roles.size(); i++) {
 			StringBuffer sb = new StringBuffer();
-			//获取roles值
+			// 获取roles值
 			String ro = roles.getString(i);
 			sb.append("WHERE JSON_CONTAINS(roles, '").append(ro).append("','$')");
-			int c = count(conn, sb.toString(), new Object[]{});
+			int c = count(conn, sb.toString(), new Object[] {});
 			map.put(ro, c);
 		}
-		//SELECT  COUNT(*) FROM tb_ecm_org_user WHERE  JSON_CONTAINS(roles, '105','$')
-//		int a104 = this.count(conn, "WHERE JSON_CONTAINS(roles, '104')", new Object[]{});
-//		map.put("104", a104);
-//		int a105 = this.count(conn, "WHERE JSON_CONTAINS(roles, '105')", new Object[]{});
-//		map.put("105", a105);
-//		int a106 = this.count(conn, "WHERE JSON_CONTAINS(roles, '106')", new Object[]{});
-//		map.put("106", a106);
-//		int a107 = this.count(conn, "WHERE JSON_CONTAINS(roles, '107')", new Object[]{});
-//		map.put("107", a107);
-//		int a108 = this.count(conn, "WHERE JSON_CONTAINS(roles, '108')", new Object[]{});
-//		map.put("108", a108);
-//		int a109 = this.count(conn, "WHERE JSON_CONTAINS(roles, '109')", new Object[]{});
-//		map.put("109", a109);
+		// SELECT COUNT(*) FROM tb_ecm_org_user WHERE JSON_CONTAINS(roles, '105','$')
+		// int a104 = this.count(conn, "WHERE JSON_CONTAINS(roles, '104')", new
+		// Object[]{});
+		// map.put("104", a104);
+		// int a105 = this.count(conn, "WHERE JSON_CONTAINS(roles, '105')", new
+		// Object[]{});
+		// map.put("105", a105);
+		// int a106 = this.count(conn, "WHERE JSON_CONTAINS(roles, '106')", new
+		// Object[]{});
+		// map.put("106", a106);
+		// int a107 = this.count(conn, "WHERE JSON_CONTAINS(roles, '107')", new
+		// Object[]{});
+		// map.put("107", a107);
+		// int a108 = this.count(conn, "WHERE JSON_CONTAINS(roles, '108')", new
+		// Object[]{});
+		// map.put("108", a108);
+		// int a109 = this.count(conn, "WHERE JSON_CONTAINS(roles, '109')", new
+		// Object[]{});
+		// map.put("109", a109);
 		return map;
 	}
-	
-	
+
 }

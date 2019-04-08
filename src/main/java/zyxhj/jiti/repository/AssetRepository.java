@@ -127,7 +127,7 @@ public class AssetRepository extends RDSRepository<Asset> {
 
 			String where = sbwhere.toString();
 			System.out.println(StringUtils.join(set, " ", where));
-			return this.nativeUpdate(conn, set, pset.toArray(), where, pwhere.toArray());
+			return this.update(conn, set, pset.toArray(), where, pwhere.toArray());
 		} else {
 			return 0;
 		}
@@ -280,7 +280,11 @@ public class AssetRepository extends RDSRepository<Asset> {
 		// s = s.substring(0, s.length() - 1);// 移除后]
 		// js.add(JSONArray.parse(s));
 
-		return sql(conn, sb.toString(), new Object[] { orgId, buildTime });
+		// return sqlGetJSONArray(conn, sb.toString(), new Object[] { orgId, buildTime
+		// });
+		JSONArray arr = JSON.parseArray(
+				JSON.toJSONString(this.sqlGetObjects(conn, sb.toString(), new Object[] { orgId, buildTime })));
+		return arr;
 	}
 
 	// int xxx = 4;
@@ -446,7 +450,10 @@ public class AssetRepository extends RDSRepository<Asset> {
 		// js.add(JSONArray.parse(s));
 		System.out.println(sb.toString());
 
-		return sql(conn, sb.toString(), new Object[] { buildTime });
+		// return sqlGetJSONArray(conn, sb.toString(), new Object[] { buildTime });
+		JSONArray arr = JSON
+				.parseArray(JSON.toJSONString(this.sqlGetObjects(conn, sb.toString(), new Object[] { buildTime })));
+		return arr;
 	}
 
 	// 根据类型获取资产列表
@@ -567,81 +574,96 @@ public class AssetRepository extends RDSRepository<Asset> {
 	public List<String> getAssetType(DruidPooledConnection conn, Long districtId) throws Exception {
 		// SELECT * FROM xxxx WHERE district_id = ? and org_id = ?
 
-		return this.getColumnStrings(conn, "asset_type", " GROUP BY asset_type", new Object[] {}, 512, 0);
+		// return this.getColumnStrings(conn, "asset_type", " GROUP BY asset_type", new
+		// Object[] {}, 512, 0);
+		return null;
 	}
 
 	// TODO 现区级未完 区id以后再添加到查询内
 	public List<String> getResType(DruidPooledConnection conn, Long districtId) throws Exception {
-		return this.getColumnStrings(conn, "res_type", " GROUP BY res_type", new Object[] {}, 512, 0);
+		// return this.getColumnStrings(conn, "res_type", " GROUP BY res_type", new
+		// Object[] {}, 512, 0);
+		return null;
 	}
 
 	// TODO 现区级未完 区id以后再添加到查询内
 	public List<String> getBuildTime(DruidPooledConnection conn, Long districtId) throws Exception {
-		return this.getColumnStrings(conn, "build_time", " GROUP BY build_time", new Object[] {}, 512, 0);
+		// return this.getColumnStrings(conn, "build_time", " GROUP BY build_time", new
+		// Object[] {}, 512, 0);
+		return null;
 	}
 
 	// TODO 现区级未完 区id以后再添加到查询内
 	public List<String> getBusinessMode(DruidPooledConnection conn, Long districtId) throws Exception {
-		return this.getColumnStrings(conn, "business_mode", " GROUP BY business_mode", new Object[] {}, 512, 0);
+		// return this.getColumnStrings(conn, "business_mode", " GROUP BY
+		// business_mode", new Object[] {}, 512, 0);
+		return null;
 	}
 
 	// 根据区id查询类型
 	public List<String> getTypeBydistrictId(DruidPooledConnection conn, Long districtId, Long orgId, String buildTime,
 			String assetType, String resType, String businessMode, Integer count, Integer offset) throws Exception {
-		List<String> list = new ArrayList<String>();
-		StringBuffer sb = new StringBuffer(); // TODO 以后添加区id进行查询
+		// List<String> list = new ArrayList<String>();
+		// StringBuffer sb = new StringBuffer(); // TODO 以后添加区id进行查询
+		//
+		// if (orgId != null) {
+		// sb.append("WHERE org_id =").append(orgId);
+		// }
+		//
+		// if (StringUtils.isNotBlank(buildTime) && "buildTime".equals(buildTime)) {
+		// sb.append(" GROUP BY build_time ");
+		// List<String> bu = this.getColumnStrings(conn, "build_time", sb.toString(),
+		// new Object[] {}, count, offset);
+		// for (String s : bu) {
+		// if (s.isEmpty()) {
+		// } else {
+		// list.add(s);
+		// }
+		// }
+		// }
+		//
+		// if (StringUtils.isNotBlank(assetType) && "assetType".equals(assetType)) {
+		// sb = new StringBuffer();
+		// sb.append(" GROUP BY asset_type ");
+		// List<String> bu = this.getColumnStrings(conn, "asset_type", sb.toString(),
+		// new Object[] {}, count, offset);
+		// for (String s : bu) {
+		// if (s.isEmpty()) {
+		// } else {
+		// list.add(s);
+		// }
+		// }
+		// }
+		//
+		// if (StringUtils.isNotBlank(resType) && "resType".equals(resType)) {
+		// sb.append(" GROUP BY res_type ");
+		// List<String> bu = this.getColumnStrings(conn, "res_type", sb.toString(), new
+		// Object[] {}, count, offset);
+		// for (String s : bu) {
+		// if (s.isEmpty()) {
+		// } else {
+		// list.add(s);
+		// }
+		// }
+		// }
+		//
+		// if (StringUtils.isNotBlank(businessMode) &&
+		// "businessMode".equals(businessMode)) {
+		// sb.append(" GROUP BY business_mode");
+		// List<String> bu = this.getColumnStrings(conn, "business_mode", sb.toString(),
+		// new Object[] {}, count,
+		// offset);
+		// for (String s : bu) {
+		// if (s.isEmpty()) {
+		// } else {
+		// list.add(s);
+		// }
+		// }
+		// }
+		// System.out.println(sb.toString());
+		// return list;
 
-		if (orgId != null) {
-			sb.append("WHERE org_id =").append(orgId);
-		}
-
-		if (StringUtils.isNotBlank(buildTime) && "buildTime".equals(buildTime)) {
-			sb.append(" GROUP BY build_time ");
-			List<String> bu = this.getColumnStrings(conn, "build_time", sb.toString(), new Object[] {}, count, offset);
-			for (String s : bu) {
-				if (s.isEmpty()) {
-				} else {
-					list.add(s);
-				}
-			}
-		}
-
-		if (StringUtils.isNotBlank(assetType) && "assetType".equals(assetType)) {
-			sb = new StringBuffer();
-			sb.append(" GROUP BY asset_type ");
-			List<String> bu = this.getColumnStrings(conn, "asset_type", sb.toString(), new Object[] {}, count, offset);
-			for (String s : bu) {
-				if (s.isEmpty()) {
-				} else {
-					list.add(s);
-				}
-			}
-		}
-
-		if (StringUtils.isNotBlank(resType) && "resType".equals(resType)) {
-			sb.append(" GROUP BY res_type ");
-			List<String> bu = this.getColumnStrings(conn, "res_type", sb.toString(), new Object[] {}, count, offset);
-			for (String s : bu) {
-				if (s.isEmpty()) {
-				} else {
-					list.add(s);
-				}
-			}
-		}
-
-		if (StringUtils.isNotBlank(businessMode) && "businessMode".equals(businessMode)) {
-			sb.append(" GROUP BY business_mode");
-			List<String> bu = this.getColumnStrings(conn, "business_mode", sb.toString(), new Object[] {}, count,
-					offset);
-			for (String s : bu) {
-				if (s.isEmpty()) {
-				} else {
-					list.add(s);
-				}
-			}
-		}
-		System.out.println(sb.toString());
-		return list;
+		return new ArrayList<String>();
 	}
 
 	// public List<Asset> getAssetsByGroups(DruidPooledConnection conn, Long orgId,

@@ -24,6 +24,8 @@ import zyxhj.utils.Singleton;
 import zyxhj.utils.api.BaseRC;
 import zyxhj.utils.api.ServerException;
 import zyxhj.utils.data.rds.RDSRepository;
+import zyxhj.utils.data.rds.SQL;
+import zyxhj.utils.data.rds.SQLEx;
 
 public class ORGUserRepository extends RDSRepository<ORGUser> {
 
@@ -34,8 +36,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 	/**
 	 * 检查ORGUser权限
 	 * 
-	 * @param roles
-	 *            需要具备的权限数组
+	 * @param roles 需要具备的权限数组
 	 */
 	public ORGUser checkORGUserRoles(DruidPooledConnection conn, Long orgId, Long userId, ORGUserRole[] roles)
 			throws ServerException {
@@ -80,6 +81,9 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		sb.append("WHERE org_id=? AND (");
 
 		// TODO BUG
+		SQL sql = new SQL();
+		
+		sql.OR(SQLEx.ex(ex, params))
 
 		if (roles != null && roles.size() > 0) {
 			for (int i = 0; i < roles.size(); i++) {
@@ -261,33 +265,20 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 	public Map<String, Integer> countRole(DruidPooledConnection conn, Long orgId, JSONArray roles) throws Exception {
 		Map<String, Integer> map = new HashMap<String, Integer>();
 
+		// SELECT COUNT(*) FROM tb_ecm_org_user WHERE JSON_CONTAINS(roles, '101','$')
+
 		for (int i = 0; i < roles.size(); i++) {
-			StringBuffer sb = new StringBuffer();
+			StringBuffer sql = new StringBuffer();
 			// 获取roles值
 			String ro = roles.getString(i);
-			sb.append("WHERE JSON_CONTAINS(roles, '").append(ro).append("','$')");
-			int c = count(conn, sb.toString(), new Object[] {});
-			map.put(ro, c);
+			sql.append("SELECT COUNT(*) FROM tb_ecm_org_user WHERE JSON_CONTAINS(roles, '").append(ro).append("','$')");
+			// sb.append("WHERE JSON_CONTAINS(roles, '").append(ro).append("','$')");
+
+			//	int c = count(conn, sb.toString(), new Object[] {});
+			//List<Object[]> s = sqlGetObjectsList(conn, sql.toString(), new Object[] {}, null, null);
+			Object[] s = sqlGetObjects(conn, sql.toString(), new Object[] {});
+			map.put(ro, (Integer) s[0]);
 		}
-		// SELECT COUNT(*) FROM tb_ecm_org_user WHERE JSON_CONTAINS(roles, '105','$')
-		// int a104 = this.count(conn, "WHERE JSON_CONTAINS(roles, '104')", new
-		// Object[]{});
-		// map.put("104", a104);
-		// int a105 = this.count(conn, "WHERE JSON_CONTAINS(roles, '105')", new
-		// Object[]{});
-		// map.put("105", a105);
-		// int a106 = this.count(conn, "WHERE JSON_CONTAINS(roles, '106')", new
-		// Object[]{});
-		// map.put("106", a106);
-		// int a107 = this.count(conn, "WHERE JSON_CONTAINS(roles, '107')", new
-		// Object[]{});
-		// map.put("107", a107);
-		// int a108 = this.count(conn, "WHERE JSON_CONTAINS(roles, '108')", new
-		// Object[]{});
-		// map.put("108", a108);
-		// int a109 = this.count(conn, "WHERE JSON_CONTAINS(roles, '109')", new
-		// Object[]{});
-		// map.put("109", a109);
 		return map;
 	}
 

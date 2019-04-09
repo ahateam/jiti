@@ -214,8 +214,8 @@ public class ORGService {
 	 * 更新组织信息，目前全都可以改，将来应该限定code，name等不允许更改</br>
 	 * 填写空表示不更改
 	 */
-	public void editORG(DruidPooledConnection conn,String ogName ,Long orgId, String province, String city, String district,
-			String address, String imgOrg, String imgAuth, Integer shareAmount) throws Exception {
+	public void editORG(DruidPooledConnection conn, String ogName, Long orgId, String province, String city,
+			String district, String address, String imgOrg, String imgAuth, Integer shareAmount) throws Exception {
 
 		ORG renew = new ORG();
 		renew.name = ogName;
@@ -268,20 +268,23 @@ public class ORGService {
 	/**
 	 * 获取用户对应的组织列表 TODO 用sql重做一次，不要两次查询
 	 */
-	public List<ORG> getUserORGs(DruidPooledConnection conn, Long userId) throws Exception {
-		List<ORGUser> ors = orgUserRepository.getListByKey(conn, "user_id", userId, 512, 0);
-		ORGUser byKey = orgUserRepository.getByKey(conn, "user_id", userId);
-		System.out.println(byKey);
-		if (ors == null || ors.size() == 0) {
-			return new ArrayList<ORG>();
-		} else {
-			String[] values = new String[ors.size()];
-			for (int i = 0; i < ors.size(); i++) {
-				values[i] = ors.get(i).orgId.toString();
-				System.out.println(values[i]);
-			}
-			return orgRepository.getListByKeyInValues(conn, "id", values);
-		}
+	public JSONArray getUserORGs(DruidPooledConnection conn, Long userId, Integer count, Integer offset)
+			throws Exception {
+//		List<ORGUser> ors = orgUserRepository.getListByKey(conn, "user_id", userId, 512, 0);
+//		ORGUser byKey = orgUserRepository.getByKey(conn, "user_id", userId);
+//		System.out.println(byKey);
+//		if (ors == null || ors.size() == 0) {
+//			return new ArrayList<ORG>();
+//		} else {
+//			String[] values = new String[ors.size()];
+//			for (int i = 0; i < ors.size(); i++) {
+//				values[i] = ors.get(i).orgId.toString();
+//				System.out.println(values[i]);
+//			}
+//			return orgRepository.getListByKeyInValues(conn, "id", values);
+//		}  
+
+		return orgRepository.getUserORGs(conn, userId, count, offset);
 	}
 
 	/**
@@ -409,7 +412,7 @@ public class ORGService {
 			orgExamineRepository.updateByKey(conn, "id", orgExamineId, newORG, true);
 
 			if (orgById != null) {
-				this.editORG(conn,name, orgExamineId, province, city, district, address, imgOrg, imgAuth, shareAmount);
+				this.editORG(conn, name, orgExamineId, province, city, district, address, imgOrg, imgAuth, shareAmount);
 				System.out.println("11111");
 			} else {
 				this.createORG(conn, orgExamineId, userId, name, code, province, city, district, address, imgOrg,

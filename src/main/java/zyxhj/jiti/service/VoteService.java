@@ -29,6 +29,8 @@ import zyxhj.utils.IDUtils;
 import zyxhj.utils.Singleton;
 import zyxhj.utils.api.BaseRC;
 import zyxhj.utils.api.ServerException;
+import zyxhj.utils.data.rds.SQL;
+import zyxhj.utils.data.rds.SQLEx;
 
 public class VoteService {
 
@@ -542,7 +544,7 @@ public class VoteService {
 	}
 
 	public void delVoteTicket(DruidPooledConnection conn, Long voteId, Long userId) throws Exception {
-		voteRepository.deleteByKeys(conn, new String[] { "vote_id", "user_id" }, new Object[] { voteId, userId });
+		voteRepository.deleteByANDKeys(conn, new String[] { "vote_id", "user_id" }, new Object[] { voteId, userId });
 	}
 
 	/**
@@ -553,7 +555,7 @@ public class VoteService {
 
 		List<VoteOption> options = optionRepository.getListByKey(conn, "vote_id", voteId, 512, 0);
 
-		int ticketCount = ticketRepository.countByKey(conn, "vote_id", voteId);
+		int ticketCount = ticketRepository.countVoteDetail(conn, voteId);
 
 		vote.quorum = orgUserRepository.getParticipateCount(conn, vote.orgId, vote.id, JSON.parseObject(vote.crowd));
 		JSONObject ret = new JSONObject();
@@ -631,17 +633,21 @@ public class VoteService {
 		for (int i = 0; i < orgIds.size(); i++) {
 			//根据orgId取得当前org下得VOTE
 			List<Vote> getVote = voteRepository.getListByKey(conn, "org_id", orgIds.getString(i), null, null);
-			for (Vote v : getVote) {
-				ma.put("countQuorum", a = a + v.quorum);
-			}
-			
-			//TODO 
-//			xxx
-			int co = ticketRepository.countByKey(conn, "org_id", orgIds.getString(i));
-			ma.put("countTicket", b = b + co);
-			
-			
-			
+			//遍历VOTE  得到一个投票率
+					for (Vote v : getVote) {
+						if( v.quorum != 0) {
+						double a = v.quorum;
+						int c = ticketRepository.countTicket(conn,v.id);
+						if(c != 0) {
+							//把相票率放入list中
+							list.add(c/a);
+						}else {
+							list.add(0.5);
+						}
+						}else {
+							list.add(0.5);
+						}
+					}
 		}
 		for(int i = 0 ; i < list.size() ; i ++) {
 			d = d + list.get(i);

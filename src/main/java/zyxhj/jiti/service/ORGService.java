@@ -214,10 +214,11 @@ public class ORGService {
 	 * 更新组织信息，目前全都可以改，将来应该限定code，name等不允许更改</br>
 	 * 填写空表示不更改
 	 */
-	public void editORG(DruidPooledConnection conn, Long orgId, String province, String city, String district,
+	public void editORG(DruidPooledConnection conn,String ogName ,Long orgId, String province, String city, String district,
 			String address, String imgOrg, String imgAuth, Integer shareAmount) throws Exception {
 
 		ORG renew = new ORG();
+		renew.name = ogName;
 		renew.province = province;
 		renew.city = city;
 		renew.district = district;
@@ -225,7 +226,7 @@ public class ORGService {
 		renew.imgOrg = imgOrg;
 		renew.imgAuth = imgAuth;
 		renew.shareAmount = shareAmount;
-
+		System.out.println(orgId);
 		orgRepository.updateByKey(conn, "id", orgId, renew, true);
 	}
 
@@ -251,9 +252,9 @@ public class ORGService {
 	}
 
 	/**
-	 * 获取全部组织列表 TODO 区id
+	 * 获取全部组织列表 TODO 区级平台完善后需要修改
 	 */
-	public List<ORG> getORGs(DruidPooledConnection conn, int count, int offset) throws Exception {
+	public List<ORG> getORGs(DruidPooledConnection conn, Long districtId, int count, int offset) throws Exception {
 		return orgRepository.getList(conn, count, offset);
 	}
 
@@ -286,10 +287,8 @@ public class ORGService {
 	/**
 	 * 成员登录
 	 * 
-	 * @param mobile
-	 *            电话号码
-	 * @param pwd
-	 *            密码
+	 * @param mobile 电话号码
+	 * @param pwd    密码
 	 * @param 登录业务对象
 	 */
 	public LoginBo loginByMobile(DruidPooledConnection conn, String mobile, String pwd) throws Exception {
@@ -397,11 +396,11 @@ public class ORGService {
 	}
 
 	// 修改组织申请状态
-	// TODO 重新审核
-	public ORGExamine upORGApply(DruidPooledConnection conn, Long orgExamineId, byte examine, Long userId, String name,
+	public ORGExamine upORGApply(DruidPooledConnection conn, Long orgExamineId, Byte examine, Long userId, String name,
 			String code, String province, String city, String district, String address, String imgOrg, String imgAuth,
 			Integer shareAmount) throws Exception {
 
+		ORG orgById = this.getORGById(conn, orgExamineId); // 查询org是否存在
 		ORGExamine newORG = new ORGExamine();
 
 		newORG.examine = examine;
@@ -409,17 +408,15 @@ public class ORGService {
 
 			orgExamineRepository.updateByKey(conn, "id", orgExamineId, newORG, true);
 
-			ORG getOrg = orgRepository.getByKey(conn, "id", orgExamineId);
-			if (getOrg != null) {
-				orgRepository.deleteByKey(conn, "id", orgExamineId);
-			}
-			this.createORG(conn, orgExamineId, userId, name, code, province, city, district, address, imgOrg, imgAuth,
-					shareAmount);
-		} else if (examine == ORGExamine.STATUS.INVALID.v()) {
-			ORG orgById = this.getORGById(conn, orgExamineId);
 			if (orgById != null) {
-				orgRepository.deleteByKey(conn, "id", orgExamineId);
+				this.editORG(conn,name, orgExamineId, province, city, district, address, imgOrg, imgAuth, shareAmount);
+				System.out.println("11111");
+			} else {
+				this.createORG(conn, orgExamineId, userId, name, code, province, city, district, address, imgOrg,
+						imgAuth, shareAmount);
 			}
+		} else if (examine == ORGExamine.STATUS.INVALID.v()) {
+
 			orgExamineRepository.updateByKey(conn, "id", orgExamineId, newORG, true);
 		}
 
@@ -427,17 +424,11 @@ public class ORGService {
 	}
 
 	// 再次提交组织申请
-	// TODO 有问题
 	public int oRGApplyAgain(DruidPooledConnection conn, Long orgExamineId, Long userId, String name, String code,
 			String province, String city, String district, String address, String imgOrg, String imgAuth,
 			Integer shareAmount) throws Exception {
-
-		ORG getOrg = orgRepository.getByKey(conn, "id", orgExamineId);
-
-		if (getOrg != null) {
-			orgRepository.deleteByKey(conn, "id", orgExamineId);
-		}
-
+		// 查询组织表里是否有数据 如果有 则表示当前审核是成功后需要再次提交审核的 如果没有 则表示审核未通过的
+		ORG orgId = orgRepository.getByKey(conn, "id", orgExamineId);
 		ORGExamine newORG = new ORGExamine();
 
 		newORG.createTime = new Date();
@@ -451,7 +442,12 @@ public class ORGService {
 		newORG.imgOrg = imgOrg;
 		newORG.imgAuth = imgAuth;
 		newORG.shareAmount = shareAmount;
-		newORG.examine = ORGExamine.STATUS.VOTING.v();
+
+		if (orgId != null) {
+			newORG.examine = ORGExamine.STATUS.EXAMINE.v(); // 组织表下有数据 则表示需要再次审核
+		} else {
+			newORG.examine = ORGExamine.STATUS.VOTING.v(); // 组织表下无数据 表示当前组织审核未通过 需要再次审核的数据
+		}
 
 		return orgExamineRepository.updateByKey(conn, "id", orgExamineId, newORG, true);
 

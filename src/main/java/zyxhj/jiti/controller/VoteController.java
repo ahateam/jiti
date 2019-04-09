@@ -406,12 +406,13 @@ public class VoteController extends Controller {
 			ret = "返回投票列表"//
 	)
 	public APIResponse getVoteTicketByUserId(//
+			@P(t = "组织编号") Long orgId, //
 			@P(t = "用户编号") Long userId, //
 			Integer count, //
 			Integer offset //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(voteService.getVoteTicketByUserId(conn, userId, count, offset));
+			return APIResponse.getNewSuccessResp(voteService.getVoteTicketByUserId(conn,orgId, userId, count, offset));
 		}
 	}
 

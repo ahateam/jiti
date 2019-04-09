@@ -2,10 +2,8 @@ package zyxhj.jiti.service;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
@@ -605,17 +603,33 @@ public class VoteService {
 	}
 
 	// 区级统计投票的积极性
-	public Map<String, Integer> countVoteTurnout(DruidPooledConnection conn, Long districtId, JSONArray orgIds)
+	public Double countVoteTurnout(DruidPooledConnection conn, Long districtId, JSONArray orgIds)
 			throws Exception {
 		// voteRepository.countNumberByOrgId( conn, orgId);
 		// for(遍历org)
 		// 查询当前org下的投票
 		// 将可投票的人数进行相加
-		Map<String, Integer> ma = new HashMap<String, Integer>();
-		Integer a = 0, b = 0;
+//		Map<String, Integer> ma = new HashMap<String, Integer>();
+//		Integer a = 0, b = 0;
+//		for (int i = 0; i < orgIds.size(); i++) {
+//			
+//			
+//			List<Vote> getVote = voteRepository.getListByKey(conn, "org_id", orgIds.getString(i), null, null);
+//			for (Vote v : getVote) {
+//				ma.put("countQuorum", a = a + v.quorum);
+//			}
+//			
+//			int co = ticketRepository.countByKey(conn, "org_id", orgIds.getString(i));
+//			ma.put("countTicket", b = b + co);
+//			
+//		}
+//
+//		System.out.println(ma);
+		List<Double> list = new ArrayList<Double>();
+		Double d = 0.0;  //拿来放总票率
+		//遍历orgid  获取orgid下的投票
 		for (int i = 0; i < orgIds.size(); i++) {
-			
-			
+			//根据orgId取得当前org下得VOTE
 			List<Vote> getVote = voteRepository.getListByKey(conn, "org_id", orgIds.getString(i), null, null);
 			for (Vote v : getVote) {
 				ma.put("countQuorum", a = a + v.quorum);
@@ -629,13 +643,15 @@ public class VoteService {
 			
 			
 		}
-
-		System.out.println(ma);
-		return ma;
+		for(int i = 0 ; i < list.size() ; i ++) {
+			d = d + list.get(i);
+		}
+		//输出   总票率/投票个数
+		return d/list.size();
 	}
 
 	// 根据组织分类查询投票列表 可能为多个组织
-	// TODO 接口可能重复
+	// TODO 接口可能重复 
 	public List<Vote> getVotesByOrgId(DruidPooledConnection conn, Long districtId, JSONArray orgIds, Byte status,
 			Integer count, Integer offset) throws Exception {
 		return voteRepository.getVotesByOrgId(conn, districtId, orgIds, status, count, offset);
@@ -643,11 +659,10 @@ public class VoteService {
 
 	// 查询用户投票列表
 	// TODO 可以用一个查询做
-	public List<Vote> getVoteTicketByUserId(DruidPooledConnection conn, Long userId, Integer count, Integer offset)
+	public List<Vote> getVoteTicketByUserId(DruidPooledConnection conn,Long orgId ,Long userId, Integer count, Integer offset)
 			throws Exception {
 		// 查询用户投票记录
-		// TODO orgId
-		List<VoteTicket> li = ticketRepository.getListByKey(conn, "user_id", userId, count, offset);
+		List<VoteTicket> li = ticketRepository.getListByKeys(conn, new String[] {"org_id","user_id"}, new Object[] {orgId,userId}, count, offset);
 
 		// 获取到投票记录的voidId 在Vote表里进行匹配
 		if (li != null && li.size() > 0) {

@@ -100,6 +100,7 @@ public class ORGController extends Controller {
 	)
 	public APIResponse setORG(//
 			@P(t = "组织编号") Long orgId, //
+			@P(t = "组织名称") String orgName, //
 			@P(t = "省") String province, //
 			@P(t = "市") String city, //
 			@P(t = "区") String district, //
@@ -109,7 +110,7 @@ public class ORGController extends Controller {
 			@P(t = "总股份数") Integer shareAmount//
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			orgService.editORG(conn, orgId, province, city, district, address, imgOrg, imgAuth, shareAmount);
+			orgService.editORG(conn,orgName, orgId, province, city, district, address, imgOrg, imgAuth, shareAmount);
 			return APIResponse.getNewSuccessResp();
 		}
 	}
@@ -150,10 +151,11 @@ public class ORGController extends Controller {
 			ret = "组织对象列表"//
 	)
 	public APIResponse getORGs(//
+			@P(t = "区编号") Long districtId,//
 			Integer count, //
 			Integer offset) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.getORGs(conn, count, offset));
+			return APIResponse.getNewSuccessResp(orgService.getORGs(conn,districtId,count, offset));
 		}
 	}
 

@@ -279,7 +279,11 @@ public class AssetService {
 	}
 
 	/**
-	 * TODO GRAB??
+	 * 根据年份，资产类型等条件，统计资源原值，产值等
+	 * @param G 分组
+	 * @param R 资源类型
+	 * @param A 资产类型
+	 * @param B 经营方式
 	 */
 	public JSONArray sumAssetBYGRAB(DruidPooledConnection conn, Long orgId, String buildTime, JSONArray groups,
 			JSONArray resType, JSONArray assetType, JSONArray businessMode) throws Exception {
@@ -309,60 +313,6 @@ public class AssetService {
 				businessModes);
 	}
 
-	public List<String> getAssetType(DruidPooledConnection conn, Long districtId) throws Exception {
-		List<String> asset = assetRepository.getAssetType(conn, districtId);
-		List<String> bu = new ArrayList<String>();
-		for (String string : asset) {
-			if (string.isEmpty()) {
-			} else {
-				bu.add(string);
-			}
-		}
-		return bu;
-	}
-
-	public List<String> getResType(DruidPooledConnection conn, Long districtId) throws Exception {
-		List<String> res = assetRepository.getResType(conn, districtId);
-		List<String> bu = new ArrayList<String>();
-		for (String string : res) {
-			if (string.isEmpty()) {
-			} else {
-				bu.add(string);
-			}
-		}
-		return bu;
-	}
-
-	public List<String> getBuildTime(DruidPooledConnection conn, Long districtId) throws Exception {
-		List<String> buildTime = assetRepository.getBuildTime(conn, districtId);
-		List<String> bu = new ArrayList<String>();
-		for (String string : buildTime) {
-			if (string.isEmpty()) {
-			} else {
-				bu.add(string);
-			}
-		}
-		return bu;
-	}
-
-	public List<String> getBusinessMode(DruidPooledConnection conn, Long districtId) throws Exception {
-		List<String> businessMode = assetRepository.getBusinessMode(conn, districtId);
-		List<String> bu = new ArrayList<String>();
-		for (String string : businessMode) {
-			if (string.isEmpty()) {
-			} else {
-				bu.add(string);
-			}
-		}
-		return bu;
-	}
-
-	// 根据区id获取类型
-	public List<String> getTypeBydistrictId(DruidPooledConnection conn, Long districtId, Long orgId, String buildTime,
-			String assetType, String resType, String businessMode, Integer count, Integer offset) throws Exception {
-		return assetRepository.getTypeBydistrictId(conn, districtId, orgId, buildTime, assetType, resType, businessMode,
-				count, offset);
-	}
 
 	// 根据区id获取资产列表
 	public List<Asset> getAssetListByTypes(DruidPooledConnection conn, Long districtId, JSONArray buildTimes,

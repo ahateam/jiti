@@ -18,6 +18,7 @@ public class ORGExamine {
 		VOTING((byte) 0, "待定"), //
 		WAITING((byte) 1, "通过"), //
 		INVALID((byte) 2, "未通过"), //
+		EXAMINE((byte) 3,"再次审核"),//
 		;
 
 		private byte v;

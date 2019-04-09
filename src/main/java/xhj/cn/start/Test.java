@@ -33,6 +33,8 @@ public class Test {
 
 	private static void testDB() {
 		System.out.println("testDB");
+		
+		
 		try { 
 			DataSource dsRds = DataSourceUtils.getDataSource("rdsDefault");
 

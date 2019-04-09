@@ -8,6 +8,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 import zyxhj.jiti.service.AssetService;
+import zyxhj.jiti.service.AssetTypeService;
 import zyxhj.utils.Singleton;
 import zyxhj.utils.api.APIResponse;
 import zyxhj.utils.api.Controller;
@@ -400,10 +401,9 @@ public class AssetController extends Controller {
 			ret = "返回统计结果"//
 	)
 	public APIResponse getAssetType(//
-			@P(t = "区id") Long districtId //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(assetService.getAssetType(conn,districtId));
+			return APIResponse.getNewSuccessResp(AssetTypeService.ASSET_TYPE_LIST);
 		}
 	}
 	
@@ -416,25 +416,9 @@ public class AssetController extends Controller {
 			ret = "返回统计结果"//
 	)
 	public APIResponse getResType(//
-			@P(t = "区id") Long districtId //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(assetService.getResType(conn,districtId));
-		}
-	}
-	/**
-	 * 
-	 */
-	@POSTAPI(//
-			path = "getBuildTime", //
-			des = "查询创建时间（年份）", //
-			ret = "返回统计结果"//
-	)
-	public APIResponse getBuildTime(//
-			@P(t = "区id") Long districtId //
-	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(assetService.getBuildTime(conn,districtId));
+			return APIResponse.getNewSuccessResp(AssetTypeService.RES_TYPE_LIST);
 		}
 	}
 	
@@ -447,36 +431,12 @@ public class AssetController extends Controller {
 			ret = "返回统计结果"//
 	)
 	public APIResponse getBusinessMode(//
-			@P(t = "区id") Long districtId //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(assetService.getBusinessMode(conn,districtId));
+			return APIResponse.getNewSuccessResp(AssetTypeService.BUSINESS_TYPE_LIST);
 		}
 	}
 
-	
-	/**
-	 * 
-	 */
-	@POSTAPI(//
-			path = "getTypeBydistrictId", //
-			des = "根据区id查询类型", //
-			ret = "返回类型"//
-	)
-	public APIResponse getTypeBydistrictId(//
-			@P(t = "区id") Long districtId, //
-			@P(t = "组织id" , r = false) Long orgId, //
-			@P(t = "年份" , r = false) String buildTime, //
-			@P(t = "资产类型" , r = false) String assetType, //
-			@P(t = "资源类型" , r = false) String resType, //
-			@P(t = "经营方式" , r = false) String businessMode, //
-			Integer  count, //
-			Integer  offset //
-	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(assetService.getTypeBydistrictId(conn,districtId,orgId,buildTime,assetType,resType,businessMode,count,offset));
-		}
-	}
 	
 	/**
 	 * 

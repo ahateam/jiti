@@ -4,8 +4,11 @@ import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
+import zyxhj.jiti.repository.AssetRepository;
 import zyxhj.jiti.repository.ORGUserRepository;
+import zyxhj.jiti.repository.VoteRepository;
 import zyxhj.test.repository.TestRepository;
+import zyxhj.utils.api.ServerException;
 import zyxhj.utils.data.DataSourceUtils;
 
 public class Test {
@@ -23,8 +26,78 @@ public class Test {
 
 	private static TestRepository testRepository = new TestRepository();
 	private static ORGUserRepository oRGUserRepository = new ORGUserRepository();
+	private static VoteRepository voteRepository = new VoteRepository();
+	private static AssetRepository assetRepository = new AssetRepository();
 
 	public static void main(String[] args) throws Exception {
+
+		// 查询可投票人数
+		// getParticipateCount();
+
+		// 根据组织分类查询投票列表
+		// getVotesByOrgId();
+
+		// 获取资产列表
+		// queryAssets();
+
+		// 区级统计
+		// sumAssetByDstrictId();
+
+		//区根据类型获取资产列表
+		// getAssetListByTypes();
+		
+		//组织根据年份，资产类型等条件，统计资源原值，产值等
+		//sumAssetBYGRAB();
+		
+		JSONArray json = new JSONArray();
+		json.add("1111");
+		json.add("2222");
+		json.add("2222");
+		assetRepository.batchEditAssetsGroups(conn, 123L, json, json);
+	}
+
+	private static void sumAssetBYGRAB() throws Exception {
+		JSONArray json = new JSONArray();
+		json.add("1111");
+		json.add("2222");
+		json.add("2222");
+		assetRepository.sumAssetBYGRAB(conn, 123L, "2015", json, json, json, json);
+	}
+
+	private static void getAssetListByTypes() throws Exception {
+		JSONArray json = new JSONArray();
+		json.add("1111");
+		json.add("2222");
+		assetRepository.getAssetListByTypes(conn, 222L, json, json, json, json, json,
+				json, 10, 0);
+	}
+
+	private static void sumAssetByDstrictId() throws Exception {
+		JSONArray json = new JSONArray();
+		json.add("1111");
+		json.add("2222");
+
+		assetRepository.sumAssetByDstrictId(conn, 123L, "2015", json, json, json, json, json);
+	}
+
+	private static void queryAssets() throws ServerException {
+		JSONArray json = new JSONArray();
+		json.add("1111");
+		json.add("2222");
+		JSONObject js = new JSONObject();
+		js.put("roles", json);
+		assetRepository.queryAssets(conn, 123L, "xxxx", new JSONArray(), js, null, null);
+	}
+
+	private static void getVotesByOrgId() throws Exception {
+		JSONArray json = new JSONArray();
+		json.add("1111");
+		json.add("2222");
+		Byte a = 0;
+		voteRepository.getVotesByOrgId(conn, 12312312L, json, a, null, null);
+	}
+
+	private static void getParticipateCount() throws ServerException {
 		Long orgId = 397912000965281L;
 		JSONArray json = new JSONArray();
 		json.add("103");
@@ -32,7 +105,7 @@ public class Test {
 		json.add("105");
 		JSONObject js = new JSONObject();
 		js.put("roles", json);
-		int p = oRGUserRepository.getParticipateCount(conn, orgId, 123L,js);
+		int p = oRGUserRepository.getParticipateCount(conn, orgId, 123L, js);
 		System.out.println(p);
 	}
 }

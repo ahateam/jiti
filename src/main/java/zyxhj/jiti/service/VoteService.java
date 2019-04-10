@@ -29,8 +29,6 @@ import zyxhj.utils.IDUtils;
 import zyxhj.utils.Singleton;
 import zyxhj.utils.api.BaseRC;
 import zyxhj.utils.api.ServerException;
-import zyxhj.utils.data.rds.SQL;
-import zyxhj.utils.data.rds.SQLEx;
 
 public class VoteService {
 
@@ -413,7 +411,7 @@ public class VoteService {
 					while (it.hasNext()) {
 						Entry<String, Object> entry = it.next();
 						String key = entry.getKey();
-						JSONArray arr = (JSONArray) entry.getValue();
+//						JSONArray arr = (JSONArray) entry.getValue();s
 
 						// 逐个判断tags中的权限述求(groups,tags,以及其它标签分组)
 
@@ -522,8 +520,8 @@ public class VoteService {
 					return;
 				}
 
-				VoteTicket gvt = getVoteTicket(conn, voteId, userId);
-				JSONArray json = JSONArray.parseArray(gvt.selection);
+//				VoteTicket gvt = getVoteTicket(conn, voteId, userId);
+//				JSONArray json = JSONArray.parseArray(gvt.selection);
 
 				// 删除当前用户的投票
 				delVoteTicket(conn, voteId, userId);
@@ -657,7 +655,6 @@ public class VoteService {
 	}
 
 	// 根据组织分类查询投票列表 可能为多个组织
-	// TODO 接口可能重复
 	public List<Vote> getVotesByOrgId(DruidPooledConnection conn, Long districtId, JSONArray orgIds, Byte status,
 			Integer count, Integer offset) throws Exception {
 		return voteRepository.getVotesByOrgId(conn, districtId, orgIds, status, count, offset);

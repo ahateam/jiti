@@ -1,6 +1,5 @@
 package zyxhj.jiti.service;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -270,20 +269,6 @@ public class ORGService {
 	 */
 	public JSONArray getUserORGs(DruidPooledConnection conn, Long userId, Integer count, Integer offset)
 			throws Exception {
-//		List<ORGUser> ors = orgUserRepository.getListByKey(conn, "user_id", userId, 512, 0);
-//		ORGUser byKey = orgUserRepository.getByKey(conn, "user_id", userId);
-//		System.out.println(byKey);
-//		if (ors == null || ors.size() == 0) {
-//			return new ArrayList<ORG>();
-//		} else {
-//			String[] values = new String[ors.size()];
-//			for (int i = 0; i < ors.size(); i++) {
-//				values[i] = ors.get(i).orgId.toString();
-//				System.out.println(values[i]);
-//			}
-//			return orgRepository.getListByKeyInValues(conn, "id", values);
-//		}  
-
 		return orgRepository.getUserORGs(conn, userId, count, offset);
 	}
 

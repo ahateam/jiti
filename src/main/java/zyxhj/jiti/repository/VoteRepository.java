@@ -2,12 +2,15 @@ package zyxhj.jiti.repository;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
 
 import zyxhj.jiti.domain.Vote;
 import zyxhj.utils.api.ServerException;
 import zyxhj.utils.data.rds.RDSRepository;
+import zyxhj.utils.data.rds.SQL;
 
 public class VoteRepository extends RDSRepository<Vote> {
 
@@ -38,22 +41,36 @@ public class VoteRepository extends RDSRepository<Vote> {
 		// 再判断status是否为空 if(status == null ) 为空则全查
 		// 为空就添加进条件进行查询 else{ 将status插入到查询中 }
 		// SELECT * from xxx WHERE
-		StringBuffer sb = new StringBuffer(); // TODO 以后要加上区级id
+		SQL sql = new SQL();
+		SQL sq = new SQL();
 		if (orgIds != null && orgIds.size() > 0) {
-			sb.append("WHERE (");
 			for (int i = 0; i < orgIds.size(); i++) {
-				sb.append("org_id = ").append(orgIds.getString(i));
-				if (i < orgIds.size() - 1) {
-					sb.append(" OR ");
-				}
+				sq.OR(StringUtils.join("org_id = ", orgIds.getString(i)));
 			}
-			sb.append(")");
+			sql.AND(sq);   //可能以后会有多个JSONArray
 		}
 		if (status != null) {
-			sb.append(" AND status = ").append(status);
+			sql.AND("status = ? ", status);
 		}
+		StringBuffer sb = new StringBuffer(" WHERE "); // TODO 以后要加上区级id
+		sql.fillSQL(sb);
+		System.out.println(sb.toString());
+		return getList(conn, sb.toString(), sql.getParams(), count, offset);
 
-		return this.getList(conn, sb.toString(), new Object[] {}, count, offset);
+//		if (orgIds != null && orgIds.size() > 0) {
+//			sb.append("WHERE (");
+//			for (int i = 0; i < orgIds.size(); i++) {
+//				sb.append("org_id = ").append(orgIds.getString(i));
+//				if (i < orgIds.size() - 1) {
+//					sb.append(" OR ");
+//				}
+//			}
+//			sb.append(")");
+//		}
+//		if (status != null) {
+//			sb.append(" AND status = ").append(status);
+//		}this.getList(conn, sb.toString(), new Object[] {}, count, offset)
+
 	}
 
 //	//统计组织下可投票人数

@@ -113,7 +113,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		}
 
 		StringBuffer s = new StringBuffer("SELECT COUNT(*) FROM tb_ecm_org_user WHERE ");
-		
+
 		sql.fillSQL(s);
 		Object[] getObj = sqlGetObjects(conn, s.toString(), new Object[] { orgId });
 		return Integer.parseInt(getObj[0].toString());
@@ -158,14 +158,12 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 			// '%", idNumber, "%'"),
 			// new Object[] { orgId }, count, offset);
 
-			StringBuffer sql = new StringBuffer(
-					"SELECT * FROM `tb_user` INNER JOIN `tb_ecm_org_user` ON `tb_user`.`id` = `tb_ecm_org_user`.`user_id` WHERE `org_id` =? AND `tb_user`.`id_number` LIKE '%");
-			sql.append(idNumber).append("%' LIMIT ? OFFSET ?");
 			try {
 				// return this.nativeGetJSONArray(conn, sql.toString(), new Object[] { orgId,
 				// count, offset });
-				return this.sqlGetOtherList(conn, Singleton.ins(UserRepository.class), sql.toString(),
-						new Object[] { orgId, count, offset });
+				return this.sqlGetOtherList(conn, Singleton.ins(UserRepository.class), StringUtils.join(
+						"SELECT * FROM `tb_user` INNER JOIN `tb_ecm_org_user` ON `tb_user`.`id` = `tb_ecm_org_user`.`user_id` WHERE `org_id` =? AND `tb_user`.`id_number` LIKE '%",
+						idNumber, "%' LIMIT ? OFFSET ?)"), new Object[] { orgId, count, offset });
 			} catch (Exception e) {
 				e.printStackTrace();
 				return new ArrayList<>();
@@ -184,14 +182,12 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 			// '%", idNumber, "%'"),
 			// new Object[] { orgId }, count, offset);
 
-			StringBuffer sql = new StringBuffer(
-					"SELECT * FROM `tb_user` INNER JOIN `tb_ecm_org_user` ON `tb_user`.`id` = `tb_ecm_org_user`.`user_id` WHERE `org_id` =? AND `tb_user`.`real_name` LIKE '%");
-			sql.append(realName).append("%' LIMIT ? OFFSET ?");
 			try {
 				// return this.nativeGetJSONArray(conn, sql.toString(), new Object[] { orgId,
 				// count, offset });
-				return this.sqlGetOtherList(conn, Singleton.ins(UserRepository.class), sql.toString(),
-						new Object[] { orgId, count, offset });
+				return this.sqlGetOtherList(conn, Singleton.ins(UserRepository.class), StringUtils.join(
+						"SELECT * FROM `tb_user` INNER JOIN `tb_ecm_org_user` ON `tb_user`.`id` = `tb_ecm_org_user`.`user_id` WHERE `org_id` =? AND `tb_user`.`real_name` LIKE '%",
+						realName, "%' LIMIT ? OFFSET ?"), new Object[] { orgId, count, offset });
 			} catch (Exception e) {
 				e.printStackTrace();
 				return new ArrayList<>();
@@ -251,16 +247,12 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		// SELECT COUNT(*) FROM tb_ecm_org_user WHERE JSON_CONTAINS(roles, '101','$')
 
 		for (int i = 0; i < roles.size(); i++) {
-			StringBuffer sql = new StringBuffer();
 			// 获取roles值
 			String ro = roles.getString(i);
-			sql.append("SELECT COUNT(*) FROM tb_ecm_org_user WHERE JSON_CONTAINS(roles, '").append(ro).append("','$')");
-			// sb.append("WHERE JSON_CONTAINS(roles, '").append(ro).append("','$')");
-
-			// int c = count(conn, sb.toString(), new Object[] {});
-			// List<Object[]> s = sqlGetObjectsList(conn, sql.toString(), new Object[] {},
-			// null, null);
-			Object[] s = sqlGetObjects(conn, sql.toString(), new Object[] {});
+			Object[] s = sqlGetObjects(conn,
+					StringUtils.join("SELECT COUNT(*) FROM tb_ecm_org_user WHERE JSON_CONTAINS(roles, '",
+							ro, "','$')"),
+					new Object[] {});
 			map.put(ro, Integer.parseInt(s[0].toString()));
 		}
 		return map;
@@ -273,7 +265,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		sql.addEx("org_id = ?", orgId);
 		sql.addEx(SQLEx.exIn("user_id", values));
 		sql.fillSQL(sb);
-		return getList(conn, sb.toString(), new Object[] { orgId, values }, null, null);
+		return getList(conn, sb.toString(),sql.getParams(), null, null);
 	}
 
 }

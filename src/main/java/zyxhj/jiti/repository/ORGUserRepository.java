@@ -40,7 +40,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 	 */
 	public ORGUser checkORGUserRoles(DruidPooledConnection conn, Long orgId, Long userId, ORGUserRole[] roles)
 			throws ServerException {
-		ORGUser orgUser = getByKeys(conn, new String[] { "org_id", "user_id" }, new Object[] { orgId, userId });
+		ORGUser orgUser = getByANDKeys(conn, new String[] { "org_id", "user_id" }, new Object[] { orgId, userId });
 		ServiceUtils.checkNull(orgUser);
 		// check role，字符串搜索的做法不严谨，但是将就了
 		if (roles == null || roles.length == 0) {
@@ -68,72 +68,55 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 
 		// WHERE org_id=? AND (JSON_CONTAINS(roles, '101', '$') OR JSON_CONTAINS(roles,
 		// '102', '$') OR JSON_CONTAINS(roles, '103', '$') OR JSON_CONTAINS(roles,
-		// '104', '$') OR JSON_CONTAINS(roles, '105', '$') OR JSON_CONTAINS(roles,
-		// '106', '$') OR JSON_CONTAINS(roles, '107', '$') OR JSON_CONTAINS(roles,
-		// '108', '$') OR JSON_CONTAINS(roles, '109', '$') )
+		// '104', '$') OR JSON_CONTAINS(roles, '105', '$') )
 
 		JSONArray roles = crowd.getJSONArray("roles");
 		JSONArray groups = crowd.getJSONArray("groups");
 		JSONObject tags = crowd.getJSONObject("tags");
 
-		StringBuffer sb = new StringBuffer();
-		boolean flg = false;
-		sb.append("WHERE org_id=? AND (");
-
-		// TODO BUG
 		SQL sql = new SQL();
-		
-		sql.OR(SQLEx.ex(ex, params))
 
-		if (roles != null && roles.size() > 0) {
-			for (int i = 0; i < roles.size(); i++) {
-				String role = roles.getString(i);
-				sb.append("JSON_CONTAINS(roles, '").append(role).append("', '$') OR ");
-				flg = true;
+		sql.addEx("org_id = ? ");
+		if ((roles != null && roles.size() > 0) || (groups != null && groups.size() > 0) || (tags != null)) {
+			SQL sq = new SQL();
+
+			if (roles != null && roles.size() > 0) {
+				for (int i = 0; i < roles.size(); i++) {
+					sq.OR(StringUtils.join("JSON_CONTAINS(roles, '", roles.getString(i), "', '$') "));
+				}
 			}
-		}
 
-		if (groups != null && groups.size() > 0) {
-			for (int i = 0; i < groups.size(); i++) {
-				String group = groups.getString(i);
-				sb.append("JSON_CONTAINS(groups, '").append(group).append("', '$') OR ");
-				flg = true;
+			if (groups != null && groups.size() > 0) {
+				for (int i = 0; i < groups.size(); i++) {
+					sq.OR(StringUtils.join("JSON_CONTAINS(group, '", groups.getString(i), "', '$') "));
+				}
 			}
-		}
 
-		if (tags != null) {
-			Iterator<Entry<String, Object>> it = tags.entrySet().iterator();
-			while (it.hasNext()) {
-				Entry<String, Object> entry = it.next();
-				String key = entry.getKey();
-				JSONArray arr = (JSONArray) entry.getValue();
+			if (tags != null) {
+				Iterator<Entry<String, Object>> it = tags.entrySet().iterator();
+				while (it.hasNext()) {
+					Entry<String, Object> entry = it.next();
+					String key = entry.getKey();
+					JSONArray arr = (JSONArray) entry.getValue();
 
-				if (arr != null && arr.size() > 0) {
-					for (int i = 0; i < arr.size(); i++) {
-						String temp = arr.getString(i);
-						// JSON_CONTAINS(tags, '"tag1"', '$.groups')
-						// JSON_CONTAINS(tags, '"tag3"', '$.tags')
-						sb.append("JSON_CONTAINS(tags, '\"").append(temp).append("\"', '$.").append(key)
-								.append("') OR ");
-						flg = true;
+					if (arr != null && arr.size() > 0) {
+						for (int i = 0; i < arr.size(); i++) {
+							// JSON_CONTAINS(tags, '"tag1"', '$.groups')
+							// JSON_CONTAINS(tags, '"tag3"', '$.tags')
+							sq.OR(StringUtils.join("JSON_CONTAINS(tags, '\"", arr.getString(i), "\"', '$.", key,
+									"') "));
+						}
 					}
 				}
 			}
+			sql.AND(sq);
 		}
 
-		if (!flg) {
-			// 一个查询条件都没有进入，则直接返回0
-			return 0;
-		} else {
-			sb.delete(sb.length() - 3, sb.length() - 1);// 移除最后的 OR
-
-			sb.append(" )");
-
-			String where = sb.toString();
-
-			System.out.println(where);
-			return this.count(conn, where, new Object[] { orgId });
-		}
+		StringBuffer s = new StringBuffer("SELECT COUNT(*) FROM tb_ecm_org_user WHERE ");
+		
+		sql.fillSQL(s);
+		Object[] getObj = sqlGetObjects(conn, s.toString(), new Object[] { orgId });
+		return Integer.parseInt(getObj[0].toString());
 
 	}
 
@@ -145,26 +128,26 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 			ORGUser renew = new ORGUser();
 			renew.roles = JSON.toJSONString(roles);
 
-			return updateByKeys(conn, new String[] { "org_id", "user_id" }, new Object[] { orgId, userId }, renew,
+			return updateByANDKeys(conn, new String[] { "org_id", "user_id" }, new Object[] { orgId, userId }, renew,
 					true);
 		}
 	}
 
-	public List<ORGUser> getORGUsersByRoles(DruidPooledConnection conn, Long orgId, JSONArray roles, Integer count,
+	public List<ORGUser> getORGUsersByRoles(DruidPooledConnection conn, Long orgId, JSONObject roles, Integer count,
 			Integer offset) throws ServerException {
-		return this.getListByTags(conn, "roles", "", roles, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
+		return this.getListByTags(conn, "roles", roles, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
 	}
 
-	public List<ORGUser> getORGUsersByGroups(DruidPooledConnection conn, Long orgId, JSONArray groups, Integer count,
+	public List<ORGUser> getORGUsersByGroups(DruidPooledConnection conn, Long orgId, JSONObject groups, Integer count,
 			Integer offset) throws ServerException {
 
-		return this.getListByTags(conn, "groups", "", groups, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
+		return this.getListByTags(conn, "groups", groups, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
 	}
 
 	public List<ORGUser> getORGUsersByTags(DruidPooledConnection conn, Long orgId, JSONObject tags, Integer count,
 			Integer offset) throws ServerException {
 
-		return this.getListByTags(conn, "groups", tags, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
+		return this.getListByTags(conn, "tags", tags, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
 	}
 
 	public List<User> getORGUsersLikeIDNumber(DruidPooledConnection conn, Long orgId, String idNumber, Integer count,
@@ -274,12 +257,23 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 			sql.append("SELECT COUNT(*) FROM tb_ecm_org_user WHERE JSON_CONTAINS(roles, '").append(ro).append("','$')");
 			// sb.append("WHERE JSON_CONTAINS(roles, '").append(ro).append("','$')");
 
-			//	int c = count(conn, sb.toString(), new Object[] {});
-			//List<Object[]> s = sqlGetObjectsList(conn, sql.toString(), new Object[] {}, null, null);
+			// int c = count(conn, sb.toString(), new Object[] {});
+			// List<Object[]> s = sqlGetObjectsList(conn, sql.toString(), new Object[] {},
+			// null, null);
 			Object[] s = sqlGetObjects(conn, sql.toString(), new Object[] {});
-			map.put(ro, (Integer) s[0]);
+			map.put(ro, Integer.parseInt(s[0].toString()));
 		}
 		return map;
+	}
+
+	public List<ORGUser> getORGUsersInfoByUsers(DruidPooledConnection conn, Long orgId, Object[] values)
+			throws Exception {
+		StringBuffer sb = new StringBuffer(" WHERE ");
+		SQL sql = new SQL();
+		sql.addEx("org_id = ?", orgId);
+		sql.addEx(SQLEx.exIn("user_id", values));
+		sql.fillSQL(sb);
+		return getList(conn, sb.toString(), new Object[] { orgId, values }, null, null);
 	}
 
 }

@@ -173,7 +173,7 @@ public class VoteService {
 
 		int ret = voteRepository.updateByKey(conn, "id", voteId, renew, true);
 
-		VoteOption op = optionRepository.getByKeys(conn, new String[] { "vote_id", "is_abstain" },
+		VoteOption op = optionRepository.getByANDKeys(conn, new String[] { "vote_id", "is_abstain" },
 				new Object[] { voteId, true });
 		if (isAbstain) {
 			// 没有要创建
@@ -493,7 +493,7 @@ public class VoteService {
 		}
 
 		// 判断用户是否有权限投票
-		ORGUser ou = orgUserRepository.getByKeys(conn, new String[] { "org_id", "user_id" },
+		ORGUser ou = orgUserRepository.getByANDKeys(conn, new String[] { "org_id", "user_id" },
 				new Object[] { orgId, userId });
 		if (ou == null) {
 			throw new ServerException(BaseRC.ECM_VOTE_ORGROLE_ERROR);
@@ -501,7 +501,7 @@ public class VoteService {
 
 		if (hasPrmission(vote.crowd, ou)) {
 			// 开始投票
-			VoteTicket exist = ticketRepository.getByKeys(conn, new String[] { "vote_id", "user_id" },
+			VoteTicket exist = ticketRepository.getByANDKeys(conn, new String[] { "vote_id", "user_id" },
 					new Object[] { voteId, userId });
 
 			boolean firstTime = (exist == null ? true : false);
@@ -531,7 +531,7 @@ public class VoteService {
 				// 计票-1
 				List<String> ids = new ArrayList<>(selections.size());
 				for (int i = 0; i < ids.size(); i++) {
-					ids.set(i, selections.getLong(i).toString()) ;
+					ids.set(i, selections.getLong(i).toString());
 				}
 				optionRepository.subTicket(conn, ids, ballotCount);
 
@@ -555,7 +555,7 @@ public class VoteService {
 
 		List<VoteOption> options = optionRepository.getListByKey(conn, "vote_id", voteId, 512, 0);
 
-		int ticketCount = ticketRepository.countVoteDetail(conn, voteId);
+		int ticketCount = ticketRepository.countTicket(conn, voteId);
 
 		vote.quorum = orgUserRepository.getParticipateCount(conn, vote.orgId, vote.id, JSON.parseObject(vote.crowd));
 		JSONObject ret = new JSONObject();
@@ -570,7 +570,8 @@ public class VoteService {
 	 * 获取用户的选票
 	 */
 	public VoteTicket getVoteTicket(DruidPooledConnection conn, Long voteId, Long userId) throws Exception {
-		return ticketRepository.getByKeys(conn, new String[] { "vote_id", "user_id" }, new Object[] { voteId, userId });
+		return ticketRepository.getByANDKeys(conn, new String[] { "vote_id", "user_id" },
+				new Object[] { voteId, userId });
 	}
 
 	/**
@@ -594,7 +595,7 @@ public class VoteService {
 		// 计票
 		List<String> ids = new ArrayList<>(selections.size());
 		for (int i = 0; i < ids.size(); i++) {
-			ids.set(i, selections.getLong(i).toString()) ;
+			ids.set(i, selections.getLong(i).toString());
 		}
 		optionRepository.countTicket(conn, ids, ballotCount);
 	}
@@ -605,8 +606,7 @@ public class VoteService {
 	}
 
 	// 区级统计投票的积极性
-	public Double countVoteTurnout(DruidPooledConnection conn, Long districtId, JSONArray orgIds)
-			throws Exception {
+	public Double countVoteTurnout(DruidPooledConnection conn, Long districtId, JSONArray orgIds) throws Exception {
 		// voteRepository.countNumberByOrgId( conn, orgId);
 		// for(遍历org)
 		// 查询当前org下的投票
@@ -628,36 +628,36 @@ public class VoteService {
 //
 //		System.out.println(ma);
 		List<Double> list = new ArrayList<Double>();
-		Double d = 0.0;  //拿来放总票率
-		//遍历orgid  获取orgid下的投票
+		Double d = 0.0; // 拿来放总票率
+		// 遍历orgid 获取orgid下的投票
 		for (int i = 0; i < orgIds.size(); i++) {
-			//根据orgId取得当前org下得VOTE
+			// 根据orgId取得当前org下得VOTE
 			List<Vote> getVote = voteRepository.getListByKey(conn, "org_id", orgIds.getString(i), null, null);
-			//遍历VOTE  得到一个投票率
-					for (Vote v : getVote) {
-						if( v.quorum != 0) {
-						double a = v.quorum;
-						int c = ticketRepository.countTicket(conn,v.id);
-						if(c != 0) {
-							//把相票率放入list中
-							list.add(c/a);
-						}else {
-							list.add(0.5);
-						}
-						}else {
-							list.add(0.5);
-						}
+			// 遍历VOTE 得到一个投票率
+			for (Vote v : getVote) {
+				if (v.quorum != 0) {
+					double a = v.quorum;
+					int c = ticketRepository.countTicket(conn, v.id);
+					if (c != 0) {
+						// 把相票率放入list中
+						list.add(c / a);
+					} else {
+						list.add(0.5);
 					}
+				} else {
+					list.add(0.5);
+				}
+			}
 		}
-		for(int i = 0 ; i < list.size() ; i ++) {
+		for (int i = 0; i < list.size(); i++) {
 			d = d + list.get(i);
 		}
-		//输出   总票率/投票个数
-		return d/list.size();
+		// 输出 总票率/投票个数
+		return d / list.size();
 	}
 
 	// 根据组织分类查询投票列表 可能为多个组织
-	// TODO 接口可能重复 
+	// TODO 接口可能重复
 	public List<Vote> getVotesByOrgId(DruidPooledConnection conn, Long districtId, JSONArray orgIds, Byte status,
 			Integer count, Integer offset) throws Exception {
 		return voteRepository.getVotesByOrgId(conn, districtId, orgIds, status, count, offset);
@@ -665,10 +665,11 @@ public class VoteService {
 
 	// 查询用户投票列表
 	// TODO 可以用一个查询做
-	public List<Vote> getVoteTicketByUserId(DruidPooledConnection conn,Long orgId ,Long userId, Integer count, Integer offset)
-			throws Exception {
+	public List<Vote> getVoteTicketByUserId(DruidPooledConnection conn, Long orgId, Long userId, Integer count,
+			Integer offset) throws Exception {
 		// 查询用户投票记录
-		List<VoteTicket> li = ticketRepository.getListByKeys(conn, new String[] {"org_id","user_id"}, new Object[] {orgId,userId}, count, offset);
+		List<VoteTicket> li = ticketRepository.getListByANDKeys(conn, new String[] { "org_id", "user_id" },
+				new Object[] { orgId, userId }, count, offset);
 
 		// 获取到投票记录的voidId 在Vote表里进行匹配
 		if (li != null && li.size() > 0) {
@@ -685,7 +686,8 @@ public class VoteService {
 	// 查询用户所投选项
 	public List<VoteOption> getOptionByUserSelection(DruidPooledConnection conn, Long userId, Long voteId)
 			throws Exception {
-		VoteTicket getTicket = ticketRepository.getByKeys(conn, new String[] { "vote_id", "user_id" },
+
+		VoteTicket getTicket = ticketRepository.getByANDKeys(conn, new String[] { "vote_id", "user_id" },
 				new Object[] { voteId, userId });
 		JSONArray js = JSON.parseArray(getTicket.selection);
 

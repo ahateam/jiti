@@ -334,7 +334,7 @@ public class ORGService {
 	 * 不够严谨的组织登录，暂时没有更好的办法
 	 */
 	public ORGLoginBo loginInORG(DruidPooledConnection conn, Long userId, Long orgId) throws Exception {
-		ORGUser orgUser = orgUserRepository.getByKeys(conn, new String[] { "org_id", "user_id" },
+		ORGUser orgUser = orgUserRepository.getByANDKeys(conn, new String[] { "org_id", "user_id" },
 				new Object[] { orgId, userId });
 		ServiceUtils.checkNull(orgUser);
 
@@ -489,8 +489,10 @@ public class ORGService {
 		// 检查户序号是否已经存在
 
 		// TODO orgId 希望做一个familyRepositroy的createFamily方法，然后ORGService和ORGUserService都用
-//		xxx
 		Family fn = familyRepository.getByKey(conn, "family_number", familyNumber);
+
+		familyRepository.getByANDKeys(conn, new String[] { "org_id", "family_number" },
+				new Object[] { orgId, familyNumber });
 		if (fn == null) {
 			familyRepository.insert(conn, fa);
 			return fa;

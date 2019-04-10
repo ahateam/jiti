@@ -54,9 +54,8 @@ public class ORGUserRoleService {
 		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_supervisor.roleId, ORGUserRole.role_supervisor);
 		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_supChief.roleId, ORGUserRole.role_supChief);
 		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_supVice.roleId, ORGUserRole.role_supVice);
-		
+
 		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_area_admin.roleId, ORGUserRole.role_area_admin);
-		
 
 		Iterator<ORGUserRole> it = SYS_ORG_USER_ROLE_MAP.values().iterator();
 		while (it.hasNext()) {
@@ -99,7 +98,7 @@ public class ORGUserRoleService {
 		renew.name = name;
 		renew.remark = remark;
 
-		return orgUserRoleRepository.updateByKeys(conn, new String[] { "org_id", "role_id" },
+		return orgUserRoleRepository.updateByANDKeys(conn, new String[] { "org_id", "role_id" },
 				new Object[] { orgId, roleId }, renew, true);
 	}
 
@@ -110,7 +109,7 @@ public class ORGUserRoleService {
 			role = ORG_USER_ROLE_CACHE.getIfPresent(roleId);
 			if (role == null) {
 				// 从数据库中获取
-				role = orgUserRoleRepository.getByKeys(conn, new String[] { "org_id", "role_id" },
+				role = orgUserRoleRepository.getByANDKeys(conn, new String[] { "org_id", "role_id" },
 						new Object[] { orgId, roleId });
 				if (role != null) {
 					// 放入缓存

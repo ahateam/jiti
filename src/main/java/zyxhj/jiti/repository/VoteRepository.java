@@ -17,21 +17,18 @@ public class VoteRepository extends RDSRepository<Vote> {
 
 	public List<Vote> getVotes(DruidPooledConnection conn, Long orgId, Byte status, Integer count, Integer offset)
 			throws ServerException {
-		StringBuffer sb = new StringBuffer();
 		if (status == null) {
-			sb.append("WHERE org_id=? ORDER BY create_time DESC");
-			return getList(conn, sb.toString(), new Object[] { orgId }, count, offset);
+			return getList(conn, "WHERE org_id=? ORDER BY create_time DESC", new Object[] { orgId }, count, offset);
 		} else {
-			sb.append("WHERE org_id=? AND status=? ORDER BY create_time DESC");
-			return getList(conn, sb.toString(), new Object[] { orgId, status }, count, offset);
+			return getList(conn, "WHERE org_id=? AND status=? ORDER BY create_time DESC",
+					new Object[] { orgId, status }, count, offset);
 		}
 	}
 
 	public List<Vote> getUserVotes(DruidPooledConnection conn, Long orgId, Long userId, Integer count, Integer offset)
 			throws ServerException {
-		StringBuffer sb = new StringBuffer();
-		sb.append("WHERE org_id=? AND user_id=? ORDER BY create_time DESC");
-		return getList(conn, sb.toString(), new Object[] { orgId, userId }, count, offset);
+		return getList(conn, "WHERE org_id=? AND user_id=? ORDER BY create_time DESC", new Object[] { orgId, userId },
+				count, offset);
 	}
 
 	public List<Vote> getVotesByOrgId(DruidPooledConnection conn, Long districtId, JSONArray orgIds, Byte status,
@@ -51,7 +48,7 @@ public class VoteRepository extends RDSRepository<Vote> {
 				}
 			}
 			sb.append(")");
-			}
+		}
 		if (status != null) {
 			sb.append(" AND status = ").append(status);
 		}

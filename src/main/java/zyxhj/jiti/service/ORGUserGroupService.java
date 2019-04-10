@@ -100,8 +100,9 @@ public class ORGUserGroupService {
 		renew.keyword = keyword;
 		renew.remark = remark;
 
-		return groupRepository.updateByKeys(conn, new String[] { "org_id", "group_id" },
+		return groupRepository.updateByANDKeys(conn, new String[] { "org_id", "group_id" },
 				new Object[] { orgId, groupId }, renew, true);
+
 	}
 
 	public List<ORGUserTagGroup> getTagGroups(DruidPooledConnection conn, Long orgId) throws Exception {

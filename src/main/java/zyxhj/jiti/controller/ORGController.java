@@ -184,10 +184,12 @@ public class ORGController extends Controller {
 			ret = "组织对象列表"//
 	)
 	public APIResponse getUserORGs(//
-			@P(t = "用户编号") Long userId//
+			@P(t = "用户编号") Long userId ,//
+			Integer count,
+			Integer offset
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(ServiceUtils.checkNull(orgService.getUserORGs(conn, userId)));
+			return APIResponse.getNewSuccessResp(ServiceUtils.checkNull(orgService.getUserORGs(conn, userId,count,offset)));
 		}
 	}
 
@@ -440,7 +442,7 @@ public class ORGController extends Controller {
 	)
 	public APIResponse getORGUserByRole(//
 			@P(t = "组织编号") Long orgId, //
-			@P(t = "角色权限列表,JSONArray格式", r = false) JSONArray roles, //
+			@P(t = "角色权限列表,JSONArray格式", r = false) JSONObject roles, //
 			Integer count, //
 			Integer offset//
 	) throws Exception {
@@ -459,7 +461,7 @@ public class ORGController extends Controller {
 	)
 	public APIResponse getORGUsersByGroups(//
 			@P(t = "组织编号") Long orgId, //
-			@P(t = "角色分组,JSONArray格式", r = false) JSONArray groups, //
+			@P(t = "角色分组,JSONArray格式", r = false) JSONObject groups, //
 			Integer count, //
 			Integer offset//
 	) throws Exception {

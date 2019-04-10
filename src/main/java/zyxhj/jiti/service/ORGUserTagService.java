@@ -67,7 +67,7 @@ public class ORGUserTagService {
 			renew.status = ORGUserTag.STATUS.ENABLED.v();
 		}
 
-		return tagRepository.updateByKeys(conn, new String[] { "org_id", "tag_id" }, new Object[] { orgId, tagId },
+		return tagRepository.updateByANDKeys(conn, new String[] { "org_id", "tag_id" }, new Object[] { orgId, tagId },
 				renew, true);
 	}
 
@@ -76,8 +76,9 @@ public class ORGUserTagService {
 	 */
 	public List<ORGUserTag> getTags(DruidPooledConnection conn, Long orgId, Byte status, String groupKeyword,
 			Integer count, Integer offset) throws Exception {
-		return tagRepository.getListByKeys(conn, new String[] { "org_id", "status", "group_keyword" },
+		return tagRepository.getListByANDKeys(conn, new String[] { "org_id", "status", "group_keyword" },
 				new Object[] { orgId, status, groupKeyword }, count, offset);
+
 	}
 
 	/**
@@ -88,7 +89,8 @@ public class ORGUserTagService {
 		ORGUserTag tag = ORG_USER_TAG_CACHE.getIfPresent(tagId);
 		if (tag == null) {
 			// 从数据库中获取
-			tag = tagRepository.getByKeys(conn, new String[] { "org_id", "tag_id" }, new Object[] { orgId, tagId });
+			tag = tagRepository.getByANDKeys(conn, new String[] { "org_id", "tag_id" }, new Object[] { orgId, tagId });
+					
 			if (tag != null) {
 				// 放入缓存
 				ORG_USER_TAG_CACHE.put(tagId, tag);

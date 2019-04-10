@@ -28,15 +28,10 @@ public class VoteTicketRepository extends RDSRepository<VoteTicket> {
 		return this.getList(conn, sb.toString(), new Object[] { voteId }, count, offset);
 	}
 
-	public int countVoteDetail(DruidPooledConnection conn, Long voteId) throws Exception {
-		Object[] s = sqlGetObjects(conn, "SELECT COUNT(*) FROM tb_ecm_vote_ticket WHERE vote_id = ? ",
-				new Object[] { voteId });
-		return (Integer) s[0];
-	}
 
 	public int countTicket(DruidPooledConnection conn, Long id) throws Exception {
 		Object[] s = sqlGetObjects(conn,  "SELECT * FROM tb_ecm_vote_ticket WHERE vote_id = ? ", new Object[] { id });
-		return (Integer) s[0];
+		return Integer.parseInt(s[0].toString());
 	}
 
 }

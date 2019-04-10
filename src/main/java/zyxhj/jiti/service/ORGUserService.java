@@ -30,6 +30,8 @@ import zyxhj.utils.IDUtils;
 import zyxhj.utils.Singleton;
 import zyxhj.utils.api.BaseRC;
 import zyxhj.utils.api.ServerException;
+import zyxhj.utils.data.rds.SQL;
+import zyxhj.utils.data.rds.SQLEx;
 
 public class ORGUserService {
 
@@ -191,15 +193,15 @@ public class ORGUserService {
 			Family fn = FAMILY_CACHE.getIfPresent(familyNumber);
 			if (fn == null) {
 				// 缓存中没有，从数据库中获取
-				fn = familyRepository.getByKeys(conn, new String[] { "org_id", "family_number" },
-						new Object[] { orgId,familyNumber });
+				fn = familyRepository.getByANDKeys(conn, new String[] { "org_id", "family_number" },
+						new Object[] { orgId, familyNumber });
 				if (fn != null) {
 					// 放入缓存
 					FAMILY_CACHE.put(familyNumber, fn);
 				}
 			}
-			
-			//从缓存和数据库都取了一遍，
+
+			// 从缓存和数据库都取了一遍，
 			if (fn == null) {
 				// 如果空需要创建
 				// 添加户
@@ -225,7 +227,6 @@ public class ORGUserService {
 				familyRepository.updateByKey(conn, "family_number", familyNumber, fa, true);
 
 			}
-			
 
 		}
 		orgUserRepository.insert(conn, or);
@@ -262,8 +263,7 @@ public class ORGUserService {
 
 		} else {
 			// 判断ORGUser是否存在
-
-			ORGUser existor = orgUserRepository.getByKeys(conn, new String[] { "org_id", "user_id" },
+			ORGUser existor = orgUserRepository.getByANDKeys(conn, new String[] { "org_id", "user_id" },
 					new Object[] { orgId, extUser.id });
 			if (null == existor) {
 				// ORGUser用户不存在，直接创建
@@ -297,7 +297,7 @@ public class ORGUserService {
 	 * 只修改ORGUser表，不删除user本身。
 	 */
 	public void delORGUser(DruidPooledConnection conn, Long orgId, Long userId) throws Exception {
-		orgUserRepository.deleteByKeys(conn, new String[] { "org_id", "user_id" }, new Object[] { orgId, userId });
+		orgUserRepository.deleteByANDKeys(conn, new String[] { "org_id", "user_id" }, new Object[] { orgId, userId });
 	}
 
 	/**
@@ -321,12 +321,15 @@ public class ORGUserService {
 		renew.familyNumber = familyNumber;
 		renew.familyMaster = familyMaster;
 
-		return orgUserRepository.updateByKeys(conn, new String[] { "org_id", "user_id" },
+		return orgUserRepository.updateByANDKeys(conn, new String[] { "org_id", "user_id" },
 				new Object[] { orgId, userId }, renew, true);
+
 	}
 
 	public ORGUser getORGUserById(DruidPooledConnection conn, Long orgId, Long userId) throws Exception {
-		return orgUserRepository.getByKeys(conn, new String[] { "org_id", "user_id" }, new Object[] { orgId, userId });
+		return orgUserRepository.getByANDKeys(conn, new String[] { "org_id", "user_id" },
+				new Object[] { orgId, userId });
+
 	}
 
 	/**
@@ -567,7 +570,7 @@ public class ORGUserService {
 	/**
 	 * 根据权限查询用户
 	 */
-	public JSONArray getORGUsersByRoles(DruidPooledConnection conn, Long orgId, JSONArray roles, Integer count,
+	public JSONArray getORGUsersByRoles(DruidPooledConnection conn, Long orgId, JSONObject roles, Integer count,
 			Integer offset) throws Exception {
 		List<ORGUser> ors = orgUserRepository.getORGUsersByRoles(conn, orgId, roles, count, offset);
 
@@ -577,7 +580,7 @@ public class ORGUserService {
 	/**
 	 * 根据分组（groups tags等）查询用户
 	 */
-	public JSONArray getORGUsersByGroups(DruidPooledConnection conn, Long orgId, JSONArray groups, Integer count,
+	public JSONArray getORGUsersByGroups(DruidPooledConnection conn, Long orgId, JSONObject groups, Integer count,
 			Integer offset) throws Exception {
 		List<ORGUser> ors = orgUserRepository.getORGUsersByGroups(conn, orgId, groups, count, offset);
 
@@ -598,13 +601,13 @@ public class ORGUserService {
 		if (ors == null || ors.size() == 0) {
 			return new JSONArray();
 		} else {
-			String[] values = new String[ors.size()];
+			Object[] values = new Object[ors.size()];
 			for (int i = 0; i < ors.size(); i++) {
-				values[i] = ors.get(i).id.toString();
+				values[i] = ors.get(i).id;
 			}
 
-			List<ORGUser> us = orgUserRepository.getListWhereKeyInValues(conn, "WHERE org_id=?", "user_id", values,
-					new String[] { Long.toString(orgId) });
+			List<ORGUser> us = orgUserRepository.getORGUsersInfoByUsers(conn, orgId, values);
+
 			JSONArray ret = new JSONArray();
 			for (int i = 0; i < ors.size(); i++) {
 				User u = ors.get(i);

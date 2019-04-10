@@ -80,9 +80,9 @@ public class AssetRepository extends RDSRepository<Asset> {
 		return this.getList(conn, newWhere, objs.toArray(), count, offset);
 	}
 
-	public List<Asset> getAssetsByGroups(DruidPooledConnection conn, Long orgId, JSONArray groups, Integer count,
+	public List<Asset> getAssetsByGroups(DruidPooledConnection conn, Long orgId, JSONObject groups, Integer count,
 			Integer offset) throws ServerException {
-		return this.getListByTags(conn, "groups", "", groups, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
+		return this.getListByTags(conn, "groups",  groups, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
 	}
 
 	public List<Asset> getAssetsByTags(DruidPooledConnection conn, Long orgId, JSONObject tags, Integer count,

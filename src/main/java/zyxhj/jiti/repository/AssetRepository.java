@@ -101,13 +101,9 @@ public class AssetRepository extends RDSRepository<Asset> {
 
 		SQL sqlWhere = new SQL();
 		sqlWhere.addEx("org_id= ? ", orgId);
-		sqlWhere.fillSQL(sbwhere);
 
 		if (assetIds != null && assetIds.size() > 0) {
-			sqlWhere = new SQL();
-			sbwhere.append(" AND ");
 			sqlWhere.AND(SQLEx.exIn("id", assetIds.toArray()));
-
 			sqlWhere.fillSQL(sbwhere);
 
 			System.out.println(StringUtils.join(sbset.toString(), " ", sbwhere.toString()));
@@ -164,10 +160,14 @@ public class AssetRepository extends RDSRepository<Asset> {
 	/**
 	 * 根据年份，资产类型等条件，统计资源原值，产值等
 	 * 
-	 * @param groups       分组
-	 * @param resType      资源类型
-	 * @param assetType    资产类型
-	 * @param businessMode 经营方式
+	 * @param groups
+	 *            分组
+	 * @param resType
+	 *            资源类型
+	 * @param assetType
+	 *            资产类型
+	 * @param businessMode
+	 *            经营方式
 	 */
 	public JSONArray sumAssetBYGRAB(DruidPooledConnection conn, Long orgId, String buildTime, JSONArray groups,
 			JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes) throws Exception {
@@ -182,39 +182,39 @@ public class AssetRepository extends RDSRepository<Asset> {
 		if ((groups != null && groups.size() > 0) || (resTypes != null && resTypes.size() > 0)
 				|| (assetTypes != null && assetTypes.size() > 0)
 				|| (businessModes != null && businessModes.size() > 0)) {
-			SQL sq = new SQL();
+			SQL subEx = new SQL();
 			if (groups != null && groups.size() > 0) {
-				SQL s = new SQL();
+				SQL sqlGroup = new SQL();
 				for (int i = 0; i < groups.size(); i++) {
-					s.OR(StringUtils.join("JSON_CONTAINS(groups, '", groups.getString(i), "', '$')"));
+					sqlGroup.OR(StringUtils.join("JSON_CONTAINS(groups, '", groups.getString(i), "', '$')"));
 				}
-				sq.AND(s);
+				subEx.AND(sqlGroup);
 			}
 
 			if (resTypes != null && resTypes.size() > 0) {
-				SQL s = new SQL();
+				SQL sqlResType = new SQL();
 				for (int i = 0; i < resTypes.size(); i++) {
-					s.OR(StringUtils.join("res_type= '", resTypes.getString(i), "'"));
+					sqlResType.OR(StringUtils.join("res_type= '", resTypes.getString(i), "'"));
 				}
-				sq.AND(s);
+				subEx.AND(sqlResType);
 			}
 
 			if (assetTypes != null && assetTypes.size() > 0) {
-				SQL s = new SQL();
+				SQL sqlAssetTypes = new SQL();
 				for (int i = 0; i < assetTypes.size(); i++) {
-					s.OR(StringUtils.join("asset_type= '", assetTypes.getString(i), "'"));
+					sqlAssetTypes.OR(StringUtils.join("asset_type= '", assetTypes.getString(i), "'"));
 				}
-				sq.AND(s);
+				subEx.AND(sqlAssetTypes);
 			}
 
 			if (businessModes != null && businessModes.size() > 0) {
-				SQL s = new SQL();
+				SQL sqlBusinessModes = new SQL();
 				for (int i = 0; i < businessModes.size(); i++) {
-					s.OR(StringUtils.join("business_mode= '", businessModes.getString(i), "'"));
+					sqlBusinessModes.OR(StringUtils.join("business_mode= '", businessModes.getString(i), "'"));
 				}
-				sq.AND(s);
+				subEx.AND(sqlBusinessModes);
 			}
-			sql.AND(sq);
+			sql.AND(subEx);
 		}
 
 		sql.fillSQL(sb);
@@ -252,11 +252,16 @@ public class AssetRepository extends RDSRepository<Asset> {
 	 * 区管理员统计
 	 * 
 	 * 
-	 * @param orgIds       组织id
-	 * @param groups       分组
-	 * @param resType      资源类型
-	 * @param assetType    资产类型
-	 * @param businessMode 经营方式
+	 * @param orgIds
+	 *            组织id
+	 * @param groups
+	 *            分组
+	 * @param resType
+	 *            资源类型
+	 * @param assetType
+	 *            资产类型
+	 * @param businessMode
+	 *            经营方式
 	 */
 	public JSONArray sumAssetByDstrictId(DruidPooledConnection conn, Long districtId, String buildTime,
 			JSONArray orgIds, JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes)
@@ -395,7 +400,7 @@ public class AssetRepository extends RDSRepository<Asset> {
 		}
 		sql.fillSQL(sb);
 
-//		System.out.println(sb.toString());
+		// System.out.println(sb.toString());
 		return getList(conn, sb.toString(), sql.getParams(), count, offset);
 
 	}

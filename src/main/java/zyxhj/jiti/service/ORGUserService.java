@@ -272,8 +272,9 @@ public class ORGUserService {
 				insertORGUser(conn, orgId, extUser.id, address, shareCerNo, shareCerImg, shareCerHolder, shareAmount,
 						weight, roles, groups, tags, familyNumber, familyMaster);
 			} else {
-//				System.out
-//						.println(StringUtils.join("xxxx>>orgId>", orgId, " - userId>", extUser.id, " - id=", idNumber));
+				// System.out
+				// .println(StringUtils.join("xxxx>>orgId>", orgId, " - userId>", extUser.id, "
+				// - id=", idNumber));
 				throw new ServerException(BaseRC.ECM_ORG_USER_EXIST);
 			}
 		}
@@ -329,7 +330,6 @@ public class ORGUserService {
 	public ORGUser getORGUserById(DruidPooledConnection conn, Long orgId, Long userId) throws Exception {
 		return orgUserRepository.getByANDKeys(conn, new String[] { "org_id", "user_id" },
 				new Object[] { orgId, userId });
-
 	}
 
 	/**
@@ -635,9 +635,9 @@ public class ORGUserService {
 		if (ors == null || ors.size() == 0) {
 			return new JSONArray();
 		} else {
-			String[] values = new String[ors.size()];
+			Object[] values = new Object[ors.size()];
 			for (int i = 0; i < ors.size(); i++) {
-				values[i] = ors.get(i).userId.toString();
+				values[i] = ors.get(i).userId;
 			}
 			List<User> us = userRepository.getListByKeyInValues(conn, "id", values);
 			JSONArray ret = new JSONArray();

@@ -275,8 +275,10 @@ public class ORGService {
 	/**
 	 * 成员登录
 	 * 
-	 * @param mobile 电话号码
-	 * @param pwd    密码
+	 * @param mobile
+	 *            电话号码
+	 * @param pwd
+	 *            密码
 	 * @param 登录业务对象
 	 */
 	public LoginBo loginByMobile(DruidPooledConnection conn, String mobile, String pwd) throws Exception {
@@ -474,6 +476,7 @@ public class ORGService {
 		// 检查户序号是否已经存在
 
 		// TODO orgId 希望做一个familyRepositroy的createFamily方法，然后ORGService和ORGUserService都用
+
 		Family fn = familyRepository.getByKey(conn, "family_number", familyNumber);
 
 		familyRepository.getByANDKeys(conn, new String[] { "org_id", "family_number" },

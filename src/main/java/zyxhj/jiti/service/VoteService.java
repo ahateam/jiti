@@ -609,22 +609,23 @@ public class VoteService {
 		// for(遍历org)
 		// 查询当前org下的投票
 		// 将可投票的人数进行相加
-//		Map<String, Integer> ma = new HashMap<String, Integer>();
-//		Integer a = 0, b = 0;
-//		for (int i = 0; i < orgIds.size(); i++) {
-//			
-//			
-//			List<Vote> getVote = voteRepository.getListByKey(conn, "org_id", orgIds.getString(i), null, null);
-//			for (Vote v : getVote) {
-//				ma.put("countQuorum", a = a + v.quorum);
-//			}
-//			
-//			int co = ticketRepository.countByKey(conn, "org_id", orgIds.getString(i));
-//			ma.put("countTicket", b = b + co);
-//			
-//		}
-//
-//		System.out.println(ma);
+		// Map<String, Integer> ma = new HashMap<String, Integer>();
+		// Integer a = 0, b = 0;
+		// for (int i = 0; i < orgIds.size(); i++) {
+		//
+		//
+		// List<Vote> getVote = voteRepository.getListByKey(conn, "org_id",
+		// orgIds.getString(i), null, null);
+		// for (Vote v : getVote) {
+		// ma.put("countQuorum", a = a + v.quorum);
+		// }
+		//
+		// int co = ticketRepository.countByKey(conn, "org_id", orgIds.getString(i));
+		// ma.put("countTicket", b = b + co);
+		//
+		// }
+		//
+		// System.out.println(ma);
 		List<Double> list = new ArrayList<Double>();
 		Double d = 0.0; // 拿来放总票率
 		// 遍历orgid 获取orgid下的投票
@@ -683,7 +684,6 @@ public class VoteService {
 	// 查询用户所投选项
 	public List<VoteOption> getOptionByUserSelection(DruidPooledConnection conn, Long userId, Long voteId)
 			throws Exception {
-
 		VoteTicket getTicket = ticketRepository.getByANDKeys(conn, new String[] { "vote_id", "user_id" },
 				new Object[] { voteId, userId });
 		JSONArray js = JSON.parseArray(getTicket.selection);

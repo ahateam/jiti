@@ -90,7 +90,6 @@ public class ORGUserTagService {
 		if (tag == null) {
 			// 从数据库中获取
 			tag = tagRepository.getByANDKeys(conn, new String[] { "org_id", "tag_id" }, new Object[] { orgId, tagId });
-					
 			if (tag != null) {
 				// 放入缓存
 				ORG_USER_TAG_CACHE.put(tagId, tag);

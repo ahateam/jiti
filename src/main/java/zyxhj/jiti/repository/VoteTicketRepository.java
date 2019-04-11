@@ -15,9 +15,6 @@ public class VoteTicketRepository extends RDSRepository<VoteTicket> {
 		super(VoteTicket.class);
 	}
 
-//	public int getTicketCount(DruidPooledConnection conn, Long voteId) throws ServerException {
-//		return countByKey(conn, "vote_id", voteId);
-//	}
 
 	public List<VoteTicket> getUserBySelection(DruidPooledConnection conn, Long voteId, String selection, Integer count,
 			Integer offset) throws Exception {

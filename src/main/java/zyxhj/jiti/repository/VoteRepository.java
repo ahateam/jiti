@@ -57,19 +57,6 @@ public class VoteRepository extends RDSRepository<Vote> {
 		System.out.println(sb.toString());
 		return getList(conn, sb.toString(), sql.getParams(), count, offset);
 
-//		if (orgIds != null && orgIds.size() > 0) {
-//			sb.append("WHERE (");
-//			for (int i = 0; i < orgIds.size(); i++) {
-//				sb.append("org_id = ").append(orgIds.getString(i));
-//				if (i < orgIds.size() - 1) {
-//					sb.append(" OR ");
-//				}
-//			}
-//			sb.append(")");
-//		}
-//		if (status != null) {
-//			sb.append(" AND status = ").append(status);
-//		}this.getList(conn, sb.toString(), new Object[] {}, count, offset)
 
 	}
 

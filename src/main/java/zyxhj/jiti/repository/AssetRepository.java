@@ -104,6 +104,7 @@ public class AssetRepository extends RDSRepository<Asset> {
 
 		if (assetIds != null && assetIds.size() > 0) {
 			sqlWhere.AND(SQLEx.exIn("id", assetIds.toArray()));
+
 			sqlWhere.fillSQL(sbwhere);
 
 			System.out.println(StringUtils.join(sbset.toString(), " ", sbwhere.toString()));
@@ -160,14 +161,10 @@ public class AssetRepository extends RDSRepository<Asset> {
 	/**
 	 * 根据年份，资产类型等条件，统计资源原值，产值等
 	 * 
-	 * @param groups
-	 *            分组
-	 * @param resType
-	 *            资源类型
-	 * @param assetType
-	 *            资产类型
-	 * @param businessMode
-	 *            经营方式
+	 * @param groups       分组
+	 * @param resType      资源类型
+	 * @param assetType    资产类型
+	 * @param businessMode 经营方式
 	 */
 	public JSONArray sumAssetBYGRAB(DruidPooledConnection conn, Long orgId, String buildTime, JSONArray groups,
 			JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes) throws Exception {
@@ -252,16 +249,11 @@ public class AssetRepository extends RDSRepository<Asset> {
 	 * 区管理员统计
 	 * 
 	 * 
-	 * @param orgIds
-	 *            组织id
-	 * @param groups
-	 *            分组
-	 * @param resType
-	 *            资源类型
-	 * @param assetType
-	 *            资产类型
-	 * @param businessMode
-	 *            经营方式
+	 * @param orgIds       组织id
+	 * @param groups       分组
+	 * @param resType      资源类型
+	 * @param assetType    资产类型
+	 * @param businessMode 经营方式
 	 */
 	public JSONArray sumAssetByDstrictId(DruidPooledConnection conn, Long districtId, String buildTime,
 			JSONArray orgIds, JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes)
@@ -276,54 +268,53 @@ public class AssetRepository extends RDSRepository<Asset> {
 		if ((orgIds != null && orgIds.size() > 0) || (groups != null && groups.size() > 0)
 				|| (resTypes != null && resTypes.size() > 0) || (assetTypes != null && assetTypes.size() > 0)
 				|| (businessModes != null && businessModes.size() > 0)) {
-			SQL sq = new SQL();
+			SQL sqlEx = new SQL();
 			if (orgIds != null && orgIds.size() > 0) {
 
-				SQL s = new SQL();
+				SQL sqlOrgIds = new SQL();
 				for (int i = 0; i < orgIds.size(); i++) {
-					s.OR(StringUtils.join("org_id =", orgIds.getString(i)));
+					sqlOrgIds.OR(StringUtils.join("org_id =", orgIds.getString(i)));
 				}
-				sq.AND(s);
+				sqlEx.AND(sqlOrgIds);
 			}
 
 			if (groups != null && groups.size() > 0) {
-				SQL s = new SQL();
+				SQL sqlGroups = new SQL();
 				for (int i = 0; i < groups.size(); i++) {
-					s.OR(StringUtils.join("JSON_CONTAINS(groups, '", groups.getString(i), "', '$')"));
+					sqlGroups.OR(StringUtils.join("JSON_CONTAINS(groups, '", groups.getString(i), "', '$')"));
 				}
-				sq.AND(s);
+				sqlEx.AND(sqlGroups);
 			}
 
 			if (resTypes != null && resTypes.size() > 0) {
-				SQL s = new SQL();
+				SQL sqlresTypes = new SQL();
 				for (int i = 0; i < resTypes.size(); i++) {
-					s.OR(StringUtils.join("res_type='", resTypes.getString(i), "'"));
+					sqlresTypes.OR(StringUtils.join("res_type='", resTypes.getString(i), "'"));
 				}
-				sq.AND(s);
+				sqlEx.AND(sqlresTypes);
 			}
 
 			if (assetTypes != null && assetTypes.size() > 0) {
-				SQL s = new SQL();
+				SQL sqlassetTypes = new SQL();
 				for (int i = 0; i < assetTypes.size(); i++) {
-					s.OR(StringUtils.join("asset_type='", assetTypes.getString(i), "'"));
+					sqlassetTypes.OR(StringUtils.join("asset_type='", assetTypes.getString(i), "'"));
 				}
-				sq.AND(s);
+				sqlEx.AND(sqlassetTypes);
 			}
 
 			if (businessModes != null && businessModes.size() > 0) {
-				SQL s = new SQL();
+				SQL sqlbusinessModes = new SQL();
 				for (int i = 0; i < businessModes.size(); i++) {
-					s.OR(StringUtils.join("business_mode='", businessModes.getString(i), "' "));
+					sqlbusinessModes.OR(StringUtils.join("business_mode='", businessModes.getString(i), "' "));
 				}
 
-				sq.AND(s);
+				sqlEx.AND(sqlbusinessModes);
 			}
-			sql.AND(sq);
+			sql.AND(sqlEx);
 		}
 		StringBuffer sb = new StringBuffer(" SELECT build_time,sum(origin_price) originPrice , "
 				+ "sum(yearly_income) yearlyIncome FROM tb_ecm_asset WHERE ");
 		sql.fillSQL(sb);
-		System.out.println(sb.toString());
 
 		return sqlGetJSONArray(conn, sb.toString(), sql.getParams(), 1, 0);
 	}
@@ -347,56 +338,56 @@ public class AssetRepository extends RDSRepository<Asset> {
 				|| (businessModes != null && businessModes.size() > 0)) {
 
 			sb.append(" WHERE "); // TODO 此处where在添加区级管理以后 放到上面去
-			SQL sq = new SQL();
+			SQL sqlEx = new SQL();
 
 			if (buildTimes != null && buildTimes.size() > 0) {
-				SQL s = new SQL();
+				SQL sqlbuildTimes = new SQL();
 				for (int i = 0; i < buildTimes.size(); i++) {
-					s.OR(StringUtils.join("build_time ='", buildTimes.getString(i), "'"));
+					sqlbuildTimes.OR(StringUtils.join("build_time ='", buildTimes.getString(i), "'"));
 				}
-				sq.AND(s);
+				sqlEx.AND(sqlbuildTimes);
 			}
 
 			if (orgIds != null && orgIds.size() > 0) {
-				SQL s = new SQL();
+				SQL sqlorgIds = new SQL();
 				for (int i = 0; i < orgIds.size(); i++) {
-					s.OR(StringUtils.join("org_id =", orgIds.getString(i)));
+					sqlorgIds.OR(StringUtils.join("org_id =", orgIds.getString(i)));
 				}
-				sq.AND(s);
+				sqlEx.AND(sqlorgIds);
 			}
 
 			if (groups != null && groups.size() > 0) {
-				SQL s = new SQL();
+				SQL sqlgroups = new SQL();
 				for (int i = 0; i < groups.size(); i++) {
-					s.OR(StringUtils.join("JSON_CONTAINS(groups, '", groups.getString(i), "', '$')"));
+					sqlgroups.OR(StringUtils.join("JSON_CONTAINS(groups, '", groups.getString(i), "', '$')"));
 				}
-				sq.AND(s);
+				sqlEx.AND(sqlgroups);
 			}
 
 			if (resTypes != null && resTypes.size() > 0) {
-				SQL s = new SQL();
+				SQL sqlresTypes = new SQL();
 				for (int i = 0; i < resTypes.size(); i++) {
-					s.OR(StringUtils.join("res_type ='", resTypes.getString(i), "'"));
+					sqlresTypes.OR(StringUtils.join("res_type ='", resTypes.getString(i), "'"));
 				}
-				sq.AND(s);
+				sqlEx.AND(sqlresTypes);
 			}
 
 			if (assetTypes != null && assetTypes.size() > 0) {
-				SQL s = new SQL();
+				SQL sqlassetTypes = new SQL();
 				for (int i = 0; i < assetTypes.size(); i++) {
-					s.OR(StringUtils.join("asset_type ='", assetTypes.getString(i), "'"));
+					sqlassetTypes.OR(StringUtils.join("asset_type ='", assetTypes.getString(i), "'"));
 				}
-				sq.AND(s);
+				sqlEx.AND(sqlassetTypes);
 			}
 
 			if (businessModes != null && businessModes.size() > 0) {
-				SQL s = new SQL();
+				SQL sqlbusinessModes = new SQL();
 				for (int i = 0; i < businessModes.size(); i++) {
-					s.OR(StringUtils.join("business_mode ='", businessModes.getString(i), "'"));
+					sqlbusinessModes.OR(StringUtils.join("business_mode ='", businessModes.getString(i), "'"));
 				}
-				sq.AND(s);
+				sqlEx.AND(sqlbusinessModes);
 			}
-			sql.AND(sq);
+			sql.AND(sqlEx);
 		}
 		sql.fillSQL(sb);
 

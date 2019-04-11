@@ -30,8 +30,6 @@ import zyxhj.utils.IDUtils;
 import zyxhj.utils.Singleton;
 import zyxhj.utils.api.BaseRC;
 import zyxhj.utils.api.ServerException;
-import zyxhj.utils.data.rds.SQL;
-import zyxhj.utils.data.rds.SQLEx;
 
 public class ORGUserService {
 
@@ -40,8 +38,6 @@ public class ORGUserService {
 	private ORGUserRepository orgUserRepository;
 	private UserRepository userRepository;
 
-	private ORGUserRoleService orgUserRoleService;
-	private ORGUserGroupService orgUserGroupService;
 	private FamilyRepository familyRepository;
 
 	public ORGUserService() {
@@ -49,8 +45,6 @@ public class ORGUserService {
 			orgUserRepository = Singleton.ins(ORGUserRepository.class);
 			userRepository = Singleton.ins(UserRepository.class);
 
-			orgUserRoleService = Singleton.ins(ORGUserRoleService.class);
-			orgUserGroupService = Singleton.ins(ORGUserGroupService.class);
 			familyRepository = Singleton.ins(FamilyRepository.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);

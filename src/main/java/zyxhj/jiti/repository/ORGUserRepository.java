@@ -78,17 +78,17 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 
 		sql.addEx("org_id = ? ");
 		if ((roles != null && roles.size() > 0) || (groups != null && groups.size() > 0) || (tags != null)) {
-			SQL sq = new SQL();
+			SQL sqlEx = new SQL();
 
 			if (roles != null && roles.size() > 0) {
 				for (int i = 0; i < roles.size(); i++) {
-					sq.OR(StringUtils.join("JSON_CONTAINS(roles, '", roles.getString(i), "', '$') "));
+					sqlEx.OR(StringUtils.join("JSON_CONTAINS(roles, '", roles.getString(i), "', '$') "));
 				}
 			}
 
 			if (groups != null && groups.size() > 0) {
 				for (int i = 0; i < groups.size(); i++) {
-					sq.OR(StringUtils.join("JSON_CONTAINS(group, '", groups.getString(i), "', '$') "));
+					sqlEx.OR(StringUtils.join("JSON_CONTAINS(group, '", groups.getString(i), "', '$') "));
 				}
 			}
 
@@ -103,13 +103,13 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 						for (int i = 0; i < arr.size(); i++) {
 							// JSON_CONTAINS(tags, '"tag1"', '$.groups')
 							// JSON_CONTAINS(tags, '"tag3"', '$.tags')
-							sq.OR(StringUtils.join("JSON_CONTAINS(tags, '\"", arr.getString(i), "\"', '$.", key,
+							sqlEx.OR(StringUtils.join("JSON_CONTAINS(tags, '\"", arr.getString(i), "\"', '$.", key,
 									"') "));
 						}
 					}
 				}
 			}
-			sql.AND(sq);
+			sql.AND(sqlEx);
 		}
 
 		StringBuffer s = new StringBuffer("SELECT COUNT(*) FROM tb_ecm_org_user WHERE ");
@@ -161,7 +161,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 			try {
 				// return this.nativeGetJSONArray(conn, sql.toString(), new Object[] { orgId,
 				// count, offset });
-				return this.sqlGetOtherList(conn, Singleton.ins(UserRepository.class), StringUtils.join(
+				return sqlGetOtherList(conn, Singleton.ins(UserRepository.class), StringUtils.join(
 						"SELECT * FROM `tb_user` INNER JOIN `tb_ecm_org_user` ON `tb_user`.`id` = `tb_ecm_org_user`.`user_id` WHERE `org_id` =? AND `tb_user`.`id_number` LIKE '%",
 						idNumber, "%' LIMIT ? OFFSET ?)"), new Object[] { orgId, count, offset });
 			} catch (Exception e) {
@@ -185,7 +185,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 			try {
 				// return this.nativeGetJSONArray(conn, sql.toString(), new Object[] { orgId,
 				// count, offset });
-				return this.sqlGetOtherList(conn, Singleton.ins(UserRepository.class), StringUtils.join(
+				return sqlGetOtherList(conn, Singleton.ins(UserRepository.class), StringUtils.join(
 						"SELECT * FROM `tb_user` INNER JOIN `tb_ecm_org_user` ON `tb_user`.`id` = `tb_ecm_org_user`.`user_id` WHERE `org_id` =? AND `tb_user`.`real_name` LIKE '%",
 						realName, "%' LIMIT ? OFFSET ?"), new Object[] { orgId, count, offset });
 			} catch (Exception e) {
@@ -202,40 +202,35 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 			throws ServerException {
 
 		// SET groups="[123,456,345]"
-		StringBuffer sbset = new StringBuffer();
+		StringBuffer sbset = new StringBuffer(" SET ");
 		ArrayList<Object> pset = new ArrayList<>();
+		SQL sqlset = new SQL();
 
 		// 不能为空，为空需要填写默认分组
-		sbset.append("SET groups=?");
+//		sbset.append("SET groups=?");
 		if (groups == null || groups.size() <= 0) {
 			// 填入未分组，避免空
 			groups = new JSONArray();
 			groups.add(ORGUserTagGroup.group_undefine.groupId);
 		}
-
+		
+		sqlset.addEx(" groups=? ");
 		pset.add(JSON.toJSONString(groups));
-		String set = sbset.toString();
+		sqlset.fillSQL(sbset);
 
-		// WHERE org_id=? AND id IN (1,2,3)
 		StringBuffer sbwhere = new StringBuffer();
-		ArrayList<Object> pwhere = new ArrayList<>();
 
-		sbwhere.append("WHERE org_id=? AND user_id IN (");
-		pwhere.add(orgId);
+		sbwhere.append(" WHERE ");
+		SQL sqlWhere = new SQL();
+		sqlWhere.addEx("org_id= ? ", orgId);
 
 		if (userIds != null && userIds.size() > 0) {
-			for (int i = 0; i < userIds.size(); i++) {
-				Long userId = userIds.getLong(i);
-				sbwhere.append("?,");
-				pwhere.add(userId);
-			}
-			sbwhere.deleteCharAt(sbwhere.length() - 1);
-
-			sbwhere.append(") ");
-
-			String where = sbwhere.toString();
-			System.out.println(StringUtils.join(set, " ", where));
-			return this.update(conn, set, pset.toArray(), where, pwhere.toArray());
+			
+			sqlWhere.AND(SQLEx.exIn("id", userIds.toArray()));
+			sqlWhere.fillSQL(sbwhere);
+			
+			
+			return this.update(conn, sbset.toString(), pset.toArray(), sbwhere.toString(), sqlWhere.getParams());
 		} else {
 			return 0;
 		}
@@ -250,8 +245,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 			// 获取roles值
 			String ro = roles.getString(i);
 			Object[] s = sqlGetObjects(conn,
-					StringUtils.join("SELECT COUNT(*) FROM tb_ecm_org_user WHERE JSON_CONTAINS(roles, '",
-							ro, "','$')"),
+					StringUtils.join("SELECT COUNT(*) FROM tb_ecm_org_user WHERE JSON_CONTAINS(roles, '", ro, "','$')"),
 					new Object[] {});
 			map.put(ro, Integer.parseInt(s[0].toString()));
 		}
@@ -265,7 +259,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		sql.addEx("org_id = ?", orgId);
 		sql.addEx(SQLEx.exIn("user_id", values));
 		sql.fillSQL(sb);
-		return getList(conn, sb.toString(),sql.getParams(), null, null);
+		return getList(conn, sb.toString(), sql.getParams(), null, null);
 	}
 
 }

@@ -68,14 +68,14 @@ public class AssetRepository extends RDSRepository<Asset> {
 		return getList(conn, sb.toString(), sql.getParams(), count, offset);
 	}
 
-	public List<Asset> getAssetsByGroups(DruidPooledConnection conn, Long orgId, JSONObject groups, Integer count,
+	public List<Asset> getAssetsByGroups(DruidPooledConnection conn, Long orgId, String[] groups, Integer count,
 			Integer offset) throws ServerException {
-		return this.getListByTags(conn, "groups", groups, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
+		return getListByTagsJSONArray(conn, "groups","", groups, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
 	}
 
 	public List<Asset> getAssetsByTags(DruidPooledConnection conn, Long orgId, JSONObject tags, Integer count,
 			Integer offset) throws ServerException {
-		return this.getListByTags(conn, "groups", tags, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
+		return getListByTagsJSONObject(conn, "groups", tags, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
 	}
 
 	public int batchEditAssetsGroups(DruidPooledConnection conn, Long orgId, JSONArray assetIds, JSONArray groups)

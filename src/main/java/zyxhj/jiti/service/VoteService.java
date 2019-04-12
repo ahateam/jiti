@@ -527,9 +527,9 @@ public class VoteService {
 				delVoteTicket(conn, voteId, userId);
 
 				// 计票-1
-				List<String> ids = new ArrayList<>(selections.size());
-				for (int i = 0; i < ids.size(); i++) {
-					ids.set(i, selections.getLong(i).toString());
+				Object[] ids = new Object[selections.size()];
+				for (int i = 0; i < selections.size(); i++) {
+					ids[i] = selections.getLong(i);
 				}
 				optionRepository.subTicket(conn, ids, ballotCount);
 
@@ -591,9 +591,9 @@ public class VoteService {
 		ticketRepository.insert(conn, vt);
 
 		// 计票
-		List<String> ids = new ArrayList<>(selections.size());
-		for (int i = 0; i < ids.size(); i++) {
-			ids.set(i, selections.getLong(i).toString());
+		Object[] ids = new Object[selections.size()];
+		for (int i = 0; i < selections.size(); i++) {
+			ids[i] = selections.getLong(i);
 		}
 		optionRepository.countTicket(conn, ids, ballotCount);
 	}
@@ -634,15 +634,11 @@ public class VoteService {
 			List<Vote> getVote = voteRepository.getListByKey(conn, "org_id", orgIds.getString(i), null, null);
 			// 遍历VOTE 得到一个投票率
 			for (Vote v : getVote) {
-				if (v.quorum != 0) {
-					double a = v.quorum;
-					int c = ticketRepository.countTicket(conn, v.id);
-					if (c != 0) {
-						// 把相票率放入list中
-						list.add(c / a);
-					} else {
-						list.add(0.5);
-					}
+				double a = v.quorum;
+				int c = ticketRepository.countTicket(conn, v.id);
+				if (c != 0) {
+					// 把相票率放入list中
+					list.add(c / a);
 				} else {
 					list.add(0.5);
 				}
@@ -662,23 +658,12 @@ public class VoteService {
 	}
 
 	// 查询用户投票列表
-	// TODO 可以用一个查询做
-	public List<Vote> getVoteTicketByUserId(DruidPooledConnection conn, Long orgId, Long userId, Integer count,
+	public JSONArray getVoteTicketByUserId(DruidPooledConnection conn, Long orgId, Long userId, Integer count,
 			Integer offset) throws Exception {
-		// 查询用户投票记录
-		List<VoteTicket> li = ticketRepository.getListByANDKeys(conn, new String[] { "org_id", "user_id" },
-				new Object[] { orgId, userId }, count, offset);
+		// SELECT vo.* FROM tb_ecm_vote vo LEFT JOIN tb_ecm_vote_ticket tk ON vo.id =
+		// tk.vote_id WHERE tk.user_id = 398070436000626 AND vo.org_id = 398067474765236
 
-		// 获取到投票记录的voidId 在Vote表里进行匹配
-		if (li != null && li.size() > 0) {
-			String[] s = new String[li.size()];
-			for (int i = 0; i < li.size(); i++) {
-				s[i] = li.get(i).voteId.toString();
-			}
-			return voteRepository.getListByKeyInValues(conn, "id", s);
-		} else {
-			return new ArrayList<Vote>();
-		}
+		return voteRepository.getVoteTicketByUserId(conn, orgId, userId, count, offset);
 	}
 
 	// 查询用户所投选项
@@ -697,6 +682,7 @@ public class VoteService {
 		} else {
 			return new ArrayList<VoteOption>();
 		}
+
 	}
 
 }

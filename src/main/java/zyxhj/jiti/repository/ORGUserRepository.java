@@ -133,21 +133,22 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		}
 	}
 
-	public List<ORGUser> getORGUsersByRoles(DruidPooledConnection conn, Long orgId, JSONObject roles, Integer count,
+	public List<ORGUser> getORGUsersByRoles(DruidPooledConnection conn, Long orgId, String[] roles, Integer count,
 			Integer offset) throws ServerException {
-		return this.getListByTags(conn, "roles", roles, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
+		return getListByTagsJSONArray(conn, "roles","", roles, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
 	}
 
-	public List<ORGUser> getORGUsersByGroups(DruidPooledConnection conn, Long orgId, JSONObject groups, Integer count,
+	public List<ORGUser> getORGUsersByGroups(DruidPooledConnection conn, Long orgId, String[] groups, Integer count,
 			Integer offset) throws ServerException {
 
-		return this.getListByTags(conn, "groups", groups, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
+		
+		return getListByTagsJSONArray(conn, "groups", "", groups, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
 	}
 
 	public List<ORGUser> getORGUsersByTags(DruidPooledConnection conn, Long orgId, JSONObject tags, Integer count,
 			Integer offset) throws ServerException {
 
-		return this.getListByTags(conn, "tags", tags, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
+		return getListByTagsJSONObject(conn, "tags", tags, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
 	}
 
 	public List<User> getORGUsersLikeIDNumber(DruidPooledConnection conn, Long orgId, String idNumber, Integer count,
@@ -226,10 +227,10 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 
 		if (userIds != null && userIds.size() > 0) {
 			
-			sqlWhere.AND(SQLEx.exIn("id", userIds.toArray()));
+			sqlWhere.AND(SQLEx.exIn("user_id", userIds.toArray()));
 			sqlWhere.fillSQL(sbwhere);
 			
-			
+			System.out.println(sbset.toString() + " " + sbwhere.toString());
 			return this.update(conn, sbset.toString(), pset.toArray(), sbwhere.toString(), sqlWhere.getParams());
 		} else {
 			return 0;
@@ -257,8 +258,9 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		StringBuffer sb = new StringBuffer(" WHERE ");
 		SQL sql = new SQL();
 		sql.addEx("org_id = ?", orgId);
-		sql.addEx(SQLEx.exIn("user_id", values));
+		sql.AND(SQLEx.exIn("user_id", values));
 		sql.fillSQL(sb);
+		//System.out.println(sb.toString());
 		return getList(conn, sb.toString(), sql.getParams(), null, null);
 	}
 

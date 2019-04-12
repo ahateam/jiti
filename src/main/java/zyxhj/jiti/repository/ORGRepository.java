@@ -18,7 +18,7 @@ public class ORGRepository extends RDSRepository<ORG> {
 		// ON a.org_id = b.id WHERE user_id = 397912180277668
 
 		JSONArray sqJs = sqlGetJSONArray(conn,
-				"SELECT org.* FROM tb_ecm_org_user user LEFT JOIN tb_ ecm_org org ON user.org_id = org.id WHERE user_id = ? ",
+				"SELECT org.* FROM tb_ecm_org_user user LEFT JOIN tb_ecm_org org ON user.org_id = org.id WHERE user_id = ? ",
 				new Object[] { userId }, count, offset);
 		return sqJs;
 	}

@@ -47,7 +47,7 @@ public class VoteRepository extends RDSRepository<Vote> {
 			for (int i = 0; i < orgIds.size(); i++) {
 				sq.OR(StringUtils.join("org_id = ", orgIds.getString(i)));
 			}
-			sql.AND(sq);   //可能以后会有多个JSONArray
+			sql.AND(sq); // 可能以后会有多个JSONArray
 		}
 		if (status != null) {
 			sql.AND("status = ? ", status);
@@ -57,8 +57,18 @@ public class VoteRepository extends RDSRepository<Vote> {
 		System.out.println(sb.toString());
 		return getList(conn, sb.toString(), sql.getParams(), count, offset);
 
-
 	}
+
+	public JSONArray getVoteTicketByUserId(DruidPooledConnection conn, Long orgId, Long userId, Integer count,
+			Integer offset) throws Exception {
+
+		// SELECT vo.* FROM tb_ecm_vote vo LEFT JOIN tb_ecm_vote_ticket tk ON vo.id =
+		// tk.vote_id WHERE tk.user_id = 398070436000626 AND vo.org_id = 398067474765236
+		return sqlGetJSONArray(conn,
+				"SELECT vo.* FROM tb_ecm_vote vo LEFT JOIN tb_ecm_vote_ticket tk ON vo.id = tk.vote_id WHERE tk.user_id = ? AND vo.org_id = ?",
+				new Object[] { userId, orgId }, count, offset);
+	}
+	
 
 //	//统计组织下可投票人数
 //	public void countNumberByOrgId(DruidPooledConnection conn, JSONArray orgIds) {

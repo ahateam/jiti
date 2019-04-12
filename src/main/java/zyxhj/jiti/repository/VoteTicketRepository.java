@@ -15,19 +15,19 @@ public class VoteTicketRepository extends RDSRepository<VoteTicket> {
 		super(VoteTicket.class);
 	}
 
-
 	public List<VoteTicket> getUserBySelection(DruidPooledConnection conn, Long voteId, String selection, Integer count,
 			Integer offset) throws Exception {
 		// SELECT * FROM tb_ecm_vote_ticket WHERE vote_id = 397557883853724 AND
 		// JSON_CONTAINS(selection, '397557885981598','$')
 
 		return this.getList(conn,
-				StringUtils.join(" WHERE vote_id = ? AND JSON_CONTAINS(selection,'", selection, "\"','$')\""),
+				StringUtils.join(" WHERE vote_id = ? AND JSON_CONTAINS(selection,'", selection, "','$')"),
 				new Object[] { voteId }, count, offset);
 	}
 
 	public int countTicket(DruidPooledConnection conn, Long id) throws Exception {
-		Object[] s = sqlGetObjects(conn, "SELECT * FROM tb_ecm_vote_ticket WHERE vote_id = ? ", new Object[] { id });
+		Object[] s = sqlGetObjects(conn, "SELECT count(*) FROM tb_ecm_vote_ticket WHERE vote_id = ? ",
+				new Object[] { id });
 		return Integer.parseInt(s[0].toString());
 	}
 

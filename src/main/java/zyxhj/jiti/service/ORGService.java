@@ -446,6 +446,7 @@ public class ORGService {
 	// 查询组织申请列表
 	public List<ORGExamine> getORGExamineByStatus(DruidPooledConnection conn, Byte status, Long areaId, Integer count,
 			Integer offset) throws Exception {
+		
 		return orgExamineRepository.getListByKey(conn, "examine", status, count, offset);
 	}
 

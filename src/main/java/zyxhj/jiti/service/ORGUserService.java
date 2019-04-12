@@ -564,7 +564,7 @@ public class ORGUserService {
 	/**
 	 * 根据权限查询用户
 	 */
-	public JSONArray getORGUsersByRoles(DruidPooledConnection conn, Long orgId, JSONObject roles, Integer count,
+	public JSONArray getORGUsersByRoles(DruidPooledConnection conn, Long orgId, String[] roles, Integer count,
 			Integer offset) throws Exception {
 		List<ORGUser> ors = orgUserRepository.getORGUsersByRoles(conn, orgId, roles, count, offset);
 
@@ -574,10 +574,9 @@ public class ORGUserService {
 	/**
 	 * 根据分组（groups tags等）查询用户
 	 */
-	public JSONArray getORGUsersByGroups(DruidPooledConnection conn, Long orgId, JSONObject groups, Integer count,
+	public JSONArray getORGUsersByGroups(DruidPooledConnection conn, Long orgId, String[] groups, Integer count,
 			Integer offset) throws Exception {
 		List<ORGUser> ors = orgUserRepository.getORGUsersByGroups(conn, orgId, groups, count, offset);
-
 		return getORGUsersInfo(conn, ors);
 	}
 

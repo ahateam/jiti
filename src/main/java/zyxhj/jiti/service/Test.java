@@ -1,5 +1,8 @@
 package zyxhj.jiti.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -49,6 +52,21 @@ public class Test {
 		//组织根据年份，资产类型等条件，统计资源原值，产值等
 		//sumAssetBYGRAB();
 		
+	//	batchEdit();
+		
+		JSONArray json = new JSONArray();
+		json.add("1233");
+		json.add("12332");
+		List<String> li = new ArrayList<>();
+		
+		for (int i = 0; i < json.size(); i++) {
+		//	li.set(i, json.getLong(i).toString());
+			li.add(json.getLong(i).toString());
+		}
+		System.out.println(li);
+	}
+
+	private static void batchEdit() throws ServerException {
 		JSONArray json = new JSONArray();
 		json.add("1111");
 		json.add("2222");

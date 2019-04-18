@@ -40,10 +40,11 @@ public class DemonstrationController extends Controller {
 			ret = "返回分组信息"//
 	)
 	public APIResponse getAsset(//
+			@P(t = "组织编号") Long orgId, //
 			@P(t = "分组编号") String groups //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(demonstrationService.getAsset(conn, groups));
+			return APIResponse.getNewSuccessResp(demonstrationService.getAsset(conn,orgId, groups));
 		}
 	}
 	
@@ -56,9 +57,10 @@ public class DemonstrationController extends Controller {
 			ret = "分组列表"//
 	)
 	public APIResponse getGroup(//
+			@P(t = "组织编号") Long orgId //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(demonstrationService.getGroup(conn));
+			return APIResponse.getNewSuccessResp(demonstrationService.getGroup(conn,orgId));
 		}
 	}
 	
@@ -72,10 +74,11 @@ public class DemonstrationController extends Controller {
 			ret = "资产列表"//
 	)
 	public APIResponse getAssetById(//
-			@P(t = "资产id") Long assetId //
+			@P(t = "资产id") Long assetId, //
+			@P(t = "组织编号") Long orgId //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(demonstrationService.getAssetById(conn,assetId));
+			return APIResponse.getNewSuccessResp(demonstrationService.getAssetById(conn,assetId,orgId));
 		}
 	}
 }

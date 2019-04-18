@@ -29,17 +29,17 @@ public class DemonstrationService {
 		}
 	}
 
-	public List<Asset> getAsset(DruidPooledConnection conn, String groups) throws Exception{
-		return demonstrationRepository.getAsset(conn,groups,500,0);
+	public List<Asset> getAsset(DruidPooledConnection conn, Long orgId, String groups) throws Exception {
+		return demonstrationRepository.getAsset(conn, orgId, groups, 500, 0);
 	}
 
-	
-	public List<ORGUserTagGroup> getGroup(DruidPooledConnection conn) throws Exception{
-		return orgUserTagGroupRepository.getList(conn, 500, 0);
+	public List<ORGUserTagGroup> getGroup(DruidPooledConnection conn, Long orgId) throws Exception {
+		return orgUserTagGroupRepository.getListByKey(conn, "org_id", orgId, null, null);
 	}
-	
-	public Asset getAssetById(DruidPooledConnection conn,Long assetId) throws Exception {
-		return demonstrationRepository.getByKey(conn, "id", assetId);
+
+	public Asset getAssetById(DruidPooledConnection conn, Long assetId, Long orgId) throws Exception {
+		return demonstrationRepository.getByANDKeys(conn, new String[] { "id", "org_id" },
+				new Object[] { assetId, orgId });
 	}
-	
+
 }

@@ -48,6 +48,7 @@ public class JITIVerticle extends ZeroVerticle {
 		initCtrl(ctrlMap, Singleton.ins(ContentController.class, "content"));
 		
 		initCtrl(ctrlMap, Singleton.ins(DemonstrationController.class, "demon"));
+		
 	}
 
 }

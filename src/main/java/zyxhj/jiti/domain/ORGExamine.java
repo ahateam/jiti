@@ -14,6 +14,33 @@ import zyxhj.utils.data.rds.RDSAnnID;
 @RDSAnnEntity(alias = "tb_ecm_org_examine")
 public class ORGExamine {
 	
+	public static enum LEVEL implements ENUMVALUE {
+		PRO((byte) 1, "省"), //
+		CITY((byte) 2, "市"), //
+		DISTRICT((byte) 3, "区"), //
+		COOPERATIVE((byte) 4, "合作社"), //
+		OTHER((byte) 5, "其他"), //
+		;
+
+		private byte v;
+		private String txt;
+
+		private LEVEL(Byte v, String txt) {
+			this.v = v;
+			this.txt = txt;
+		}
+
+		@Override
+		public byte v() {
+			return v;
+		}
+
+		@Override
+		public String txt() {
+			return txt;
+		}
+	}
+	
 	public static enum STATUS implements ENUMVALUE {
 		VOTING((byte) 0, "待定"), //
 		WAITING((byte) 1, "通过"), //
@@ -25,6 +52,30 @@ public class ORGExamine {
 		private String txt;
 
 		private STATUS(byte v, String txt) {
+			this.v = v;
+			this.txt = txt;
+		}
+
+		@Override
+		public byte v() {
+			return v;
+		}
+
+		@Override
+		public String txt() {
+			return txt;
+		}
+	}
+	
+	public static enum TYPE implements ENUMVALUE {
+		INDEPENDENT((byte) 0, "独立"), //
+		NOTINDEPENDENT((byte) 1, "非独立"), //
+		;
+
+		private byte v;
+		private String txt;
+
+		private TYPE(Byte v, String txt) {
 			this.v = v;
 			this.txt = txt;
 		}
@@ -74,19 +125,19 @@ public class ORGExamine {
 	 * 省
 	 */
 	@RDSAnnField(column = "VARCHAR(32)")
-	public String province;
+	public Long province;
 
 	/**
 	 * 市
 	 */
 	@RDSAnnField(column = "VARCHAR(32)")
-	public String city;
+	public Long city;
 
 	/**
 	 * 区
 	 */
 	@RDSAnnField(column = "VARCHAR(32)")
-	public String district;
+	public Long district;
 
 	/**
 	 * 具体地址
@@ -165,6 +216,24 @@ public class ORGExamine {
 	 */
 	@RDSAnnField(column = RDSAnnField.DOUBLE)
 	public Double valuation;
+	
+	/**
+	 * 类型 是否有行政区管理 如没有 就是独立的组织
+	 */
+	@RDSAnnField(column = RDSAnnField.BYTE)
+	public Byte type;
+
+	/**
+	 * 上级组织id
+	 */
+	@RDSAnnField(column = RDSAnnField.ID)
+	public Long superiorId;
+	
+	/**
+	 * 等级
+	 */
+	@RDSAnnField(column = RDSAnnField.BYTE)
+	public Byte level;
 	
 	/**
 	 * 审核状态

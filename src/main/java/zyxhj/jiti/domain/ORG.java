@@ -2,6 +2,7 @@ package zyxhj.jiti.domain;
 
 import java.util.Date;
 
+import zyxhj.utils.api.Controller.ENUMVALUE;
 import zyxhj.utils.data.rds.RDSAnnEntity;
 import zyxhj.utils.data.rds.RDSAnnField;
 import zyxhj.utils.data.rds.RDSAnnID;
@@ -12,6 +13,57 @@ import zyxhj.utils.data.rds.RDSAnnID;
  */
 @RDSAnnEntity(alias = "tb_ecm_org")
 public class ORG {
+
+	public static enum TYPE implements ENUMVALUE {
+		INDEPENDENT((byte) 0, "独立"), //
+		NOTINDEPENDENT((byte) 1, "非独立"), //
+		;
+
+		private byte v;
+		private String txt;
+
+		private TYPE(Byte v, String txt) {
+			this.v = v;
+			this.txt = txt;
+		}
+
+		@Override
+		public byte v() {
+			return v;
+		}
+
+		@Override
+		public String txt() {
+			return txt;
+		}
+	}
+
+	public static enum LEVEL implements ENUMVALUE {
+		PRO((byte) 1, "省"), //
+		CITY((byte) 2, "市"), //
+		DISTRICT((byte) 3, "区"), //
+		COOPERATIVE((byte) 4, "合作社"), //
+		OTHER((byte) 5, "其他"), //
+		;
+
+		private byte v;
+		private String txt;
+
+		private LEVEL(Byte v, String txt) {
+			this.v = v;
+			this.txt = txt;
+		}
+
+		@Override
+		public byte v() {
+			return v;
+		}
+
+		@Override
+		public String txt() {
+			return txt;
+		}
+	}
 
 	@RDSAnnID
 	@RDSAnnField(column = RDSAnnField.ID)
@@ -35,23 +87,6 @@ public class ORG {
 	@RDSAnnField(column = "VARCHAR(64)")
 	public String code;
 
-	/**
-	 * 省
-	 */
-	@RDSAnnField(column = "VARCHAR(32)")
-	public String province;
-
-	/**
-	 * 市
-	 */
-	@RDSAnnField(column = "VARCHAR(32)")
-	public String city;
-
-	/**
-	 * 区
-	 */
-	@RDSAnnField(column = "VARCHAR(32)")
-	public String district;
 
 	/**
 	 * 具体地址
@@ -130,4 +165,16 @@ public class ORG {
 	 */
 	@RDSAnnField(column = RDSAnnField.DOUBLE)
 	public Double valuation;
+
+	/**
+	 * 类型 是否有行政区管理 如没有 就是独立的组织
+	 */
+	@RDSAnnField(column = RDSAnnField.BYTE)
+	public Byte type;
+
+	/**
+	 * 等级
+	 */
+	@RDSAnnField(column = RDSAnnField.BYTE)
+	public Byte level;
 }

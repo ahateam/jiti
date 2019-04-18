@@ -54,16 +54,27 @@ public class Test {
 		
 	//	batchEdit();
 		
-		JSONArray json = new JSONArray();
-		json.add("1233");
-		json.add("12332");
-		List<String> li = new ArrayList<>();
+//		JSONArray json = new JSONArray();
+//		json.add("1233");
+//		json.add("12332");
+//		List<String> li = new ArrayList<>();
+//		
+//		for (int i = 0; i < json.size(); i++) {
+//		//	li.set(i, json.getLong(i).toString());
+//			li.add(json.getLong(i).toString());
+//		}
+//		System.out.println(li);
 		
-		for (int i = 0; i < json.size(); i++) {
-		//	li.set(i, json.getLong(i).toString());
-			li.add(json.getLong(i).toString());
-		}
-		System.out.println(li);
+//		String s = "[123,234,254]";
+//		JSONArray json = JSONArray.parseArray(s);
+		
+		JSONArray json= new JSONArray();
+		json.add("123");
+		json.add("234");
+		json.add("456");
+		System.out.println(json);
+		json.remove("234");
+		System.out.println(json);
 	}
 
 	private static void batchEdit() throws ServerException {

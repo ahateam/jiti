@@ -1,6 +1,5 @@
 package zyxhj.jiti.domain;
 
-
 import zyxhj.utils.api.Controller.ENUMVALUE;
 import zyxhj.utils.data.rds.RDSAnnEntity;
 import zyxhj.utils.data.rds.RDSAnnField;
@@ -36,7 +35,14 @@ public class District {
 			return txt;
 		}
 	}
-	
+
+	/**
+	 * 隶属父id
+	 */
+	@RDSAnnID
+	@RDSAnnField(column = RDSAnnField.LONG)
+	public Long father;
+
 	/**
 	 * 行政区（省市区）id
 	 */
@@ -55,11 +61,5 @@ public class District {
 	 */
 	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
 	public String name;
-
-	/**
-	 * 隶属父id
-	 */
-	@RDSAnnField(column = RDSAnnField.LONG)
-	public Long father;
 
 }

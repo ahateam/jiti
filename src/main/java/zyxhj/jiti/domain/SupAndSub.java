@@ -36,6 +36,12 @@ public class SupAndSub {
 		}
 	}
 
+	/**
+	 * 上级id 可能为多个
+	 */
+	@RDSAnnID
+	@RDSAnnField(column = "varchar(128)")
+	public String supId;
 
 	/**
 	 * 机构id
@@ -45,19 +51,13 @@ public class SupAndSub {
 	public Long orgId;
 
 	/**
-	 * 上级id 可能为多个
-	 */
-	@RDSAnnField(column = "varchar(128)")
-	public String supId;
-
-	/**
 	 * 下级id 可能为多个
 	 */
 	@RDSAnnField(column = "varchar(128)")
 	public String subId;
 
 	/**
-	 * 类型 
+	 * 类型
 	 */
 	@RDSAnnField(column = RDSAnnField.BYTE)
 	public Byte type;

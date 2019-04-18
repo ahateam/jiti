@@ -13,7 +13,7 @@ import zyxhj.utils.data.rds.RDSAnnID;
  */
 @RDSAnnEntity(alias = "tb_ecm_org_examine")
 public class ORGExamine {
-	
+
 	public static enum LEVEL implements ENUMVALUE {
 		PRO((byte) 1, "省"), //
 		CITY((byte) 2, "市"), //
@@ -40,12 +40,12 @@ public class ORGExamine {
 			return txt;
 		}
 	}
-	
+
 	public static enum STATUS implements ENUMVALUE {
 		VOTING((byte) 0, "待定"), //
 		WAITING((byte) 1, "通过"), //
 		INVALID((byte) 2, "未通过"), //
-		EXAMINE((byte) 3,"再次审核"),//
+		EXAMINE((byte) 3, "再次审核"),//
 		;
 
 		private byte v;
@@ -66,7 +66,7 @@ public class ORGExamine {
 			return txt;
 		}
 	}
-	
+
 	public static enum TYPE implements ENUMVALUE {
 		INDEPENDENT((byte) 0, "独立"), //
 		NOTINDEPENDENT((byte) 1, "非独立"), //
@@ -91,12 +91,10 @@ public class ORGExamine {
 		}
 	}
 
-	
-
 	@RDSAnnID
 	@RDSAnnField(column = RDSAnnField.ID)
 	public Long id;
-	
+
 	/**
 	 * 用户id
 	 */
@@ -216,7 +214,7 @@ public class ORGExamine {
 	 */
 	@RDSAnnField(column = RDSAnnField.DOUBLE)
 	public Double valuation;
-	
+
 	/**
 	 * 类型 是否有行政区管理 如没有 就是独立的组织
 	 */
@@ -228,18 +226,21 @@ public class ORGExamine {
 	 */
 	@RDSAnnField(column = RDSAnnField.ID)
 	public Long superiorId;
-	
+
 	/**
 	 * 等级
 	 */
 	@RDSAnnField(column = RDSAnnField.BYTE)
 	public Byte level;
-	
+
 	/**
 	 * 审核状态
 	 */
 	@RDSAnnField(column = RDSAnnField.BYTE)
 	public Byte examine;
-	
-	
+
+	public Long orgId;
+
+	public Boolean updateDistrict;
+
 }

@@ -14,32 +14,6 @@ import zyxhj.utils.data.rds.RDSAnnID;
 @RDSAnnEntity(alias = "tb_ecm_org_examine")
 public class ORGExamine {
 
-	public static enum LEVEL implements ENUMVALUE {
-		PRO((byte) 1, "省"), //
-		CITY((byte) 2, "市"), //
-		DISTRICT((byte) 3, "区"), //
-		COOPERATIVE((byte) 4, "合作社"), //
-		OTHER((byte) 5, "其他"), //
-		;
-
-		private byte v;
-		private String txt;
-
-		private LEVEL(Byte v, String txt) {
-			this.v = v;
-			this.txt = txt;
-		}
-
-		@Override
-		public byte v() {
-			return v;
-		}
-
-		@Override
-		public String txt() {
-			return txt;
-		}
-	}
 
 	public static enum STATUS implements ENUMVALUE {
 		VOTING((byte) 0, "待定"), //
@@ -239,8 +213,16 @@ public class ORGExamine {
 	@RDSAnnField(column = RDSAnnField.BYTE)
 	public Byte examine;
 
+	/**
+	 * orgID  传入表示为修改org  未传入表示为新的org 需创建
+	 */
+	@RDSAnnField(column = RDSAnnField.ID)
 	public Long orgId;
 
+	/**
+	 * 修改上级机构  如果为false  表示不修改  为true表示修改上级机构
+	 */
+	@RDSAnnField(column = RDSAnnField.BOOLEAN)
 	public Boolean updateDistrict;
 
 }

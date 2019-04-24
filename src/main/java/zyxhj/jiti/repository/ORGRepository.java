@@ -8,6 +8,7 @@ import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
 
 import zyxhj.jiti.domain.ORG;
+import zyxhj.utils.api.ServerException;
 import zyxhj.utils.data.rds.RDSRepository;
 import zyxhj.utils.data.rds.SQL;
 
@@ -27,8 +28,8 @@ public class ORGRepository extends RDSRepository<ORG> {
 		SQL sql = new SQL();
 		sql.addEx("user_id = ?", userId);
 		if (level == ORG.LEVEL.DISTRICT.v()) {
-			sql.AND(" level = 1 OR level = 2 OR level = 3 ");
-		} else if (level == ORG.LEVEL.COOPERATIVE.v()) {
+			sql.AND("  ( level = 1 OR level = 2 OR level = 3 ) ");
+		} else {
 			sql.AND("level = ? ", level);
 		}
 		sql.fillSQL(sb);
@@ -40,15 +41,37 @@ public class ORGRepository extends RDSRepository<ORG> {
 				new Object[] { level }, null, null);
 	}
 
-	public List<ORG> getDownORG(DruidPooledConnection conn, JSONArray json, Integer count, Integer offset)
-			throws Exception {
-
+	public List<ORG> getORGs(DruidPooledConnection conn, JSONArray json, int count, int offset) throws Exception {
 		StringBuffer sb = new StringBuffer("WHERE ");
 		SQL sql = new SQL();
 		for (int i = 0; i < json.size(); i++) {
-			sql.OR(StringUtils.join("org_id = ", json.getLong(i)));
+			sql.OR(StringUtils.join("id = ", json.getLong(i)));
 		}
 		sql.fillSQL(sb);
 		return getList(conn, sb.toString(), new Object[] {}, count, offset);
+	}
+
+	public List<ORG> getOrgByName(DruidPooledConnection conn, String name, Integer count, Integer offset)
+			throws Exception {
+		return getList(conn, StringUtils.join("WHERE name LIKE '%", name, "%'"), new Object[] {}, count, offset);
+	}
+
+	public List<ORG> getBankList(DruidPooledConnection conn, JSONArray json, String name, Byte type, Integer count,
+			Integer offset) throws Exception {
+
+		StringBuffer sb = new StringBuffer("WHERE ");
+		SQL sql = new SQL();
+		sql.AND("type = ? ", type);
+		SQL sqlOR = new SQL();
+		for (int i = 0; i < json.size(); i++) {
+			sqlOR.OR(StringUtils.join("id = ", json.getLong(i)));
+		}
+		sql.AND(sqlOR);
+		if (name != null) {
+			sql.AND(StringUtils.join("name LIKE '%", name, "%'"));
+		}
+		sql.fillSQL(sb);
+		System.out.println(sb.toString());
+		return getList(conn, sb.toString(), sql.getParams(), count, offset);
 	}
 }

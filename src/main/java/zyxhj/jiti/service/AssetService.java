@@ -279,6 +279,7 @@ public class AssetService {
 
 	/**
 	 * 根据年份，资产类型等条件，统计资源原值，产值等
+	 * 
 	 * @param G 分组
 	 * @param R 资源类型
 	 * @param A 资产类型
@@ -298,26 +299,23 @@ public class AssetService {
 	// }
 
 	// 区管理员统计某一年的数据
-	public JSONArray districtCountByYear(DruidPooledConnection conn, Long districtId, String buildTime, JSONArray orgId,
+	public JSONArray districtCountByYear(DruidPooledConnection conn, String buildTime, JSONArray orgId,
 			JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes) throws Exception {
-		return assetRepository.districtCountByYear(conn, districtId, buildTime, orgId, groups, resTypes, assetTypes,
-				businessModes);
+		return assetRepository.districtCountByYear(conn, buildTime, orgId, groups, resTypes, assetTypes, businessModes);
 	}
 
 	// 区管理员统计多年的数据
-	public JSONArray districtCountByYears(DruidPooledConnection conn, Long districtId, JSONArray buildTimes,
-			JSONArray orgIds, JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes)
-			throws Exception {
-		return assetRepository.districtCountByYears(conn, districtId, buildTimes, orgIds, groups, resTypes, assetTypes,
+	public JSONArray districtCountByYears(DruidPooledConnection conn, JSONArray buildTimes, JSONArray orgIds,
+			JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes) throws Exception {
+		return assetRepository.districtCountByYears(conn, buildTimes, orgIds, groups, resTypes, assetTypes,
 				businessModes);
 	}
 
-
 	// 根据区id获取资产列表
-	public List<Asset> getAssetListByTypes(DruidPooledConnection conn, Long districtId, JSONArray buildTimes,
-			JSONArray orgIds, JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes,
-			Integer count, Integer offset) throws Exception {
-		return assetRepository.getAssetListByTypes(conn, districtId, buildTimes, orgIds, groups, resTypes, assetTypes,
+	public List<Asset> getAssetListByTypes(DruidPooledConnection conn, JSONArray buildTimes, JSONArray orgIds,
+			JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes, Integer count,
+			Integer offset) throws Exception {
+		return assetRepository.getAssetListByTypes(conn, buildTimes, orgIds, groups, resTypes, assetTypes,
 				businessModes, count, offset);
 	}
 }

@@ -6,7 +6,7 @@ import zyxhj.jiti.domain.ORG;
 import zyxhj.jiti.domain.ORGDistrict;
 import zyxhj.jiti.domain.ORGExamine;
 import zyxhj.jiti.domain.ORGUserRole;
-import zyxhj.jiti.domain.SupAndSub;
+import zyxhj.jiti.domain.Superior;
 import zyxhj.utils.data.DataSource;
 import zyxhj.utils.data.DataSourceUtils;
 import zyxhj.utils.data.rds.RDSUtils;
@@ -39,9 +39,9 @@ public class Test {
 		try { 
 			DataSource dsRds = DataSourceUtils.getDataSource("rdsDefault");
 
-		//	 RDSUtils.dropTableByEntity(dsRds, ORGUserRole.class);
+			// RDSUtils.dropTableByEntity(dsRds, SupAndSub.class);
 
-		//	 RDSUtils.createTableByEntity(dsRds, SupAndSub.class);
+			 RDSUtils.createTableByEntity(dsRds, ORGDistrict.class);
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

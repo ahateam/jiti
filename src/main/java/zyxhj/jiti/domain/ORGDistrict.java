@@ -17,9 +17,12 @@ public class ORGDistrict {
 		ADMINISTRATIVEORGAN((byte) 1, "行政机构"), //
 		COMPANYORGANIZATION((byte) 2, "公司机构"), //
 		PERSONALORGANIZATION((byte) 3, "个人机构"), //
+		FINANCIAL((byte) 4, "金融机构"), //
 		;
+		
 		private byte v;
 		private String txt;
+		
 
 		private TYPE(Byte v, String txt) {
 			this.v = v;

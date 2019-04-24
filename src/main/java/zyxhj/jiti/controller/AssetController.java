@@ -353,9 +353,8 @@ public class AssetController extends Controller {
 			ret = "返回统计结果"//
 	)
 	public APIResponse districtCountByYear(//
-			@P(t = "区id") Long districtId, //
 			@P(t = "年份") String buildTime, //
-			@P(t = "组织id", r = false) JSONArray orgId, //
+			@P(t = "组织id") JSONArray orgId, //
 			@P(t = "分组信息", r = false) JSONArray groups, //
 			@P(t = "资源类型", r = false) JSONArray resTypes, //
 			@P(t = "资产类型", r = false) JSONArray assetTypes, //
@@ -363,7 +362,7 @@ public class AssetController extends Controller {
 
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(assetService.districtCountByYear(conn, districtId, buildTime, orgId,
+			return APIResponse.getNewSuccessResp(assetService.districtCountByYear(conn,  buildTime, orgId,
 					groups, resTypes, assetTypes, businessModes));
 		}
 	}
@@ -377,9 +376,8 @@ public class AssetController extends Controller {
 			ret = "返回统计结果"//
 	)
 	public APIResponse districtCountByYears(//
-			@P(t = "区id") Long districtId, //
 			@P(t = "年份") JSONArray buildTimes, //
-			@P(t = "组织id", r = false) JSONArray orgIds, //
+			@P(t = "组织id") JSONArray orgIds, //
 			@P(t = "分组信息", r = false) JSONArray groups, //
 			@P(t = "资源类型", r = false) JSONArray resTypes, //
 			@P(t = "资产类型", r = false) JSONArray assetTypes, //
@@ -387,7 +385,7 @@ public class AssetController extends Controller {
 
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(assetService.districtCountByYears(conn, districtId, buildTimes, orgIds,
+			return APIResponse.getNewSuccessResp(assetService.districtCountByYears(conn, buildTimes, orgIds,
 					groups, resTypes, assetTypes, businessModes));
 		}
 	}
@@ -446,16 +444,15 @@ public class AssetController extends Controller {
 			ret = "返回列表"//
 	)
 	public APIResponse getAssetListByTypes(//
-			@P(t = "区id") Long districtId, //
+			@P(t = "组织id") JSONArray orgIds, //
 			@P(t = "年份", r = false) JSONArray buildTimes, //
-			@P(t = "组织id", r = false) JSONArray orgIds, //
 			@P(t = "分组信息", r = false) JSONArray groups, //
 			@P(t = "资源类型", r = false) JSONArray resTypes, //
 			@P(t = "资产类型", r = false) JSONArray assetTypes, //
 			@P(t = "经营方式", r = false) JSONArray businessModes, //
 			Integer count, Integer offset) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(assetService.getAssetListByTypes(conn, districtId, buildTimes, orgIds,
+			return APIResponse.getNewSuccessResp(assetService.getAssetListByTypes(conn,  buildTimes, orgIds,
 					groups, resTypes, assetTypes, businessModes, count, offset));
 		}
 	}

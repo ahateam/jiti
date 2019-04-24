@@ -15,12 +15,16 @@ import zyxhj.utils.data.rds.RDSAnnID;
 public class ORG {
 
 	public static enum TYPE implements ENUMVALUE {
-		INDEPENDENT((byte) 0, "独立"), //
-		NOTINDEPENDENT((byte) 1, "非独立"), //
+		COOPERATIVE((byte) 0, "合作社"), //
+		ADMINISTRATIVEORGAN((byte) 1, "行政机构"), //
+		COMPANYORGANIZATION((byte) 2, "公司机构"), //
+		PERSONALORGANIZATION((byte) 3, "个人机构"), //
+		FINANCIAL((byte) 4, "金融机构"), //
 		;
-
+		
 		private byte v;
 		private String txt;
+		
 
 		private TYPE(Byte v, String txt) {
 			this.v = v;
@@ -43,7 +47,8 @@ public class ORG {
 		CITY((byte) 2, "市"), //
 		DISTRICT((byte) 3, "区"), //
 		COOPERATIVE((byte) 4, "合作社"), //
-		OTHER((byte) 5, "其他"), //
+		FINANCIAL((byte) 5, "金融"), //
+		OTHER((byte) 6, "其他"), //
 		;
 
 		private byte v;
@@ -171,10 +176,11 @@ public class ORG {
 	 */
 	@RDSAnnField(column = RDSAnnField.BYTE)
 	public Byte type;
-
+	
 	/**
 	 * 等级
 	 */
 	@RDSAnnField(column = RDSAnnField.BYTE)
 	public Byte level;
+
 }

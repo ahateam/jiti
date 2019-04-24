@@ -68,13 +68,14 @@ public class Test {
 //		String s = "[123,234,254]";
 //		JSONArray json = JSONArray.parseArray(s);
 		
-		JSONArray json= new JSONArray();
-		json.add("123");
-		json.add("234");
-		json.add("456");
-		System.out.println(json);
-		json.remove("234");
-		System.out.println(json);
+//		JSONArray json= new JSONArray();
+//		json.add("123");
+//		json.add("234");
+//		json.add("456");
+//		System.out.println(json);
+//		json.remove("234");
+//		System.out.println(json);
+		
 	}
 
 	private static void batchEdit() throws ServerException {
@@ -94,11 +95,11 @@ public class Test {
 	}
 
 	private static void getAssetListByTypes() throws Exception {
-		JSONArray json = new JSONArray();
-		json.add("1111");
-		json.add("2222");
-		assetRepository.getAssetListByTypes(conn, 222L, json, json, json, json, json,
-				json, 10, 0);
+//		JSONArray json = new JSONArray();
+//		json.add("1111");
+//		json.add("2222");
+//		assetRepository.getAssetListByTypes(conn, 222L, json, json, json, json, json,
+//				json, 10, 0);
 	}
 
 	private static void sumAssetByDstrictId() throws Exception {
@@ -106,7 +107,7 @@ public class Test {
 		json.add("1111");
 		json.add("2222");
 
-		assetRepository.sumAssetByDstrictId(conn, 123L, "2015", json, json, json, json, json);
+		//assetRepository.sumAssetByDstrictId(conn, 123L, "2015", json, json, json, json, json);
 	}
 
 	private static void queryAssets() throws ServerException {
@@ -119,11 +120,11 @@ public class Test {
 	}
 
 	private static void getVotesByOrgId() throws Exception {
-		JSONArray json = new JSONArray();
-		json.add("1111");
-		json.add("2222");
-		Byte a = 0;
-		voteRepository.getVotesByOrgId(conn, 12312312L, json, a, null, null);
+//		JSONArray json = new JSONArray();
+//		json.add("1111");
+//		json.add("2222");
+//		Byte a = 0;
+//		voteRepository.getVotesByOrgId(conn, 12312312L, json, a, null, null);
 	}
 
 	private static void getParticipateCount() throws ServerException {

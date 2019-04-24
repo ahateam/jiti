@@ -70,7 +70,8 @@ public class AssetRepository extends RDSRepository<Asset> {
 
 	public List<Asset> getAssetsByGroups(DruidPooledConnection conn, Long orgId, String[] groups, Integer count,
 			Integer offset) throws ServerException {
-		return getListByTagsJSONArray(conn, "groups","", groups, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
+		return getListByTagsJSONArray(conn, "groups", "", groups, "WHERE org_id=? ", new Object[] { orgId }, count,
+				offset);
 	}
 
 	public List<Asset> getAssetsByTags(DruidPooledConnection conn, Long orgId, JSONObject tags, Integer count,
@@ -220,22 +221,18 @@ public class AssetRepository extends RDSRepository<Asset> {
 	}
 
 	// 区管理员统计某一年报表
-	public JSONArray districtCountByYear(DruidPooledConnection conn, Long districtId, String buildTime,
-			JSONArray orgIds, JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes)
-			throws Exception {
-		return this.sumAssetByDstrictId(conn, districtId, buildTime, orgIds, groups, resTypes, assetTypes,
-				businessModes);
+	public JSONArray districtCountByYear(DruidPooledConnection conn, String buildTime, JSONArray orgIds,
+			JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes) throws Exception {
+		return this.sumAssetByDstrictId(conn, buildTime, orgIds, groups, resTypes, assetTypes, businessModes);
 	}
 
 	// 区管理员统计多年报表
-	public JSONArray districtCountByYears(DruidPooledConnection conn, Long districtId, JSONArray buildTimes,
-			JSONArray orgIds, JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes)
-			throws Exception {
+	public JSONArray districtCountByYears(DruidPooledConnection conn, JSONArray buildTimes, JSONArray orgIds,
+			JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes) throws Exception {
 		JSONArray json = new JSONArray();
 		for (int i = 0; i < buildTimes.size(); i++) {
 			String bu = buildTimes.getString(i);
-			String s = this
-					.sumAssetByDstrictId(conn, districtId, bu, orgIds, groups, resTypes, assetTypes, businessModes)
+			String s = this.sumAssetByDstrictId(conn, bu, orgIds, groups, resTypes, assetTypes, businessModes)
 					.toString();
 			s = s.substring(1, s.length());// 移除前[
 			s = s.substring(0, s.length() - 1);// 移除后]
@@ -255,16 +252,13 @@ public class AssetRepository extends RDSRepository<Asset> {
 	 * @param assetType    资产类型
 	 * @param businessMode 经营方式
 	 */
-	public JSONArray sumAssetByDstrictId(DruidPooledConnection conn, Long districtId, String buildTime,
-			JSONArray orgIds, JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes)
-			throws Exception {
+	public JSONArray sumAssetByDstrictId(DruidPooledConnection conn, String buildTime, JSONArray orgIds,
+			JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes) throws Exception {
 		// SELECT sum FROM table WHERE build_time=? AND(...)
 		// (groups) AND (resType) AND (xxx) AND (yyy)
 
 		SQL sql = new SQL();
-
-		sql.addEx("build_time = ?", buildTime);// TODO 未开发区级平台
-												// 开发完成后需修改添加区id
+		sql.addEx("build_time = ?", buildTime);
 		if ((orgIds != null && orgIds.size() > 0) || (groups != null && groups.size() > 0)
 				|| (resTypes != null && resTypes.size() > 0) || (assetTypes != null && assetTypes.size() > 0)
 				|| (businessModes != null && businessModes.size() > 0)) {
@@ -320,9 +314,9 @@ public class AssetRepository extends RDSRepository<Asset> {
 	}
 
 	// 根据类型获取资产列表
-	public List<Asset> getAssetListByTypes(DruidPooledConnection conn, Long districtId, JSONArray buildTimes,
-			JSONArray orgIds, JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes,
-			Integer count, Integer offset) throws Exception {
+	public List<Asset> getAssetListByTypes(DruidPooledConnection conn, JSONArray buildTimes, JSONArray orgIds,
+			JSONArray groups, JSONArray resTypes, JSONArray assetTypes, JSONArray businessModes, Integer count,
+			Integer offset) throws Exception {
 
 		// 先判断用户传了哪些值过来 ,对值进行拼接
 		// select * from xxxxx where 以后添加区id (...)

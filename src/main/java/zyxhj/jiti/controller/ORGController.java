@@ -107,13 +107,14 @@ public class ORGController extends Controller {
 	public APIResponse setORG(//
 			@P(t = "组织编号") Long orgId, //
 			@P(t = "组织名称") String orgName, //
+			@P(t = "组织机构代码" ,r = false) String code, //
 			@P(t = "街道地址") String address, //
 			@P(t = "组织机构证书图片地址", r = false) String imgOrg, //
 			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
 			@P(t = "总股份数") Integer shareAmount//
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			orgService.editORG(conn, orgName, orgId, address, imgOrg, imgAuth, shareAmount);
+			orgService.editORG(conn,code, orgName, orgId, address, imgOrg, imgAuth, shareAmount);
 			return APIResponse.getNewSuccessResp();
 		}
 	}
@@ -154,11 +155,11 @@ public class ORGController extends Controller {
 			ret = "组织对象列表"//
 	)
 	public APIResponse getORGs(//
-			@P(t = "区编号") Long districtId, //
+			@P(t = "上级编号") Long superiorId, //
 			Integer count, //
 			Integer offset) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.getORGs(conn, districtId, count, offset));
+			return APIResponse.getNewSuccessResp(orgService.getORGs(conn, superiorId, count, offset));
 		}
 	}
 
@@ -683,14 +684,14 @@ public class ORGController extends Controller {
 			@P(t = "创建者用户编号") Long userId, //
 			@P(t = "组织名称") String name, //
 			@P(t = "组织机构代码") String code, //
-			@P(t = "省") Long province, //
-			@P(t = "市") Long city, //
-			@P(t = "区") Long district, //
+			@P(t = "省", r = false) Long province, //
+			@P(t = "市", r = false) Long city, //
+			@P(t = "区", r = false) Long district, //
 			@P(t = "街道地址") String address, //
 			@P(t = "组织机构证书图片地址", r = false) String imgOrg, //
 			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
 			@P(t = "总股份数") Integer shareAmount, //
-			@P(t = "等级") Byte level, //
+			@P(t = "等级", r = false) Byte level, //
 			@P(t = "上级组织id", r = false) Long superiorId //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
@@ -711,20 +712,22 @@ public class ORGController extends Controller {
 			@P(t = "创建者用户编号") Long userId, //
 			@P(t = "组织名称") String name, //
 			@P(t = "组织机构代码") String code, //
-			@P(t = "省") Long province, //
-			@P(t = "市") Long city, //
-			@P(t = "区") Long district, //
+			@P(t = "省", r = false) Long province, //
+			@P(t = "市", r = false) Long city, //
+			@P(t = "区", r = false) Long district, //
 			@P(t = "街道地址") String address, //
 			@P(t = "组织机构证书图片地址", r = false) String imgOrg, //
 			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
-			@P(t = "总股份数") Integer shareAmount, //
+			@P(t = "总股份数", r = false) Integer shareAmount, //
 			@P(t = "申请状态") Byte examine, //
 			@P(t = "等级") Byte level, //
-			@P(t = "上级组织id", r = false) Long superiorId //
+			@P(t = "上级组织id", r = false) Long superiorId, //
+			@P(t = "组织id") Boolean updateDistrict //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.upORGApply(conn, orgExamineId, examine, userId, name, code,
-					province, city, district, address, imgOrg, imgAuth, shareAmount, level, superiorId));
+			return APIResponse
+					.getNewSuccessResp(orgService.upORGApply(conn, orgExamineId, examine, userId, name, code, province,
+							city, district, address, imgOrg, imgAuth, shareAmount, level, superiorId, updateDistrict));
 		}
 	}
 
@@ -736,23 +739,26 @@ public class ORGController extends Controller {
 			ret = "所创建的对象"//
 	)
 	public APIResponse oRGApplyAgain(//
-			@P(t = "组织id") Long orgExamineId, //
+			@P(t = "组织申请id") Long orgExamineId, //
 			@P(t = "创建者用户编号") Long userId, //
 			@P(t = "组织名称") String name, //
 			@P(t = "组织机构代码") String code, //
-			@P(t = "省") Long province, //
-			@P(t = "市") Long city, //
-			@P(t = "区") Long district, //
+			@P(t = "省", r = false) Long province, //
+			@P(t = "市", r = false) Long city, //
+			@P(t = "区", r = false) Long district, //
 			@P(t = "街道地址") String address, //
 			@P(t = "组织机构证书图片地址", r = false) String imgOrg, //
 			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
-			@P(t = "总股份数") Integer shareAmount, //
+			@P(t = "总股份数", r = false) Integer shareAmount, //
 			@P(t = "等级") Byte level, //
-			@P(t = "上级组织id", r = false) Long superiorId //
+			@P(t = "上级组织id", r = false) Long superiorId, //
+			@P(t = "组织id", r = false) Long orgId, //
+			@P(t = "是否修改地址") Boolean updateDistrict //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.oRGApplyAgain(conn, orgExamineId, userId, name, code,
-					province, city, district, address, imgOrg, imgAuth, shareAmount, level, superiorId));
+			return APIResponse.getNewSuccessResp(
+					orgService.upORGApplyAgain(conn, orgExamineId, userId, name, code, province, city, district,
+							address, imgOrg, imgAuth, shareAmount, level, superiorId, orgId, updateDistrict));
 		}
 	}
 
@@ -879,21 +885,6 @@ public class ORGController extends Controller {
 	 * 
 	 */
 	@POSTAPI(//
-			path = "getORGSByDistrictId", //
-			des = "按区id查询当前区下所有组织信息", //
-			ret = "返回查询信息")
-	public APIResponse getORGSByDistrictId(//
-			@P(t = "区id") Long districtId //
-	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.getORGSByDistrictId(conn, districtId));
-		}
-	}
-
-	/**
-	 * 
-	 */
-	@POSTAPI(//
 			path = "getProCityDistrict", //
 			des = "查询省、市、区", //
 			ret = "返回查询信息")
@@ -930,23 +921,6 @@ public class ORGController extends Controller {
 	 * 
 	 */
 	@POSTAPI(//
-			path = "getDownORG", //
-			des = "查询下级机构", //
-			ret = "返回查询信息")
-	public APIResponse getDownORG(//
-			@P(t = "需要查询的名称") Long orgId, //
-			Integer count, Integer offset
-
-	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.getDownORG(conn, orgId, count, offset));
-		}
-	}
-
-	/**
-	 * 
-	 */
-	@POSTAPI(//
 			path = "getORGDistrict", //
 			des = "查询组织地址", //
 			ret = "返回查询信息")
@@ -958,7 +932,6 @@ public class ORGController extends Controller {
 		}
 	}
 
-	
 	/**
 	 * 
 	 */
@@ -971,6 +944,21 @@ public class ORGController extends Controller {
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.getORGDistrictByOrgApplyId(conn, orgExamineId));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getSuperior", //
+			des = "获取上级id", //
+			ret = "返回查询信息")
+	public APIResponse getSuperior(//
+			@P(t = "组织id") Long orgId //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.getSuperior(conn, orgId));
 		}
 	}
 

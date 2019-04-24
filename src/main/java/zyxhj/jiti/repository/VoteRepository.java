@@ -34,7 +34,7 @@ public class VoteRepository extends RDSRepository<Vote> {
 				count, offset);
 	}
 
-	public List<Vote> getVotesByOrgId(DruidPooledConnection conn, Long districtId, JSONArray orgIds, Byte status,
+	public List<Vote> getVotesByOrgId(DruidPooledConnection conn, JSONArray orgIds, Byte status,
 			Integer count, Integer offset) throws Exception {
 		// 区id暂时未使用
 		// 遍历orgId for(orgIds)

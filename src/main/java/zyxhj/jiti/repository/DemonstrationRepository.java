@@ -15,7 +15,7 @@ public class DemonstrationRepository extends RDSRepository<Asset> {
 		super(Asset.class);
 	}
 
-	public List<Asset> getAsset(DruidPooledConnection conn, Long org_id, String groups, Integer count, Integer offset)
+	public List<Asset> getAsset(DruidPooledConnection conn, Long orgId, String groups, Integer count, Integer offset)
 			throws Exception {
 		// SELECT * FROM tb_ecm_asset WHERE JSON_CONTAINS(groups, '397589360056633')
 		// JSONArray json = JSONArray.parseArray(groups);
@@ -25,7 +25,7 @@ public class DemonstrationRepository extends RDSRepository<Asset> {
 
 		// }
 		return getList(conn, StringUtils.join("WHERE org_id = ? AND JSON_CONTAINS(groups, '", groups, "','$')"),
-				new Object[] { org_id }, count, offset);
+				new Object[] { orgId }, count, offset);
 	}
 
 }

@@ -368,11 +368,10 @@ public class VoteController extends Controller {
 			ret = "投票数量以及有多少人能投"//
 	)
 	public APIResponse countVoteTurnout(//
-			@P(t = "区编号") Long districtId, //
 			@P(t = "组织编号") JSONArray orgIds //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(voteService.countVoteTurnout(conn, districtId, orgIds));
+			return APIResponse.getNewSuccessResp(voteService.countVoteTurnout(conn, orgIds));
 		}
 	}
 
@@ -385,15 +384,13 @@ public class VoteController extends Controller {
 			ret = "返回投票列表"//
 	)
 	public APIResponse getVotesByOrgId(//
-			@P(t = "区编号") Long districtId, //
 			@P(t = "组织编号") JSONArray orgIds, //
 			@P(t = "投票编号", r = false) Byte status, //
 			Integer count, //
 			Integer offset //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse
-					.getNewSuccessResp(voteService.getVotesByOrgId(conn, districtId, orgIds, status, count, offset));
+			return APIResponse.getNewSuccessResp(voteService.getVotesByOrgId(conn, orgIds, status, count, offset));
 		}
 	}
 
@@ -401,7 +398,7 @@ public class VoteController extends Controller {
 	 * 
 	 */
 	@POSTAPI(//
-			path = "getVoteTicketByUserId", // 
+			path = "getVoteTicketByUserId", //
 			des = "查询此用户的投票列表", //
 			ret = "返回投票列表"//
 	)
@@ -412,7 +409,7 @@ public class VoteController extends Controller {
 			Integer offset //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(voteService.getVoteTicketByUserId(conn,orgId, userId, count, offset));
+			return APIResponse.getNewSuccessResp(voteService.getVoteTicketByUserId(conn, orgId, userId, count, offset));
 		}
 	}
 

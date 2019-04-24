@@ -44,13 +44,20 @@ public class AssetTypeService {
 		ASSET_TYPE_MAP.put(AssetType.assetType_movables.typeId, AssetType.assetType_movables);
 		ASSET_TYPE_MAP.put(AssetType.assetType_immovables.typeId, AssetType.assetType_immovables);
 		
-		
 		RES_TYPE_MAP.put(AssetType.resType_woodland.typeId, AssetType.resType_woodland);
 		RES_TYPE_MAP.put(AssetType.resType_plough.typeId, AssetType.resType_plough);
 		RES_TYPE_MAP.put(AssetType.resType_ntslss.typeId, AssetType.resType_ntslss);
+		RES_TYPE_MAP.put(AssetType.mountain_pond.typeId, AssetType.mountain_pond);
+		RES_TYPE_MAP.put(AssetType.resType_ditch.typeId, AssetType.resType_ditch);
+		RES_TYPE_MAP.put(AssetType.pump_house.typeId, AssetType.pump_house);
+		RES_TYPE_MAP.put(AssetType.resType_highway.typeId, AssetType.resType_highway);
+		RES_TYPE_MAP.put(AssetType.house_vacant.typeId, AssetType.house_vacant);
+		RES_TYPE_MAP.put(AssetType.office_room.typeId, AssetType.office_room);
 		
 		BUSINESS_TYPE_MAP.put(AssetType.businessType_rent.typeId, AssetType.businessType_rent);
 		BUSINESS_TYPE_MAP.put(AssetType.businessType_ownchoice.typeId, AssetType.businessType_ownchoice);
+		BUSINESS_TYPE_MAP.put(AssetType.businessType_idle.typeId, AssetType.businessType_idle);
+		BUSINESS_TYPE_MAP.put(AssetType.public_welfare.typeId, AssetType.public_welfare);
 		
 		
 		// 添加admin，member，股东，董事，监事等角色到系统中

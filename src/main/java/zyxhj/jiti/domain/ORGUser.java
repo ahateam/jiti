@@ -10,7 +10,6 @@ import zyxhj.utils.data.rds.RDSAnnID;
  */
 @RDSAnnEntity(alias = "tb_ecm_org_user")
 public class ORGUser {
-
 	/**
 	 * 组织编号
 	 */

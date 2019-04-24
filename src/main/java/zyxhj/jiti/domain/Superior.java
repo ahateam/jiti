@@ -9,8 +9,8 @@ import zyxhj.utils.data.rds.RDSAnnID;
  * 上下级关系表
  *
  */
-@RDSAnnEntity(alias = "tb_ecm_sup_and_sub")
-public class SupAndSub {
+@RDSAnnEntity(alias = "tb_ecm_superior")
+public class Superior {
 
 	public static enum TYPE implements ENUMVALUE {
 		INDEPENDENT((byte) 0, "独立"), //
@@ -37,11 +37,11 @@ public class SupAndSub {
 	}
 
 	/**
-	 * 上级id 可能为多个
+	 * 父级机构
 	 */
 	@RDSAnnID
 	@RDSAnnField(column = "varchar(128)")
-	public String supId;
+	public Long superiorId;
 
 	/**
 	 * 机构id
@@ -50,11 +50,11 @@ public class SupAndSub {
 	@RDSAnnField(column = RDSAnnField.ID)
 	public Long orgId;
 
-	/**
-	 * 下级id 可能为多个
-	 */
-	@RDSAnnField(column = "varchar(128)")
-	public String subId;
+//	/**
+//	 * 下级id 可能为多个
+//	 */
+//	@RDSAnnField(column = "varchar(128)")
+//	public String subId;
 
 	/**
 	 * 类型

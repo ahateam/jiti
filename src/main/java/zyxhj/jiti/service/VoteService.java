@@ -604,7 +604,7 @@ public class VoteService {
 	}
 
 	// 区级统计投票的积极性
-	public Double countVoteTurnout(DruidPooledConnection conn, Long districtId, JSONArray orgIds) throws Exception {
+	public Double countVoteTurnout(DruidPooledConnection conn, JSONArray orgIds) throws Exception {
 		// voteRepository.countNumberByOrgId( conn, orgId);
 		// for(遍历org)
 		// 查询当前org下的投票
@@ -652,9 +652,9 @@ public class VoteService {
 	}
 
 	// 根据组织分类查询投票列表 可能为多个组织
-	public List<Vote> getVotesByOrgId(DruidPooledConnection conn, Long districtId, JSONArray orgIds, Byte status,
+	public List<Vote> getVotesByOrgId(DruidPooledConnection conn, JSONArray orgIds, Byte status,
 			Integer count, Integer offset) throws Exception {
-		return voteRepository.getVotesByOrgId(conn, districtId, orgIds, status, count, offset);
+		return voteRepository.getVotesByOrgId(conn, orgIds, status, count, offset);
 	}
 
 	// 查询用户投票列表

@@ -457,22 +457,6 @@ public class VoteService {
 	public void vote(DruidPooledConnection conn, Long orgId, Long voteId, Long userId, JSONArray selections,
 			Integer ballotCount, String remark) throws Exception {
 
-		// 判断project是否开启，可以投票
-		// VoteProject vp = projectRepository.getByKey(conn, "id", projectId);
-		// if (vp != null) {
-		// // int tmp = compareTime(vp.startTime, vp.expiryTime);
-		// // if (tmp == 0) {
-		// // // 已开始，未结束，正好
-		// // // continue
-		// // } else if (tmp < 0) {
-		// // throw new ServerException(BaseRC.ECM_VOIT_PROJECT_NOTSTARTED);
-		// // } else {
-		// // throw new ServerException(BaseRC.ECM_VOIT_PROJECT_FINISHED);
-		// // }
-		// } else {
-		// throw new ServerException(BaseRC.ECM_VOIT_PROJECT_NOTEXIST);
-		// }
-
 		Vote vote = VOTE_CACHE.getIfPresent(voteId);
 		if (vote == null) {
 			// 缓存中没有，从数据库中获取

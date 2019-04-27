@@ -5,6 +5,8 @@ import com.alibaba.druid.pool.DruidPooledConnection;
 import zyxhj.jiti.domain.ORG;
 import zyxhj.jiti.domain.ORGDistrict;
 import zyxhj.jiti.domain.ORGExamine;
+import zyxhj.jiti.domain.ORGPermission;
+import zyxhj.jiti.domain.ORGPermissionRel;
 import zyxhj.jiti.domain.ORGUserRole;
 import zyxhj.jiti.domain.Superior;
 import zyxhj.utils.data.DataSource;
@@ -39,9 +41,9 @@ public class Test {
 		try { 
 			DataSource dsRds = DataSourceUtils.getDataSource("rdsDefault");
 
-			// RDSUtils.dropTableByEntity(dsRds, SupAndSub.class);
+		//	 RDSUtils.dropTableByEntity(dsRds, ORGPermission.class);
 
-			 RDSUtils.createTableByEntity(dsRds, ORGDistrict.class);
+			 RDSUtils.createTableByEntity(dsRds, ORGPermissionRel.class); 
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

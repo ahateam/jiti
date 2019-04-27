@@ -3,7 +3,10 @@ package zyxhj.jiti.service;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.StringUtils;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,6 +14,8 @@ import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 
 import zyxhj.core.domain.LoginBo;
 import zyxhj.core.domain.User;
@@ -22,13 +27,17 @@ import zyxhj.jiti.domain.ORG;
 import zyxhj.jiti.domain.ORGDistrict;
 import zyxhj.jiti.domain.ORGExamine;
 import zyxhj.jiti.domain.ORGLoginBo;
+import zyxhj.jiti.domain.ORGPermission;
+import zyxhj.jiti.domain.ORGPermissionRel;
 import zyxhj.jiti.domain.ORGUser;
 import zyxhj.jiti.domain.ORGUserRole;
 import zyxhj.jiti.domain.Superior;
+import zyxhj.jiti.domain.Vote;
 import zyxhj.jiti.repository.DistrictRepository;
 import zyxhj.jiti.repository.FamilyRepository;
 import zyxhj.jiti.repository.ORGDistrictRepository;
 import zyxhj.jiti.repository.ORGExamineRepository;
+import zyxhj.jiti.repository.ORGPermissionRelaRepository;
 import zyxhj.jiti.repository.ORGRepository;
 import zyxhj.jiti.repository.ORGUserRepository;
 import zyxhj.jiti.repository.SuperiorRepository;
@@ -51,6 +60,8 @@ public class ORGService {
 	private SuperiorRepository superiorRepository;
 	private ORGDistrictRepository orgDistrictRepository;
 	private DistrictRepository districtRepository;
+	private ORGPermissionRelaRepository orgPermissionRelaRepository;
+	private ORGPermissionService orgPermissionService;
 
 	public ORGService() {
 		try {
@@ -62,7 +73,8 @@ public class ORGService {
 			superiorRepository = Singleton.ins(SuperiorRepository.class);
 			orgDistrictRepository = Singleton.ins(ORGDistrictRepository.class);
 			districtRepository = Singleton.ins(DistrictRepository.class);
-
+			orgPermissionRelaRepository = Singleton.ins(ORGPermissionRelaRepository.class);
+			orgPermissionService = Singleton.ins(ORGPermissionService.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -140,6 +152,7 @@ public class ORGService {
 		ret.weight = orgUser.weight;
 
 		ret.orgRoles = JSON.parseArray(orgUser.roles);
+		ret.permissions = orgPermissionService.getPermissionsByRoles(conn, orgUser.orgId, ret.orgRoles);
 		ret.orgTags = JSON.parseObject(orgUser.tags);
 
 		return ret;
@@ -234,10 +247,10 @@ public class ORGService {
 
 	/**
 	 * 更新组织信息，目前全都可以改，将来应该限定code，name等不允许更改</br>
-	 * 填写空表示不更改  
+	 * 填写空表示不更改
 	 */
-	public void editORG(DruidPooledConnection conn, String ogName,String code, Long orgId, String address, String imgOrg,
-			String imgAuth, Integer shareAmount) throws Exception {
+	public void editORG(DruidPooledConnection conn, String ogName, String code, Long orgId, String address,
+			String imgOrg, String imgAuth, Integer shareAmount) throws Exception {
 
 		ORG renew = new ORG();
 		renew.name = ogName;
@@ -389,7 +402,7 @@ public class ORGService {
 			newORG.createTime = new Date();
 			newORG.userId = userId;
 			newORG.name = name;
-			newORG.code = code; 
+			newORG.code = code;
 			newORG.province = province;
 			newORG.city = city;
 			newORG.district = district;
@@ -440,7 +453,7 @@ public class ORGService {
 			// 上级机构修改申请通过 则表示要修改原来的org 并将orgExamine修改为通过
 			if (examine == ORGExamine.STATUS.WAITING.v()) {
 				// 修改组织信息
-				editORG(conn, name,code, orgExamineId, address, imgOrg, imgAuth, shareAmount);
+				editORG(conn, name, code, orgExamineId, address, imgOrg, imgAuth, shareAmount);
 
 				// 将修改申请表改为通过
 				ex.examine = ORGExamine.STATUS.WAITING.v();
@@ -684,9 +697,48 @@ public class ORGService {
 			throws Exception {
 		return orgRepository.getOrgByName(conn, name, count, offset);
 	}
-	
-	public Superior getSuperior(DruidPooledConnection conn,Long orgId) throws Exception{
+
+	public Superior getSuperior(DruidPooledConnection conn, Long orgId) throws Exception {
 		return superiorRepository.getByKey(conn, "org_id", orgId);
+	}
+
+	private static Cache<String, ORGPermissionRel> AUTH_PERMISSION_CACHE = CacheBuilder.newBuilder()//
+			.expireAfterAccess(30, TimeUnit.SECONDS)//
+			.maximumSize(1000)//
+			.build();
+
+	// 鉴定权限
+	public void userAuth(DruidPooledConnection conn, Long orgId, String roles, Long permissionId) throws Exception {
+		boolean check = true;
+		JSONArray json = JSONArray.parseArray(roles);
+		for (int i = 0; i < json.size(); i++) {
+			if (json.getLong(i) == ORGUserRole.role_admin.roleId) {
+				check = false;
+			}
+		}
+		if (check) {
+			boolean ro = false;
+			for (int i = 0; i < json.size(); i++) {
+				String ex = StringUtils.join(orgId, json.getLong(i), permissionId);
+				// 从缓存里查找
+				ORGPermissionRel role = AUTH_PERMISSION_CACHE.getIfPresent(ex);
+				if (role == null) {
+					// 缓存中没有 从数据库中查找
+					ORGPermissionRel or = orgPermissionRelaRepository.getByANDKeys(conn,
+							new String[] { "org_id", "role_id", "permission_id" },
+							new Object[] { orgId, json.getLong(i), permissionId });
+					if (or != null) {
+						ro = true;
+						AUTH_PERMISSION_CACHE.put(ex, or);
+					}
+				} else {
+					ro = true;
+				}
+			}
+			if (ro == false) {
+				throw new ServerException(BaseRC.USER_NO_PERMISSION);
+			}
+		}
 	}
 
 }

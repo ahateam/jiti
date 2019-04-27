@@ -40,7 +40,6 @@ public class BankController extends Controller {
 		}
 	}
 
-	
 	/**
 	 * 
 	 */
@@ -226,8 +225,8 @@ public class BankController extends Controller {
 			@P(t = "银行管理员真名") String realName //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(ServiceUtils
-					.checkNull(bankService.createBankAdmin(conn, bankId, address, idNumber, mobile, pwd, realName)));
+			bankService.createBankAdmin(conn, bankId, address, idNumber, mobile, pwd, realName);
+			return APIResponse.getNewSuccessResp();
 		}
 	}
 
@@ -273,7 +272,7 @@ public class BankController extends Controller {
 	 */
 	@POSTAPI(//
 			path = "getBankList", //
-			des = "获取银行机构列表", // 
+			des = "获取银行机构列表", //
 			ret = "返回银行机构列表"//
 	)
 	public APIResponse getBankList(//

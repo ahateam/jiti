@@ -9,6 +9,7 @@ import com.alibaba.fastjson.JSONObject;
 
 import zyxhj.jiti.domain.ORG;
 import zyxhj.jiti.domain.ORGExamine;
+import zyxhj.jiti.service.ORGPermissionService;
 import zyxhj.jiti.service.ORGService;
 import zyxhj.jiti.service.ORGUserGroupService;
 import zyxhj.jiti.service.ORGUserRoleService;
@@ -28,6 +29,8 @@ public class ORGController extends Controller {
 	private ORGService orgService;
 	private ORGUserService orgUserService;
 	private ORGUserGroupService orgUserGroupService;
+	private ORGPermissionService orgPermissionService;
+	private ORGUserRoleService orgUserRoleService;
 
 	public ORGController(String node) {
 		super(node);
@@ -38,6 +41,8 @@ public class ORGController extends Controller {
 			orgUserService = Singleton.ins(ORGUserService.class);
 
 			orgUserGroupService = Singleton.ins(ORGUserGroupService.class);
+			orgPermissionService = Singleton.ins(ORGPermissionService.class);
+			orgUserRoleService = Singleton.ins(ORGUserRoleService.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -107,14 +112,14 @@ public class ORGController extends Controller {
 	public APIResponse setORG(//
 			@P(t = "组织编号") Long orgId, //
 			@P(t = "组织名称") String orgName, //
-			@P(t = "组织机构代码" ,r = false) String code, //
+			@P(t = "组织机构代码", r = false) String code, //
 			@P(t = "街道地址") String address, //
 			@P(t = "组织机构证书图片地址", r = false) String imgOrg, //
 			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
 			@P(t = "总股份数") Integer shareAmount//
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			orgService.editORG(conn,code, orgName, orgId, address, imgOrg, imgAuth, shareAmount);
+			orgService.editORG(conn, code, orgName, orgId, address, imgOrg, imgAuth, shareAmount);
 			return APIResponse.getNewSuccessResp();
 		}
 	}
@@ -291,9 +296,8 @@ public class ORGController extends Controller {
 			@P(t = "户主名") String familyMaster //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			int ret = orgUserService.editORGUser(conn, orgId, userId, address, shareCerNo, shareCerImg, shareCerHolder,
-					shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
-			return APIResponse.getNewSuccessResp(ret);
+			return APIResponse.getNewSuccessResp(orgUserService.editORGUser(conn, orgId, userId, address, shareCerNo,
+					shareCerImg, shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster));
 		}
 	}
 
@@ -959,6 +963,71 @@ public class ORGController extends Controller {
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.getSuperior(conn, orgId));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getPermission", //
+			des = "获取权限列表", //
+			ret = "返回权限列表")
+	public APIResponse getPermission(//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(ORGPermissionService.SYS_ORG_PERMISSION_LIST);
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getRolesByPermission", //
+			des = "获取某个权限下的角色列表", //
+			ret = "返回角色列表")
+	public APIResponse getRolesByPermission(//
+			@P(t = "组织id") Long orgId, //
+			@P(t = "权限id") Long permissionId //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgUserRoleService.getRolesByPermission(conn, orgId, permissionId));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getPermissionsByRole", //
+			des = "获取某个角色下的权限列表", //
+			ret = "返回权限列表")
+	public APIResponse getPermissionsByRole(//
+			@P(t = "组织id") Long orgId, //
+			@P(t = "角色id") Long roleId //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgPermissionService.getPermissionsByRole(conn, orgId, roleId));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "insertPermissionRole", //
+			des = "给某个权限添加角色", //
+			ret = "返回影响记录数")
+	public APIResponse insertPermissionRole(//
+			@P(t = "组织id") Long orgId, //
+			@P(t = "权限id") Long permissionId, //
+			@P(t = "角色id String[] 例[1,2,3,4]") String role //
+
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse
+					.getNewSuccessResp(orgPermissionService.insertPermissionRole(conn, orgId, permissionId, role));
 		}
 	}
 

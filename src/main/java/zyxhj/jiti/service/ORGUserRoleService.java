@@ -10,10 +10,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
+import zyxhj.jiti.domain.ORGPermission;
+import zyxhj.jiti.domain.ORGPermissionRel;
 import zyxhj.jiti.domain.ORGUserRole;
+import zyxhj.jiti.repository.ORGPermissionRelaRepository;
 import zyxhj.jiti.repository.ORGUserRoleRepository;
 import zyxhj.utils.IDUtils;
 import zyxhj.utils.Singleton;
@@ -55,10 +59,6 @@ public class ORGUserRoleService {
 		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_supChief.roleId, ORGUserRole.role_supChief);
 		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_supVice.roleId, ORGUserRole.role_supVice);
 
-		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_Administractive_admin.roleId, ORGUserRole.role_Administractive_admin);
-		
-		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_bank_admin.roleId, ORGUserRole.role_bank_admin);
-		
 		Iterator<ORGUserRole> it = SYS_ORG_USER_ROLE_MAP.values().iterator();
 		while (it.hasNext()) {
 			SYS_ORG_USER_ROLE_LIST.add(it.next());
@@ -66,10 +66,12 @@ public class ORGUserRoleService {
 	}
 
 	private ORGUserRoleRepository orgUserRoleRepository;
+	private ORGPermissionRelaRepository oreOrgPermissionRelaRepository;
 
 	public ORGUserRoleService() {
 		try {
 			orgUserRoleRepository = Singleton.ins(ORGUserRoleRepository.class);
+			oreOrgPermissionRelaRepository = Singleton.ins(ORGPermissionRelaRepository.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -127,6 +129,39 @@ public class ORGUserRoleService {
 	 */
 	public List<ORGUserRole> getORGUserRoles(DruidPooledConnection conn, Long orgId) throws Exception {
 		return orgUserRoleRepository.getListByKey(conn, "org_id", orgId, 512, 0);
+	}
+
+	/**
+	 * 根据权限查看角色列表
+	 */
+	public List<ORGUserRole> getRolesByPermission(DruidPooledConnection conn, Long orgId, Long permissionId)
+			throws Exception {
+		List<ORGUserRole> list = new ArrayList<ORGUserRole>();
+		ORGUserRole orp = new ORGUserRole();
+
+		JSONArray jsonPer = new JSONArray();
+		jsonPer.add(permissionId);
+		JSONArray json = new JSONArray();
+		List<ORGPermissionRel> li = oreOrgPermissionRelaRepository.getRolesId(conn, orgId, jsonPer);
+
+		// 从MAP中查找
+		for (ORGPermissionRel or : li) {
+			orp = SYS_ORG_USER_ROLE_MAP.get(or.roleId);
+			if (orp != null) {
+				list.add(orp);
+			} else {
+				// 放入json中 执行完成后去数据库中获取
+				json.add(or.permissionId);
+			}
+		}
+		
+		if (json != null && json.size() > 0) {
+			List<ORGUserRole> op = orgUserRoleRepository.getListByKeyInValues(conn, "role_id", json.toArray());
+			for (ORGUserRole orgPermission : op) {
+				list.add(orgPermission);
+			}
+		}
+		return list;
 	}
 
 }

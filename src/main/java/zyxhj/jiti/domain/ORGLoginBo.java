@@ -1,6 +1,7 @@
 package zyxhj.jiti.domain;
 
 import java.util.Date;
+import java.util.List;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -19,6 +20,7 @@ public class ORGLoginBo {
 	public String wxOpenId;
 	public String wbOpenId;
 	public String roles;
+	public List<ORGPermission> permissions;
 
 	// Session信息
 	public Date loginTime;

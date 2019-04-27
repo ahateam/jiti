@@ -164,7 +164,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 				// count, offset });
 				return sqlGetOtherList(conn, Singleton.ins(UserRepository.class), StringUtils.join(
 						"SELECT * FROM `tb_user` INNER JOIN `tb_ecm_org_user` ON `tb_user`.`id` = `tb_ecm_org_user`.`user_id` WHERE `org_id` =? AND `tb_user`.`id_number` LIKE '%",
-						idNumber, "%' LIMIT ? OFFSET ?)"), new Object[] { orgId, count, offset });
+						idNumber, "%' LIMIT ? OFFSET ?"), new Object[] { orgId, count, offset });
 			} catch (Exception e) {
 				e.printStackTrace();
 				return new ArrayList<>();

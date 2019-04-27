@@ -8,7 +8,6 @@ import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
 
 import zyxhj.jiti.domain.ORG;
-import zyxhj.utils.api.ServerException;
 import zyxhj.utils.data.rds.RDSRepository;
 import zyxhj.utils.data.rds.SQL;
 
@@ -62,11 +61,13 @@ public class ORGRepository extends RDSRepository<ORG> {
 		StringBuffer sb = new StringBuffer("WHERE ");
 		SQL sql = new SQL();
 		sql.AND("type = ? ", type);
-		SQL sqlOR = new SQL();
-		for (int i = 0; i < json.size(); i++) {
-			sqlOR.OR(StringUtils.join("id = ", json.getLong(i)));
+		if (json != null && json.size() > 0) {
+			SQL sqlOR = new SQL();
+			for (int i = 0; i < json.size(); i++) {
+				sqlOR.OR(StringUtils.join("id = ", json.getLong(i)));
+			}
+			sql.AND(sqlOR);
 		}
-		sql.AND(sqlOR);
 		if (name != null) {
 			sql.AND(StringUtils.join("name LIKE '%", name, "%'"));
 		}

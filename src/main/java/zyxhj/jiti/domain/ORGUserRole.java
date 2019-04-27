@@ -37,9 +37,8 @@ public class ORGUserRole {
 	public static final ORGUserRole role_supervisor = buildSysRole(temp++, "监事", null);
 	public static final ORGUserRole role_supChief = buildSysRole(temp++, "监事长", null);
 	public static final ORGUserRole role_supVice = buildSysRole(temp++, "副监事长", null);
-	
+
 	public static final ORGUserRole role_Administractive_admin = buildSysRole(temp++, "行政机构管理员", null);
-	
 	public static final ORGUserRole role_bank_admin = buildSysRole(temp++, "银行管理员", null);
 	/**
 	 * 组织编号

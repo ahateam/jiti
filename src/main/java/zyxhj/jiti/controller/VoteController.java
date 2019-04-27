@@ -10,6 +10,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 import zyxhj.jiti.domain.Vote;
+import zyxhj.jiti.service.ORGService;
 import zyxhj.jiti.service.VoteService;
 import zyxhj.utils.Singleton;
 import zyxhj.utils.api.APIResponse;
@@ -23,6 +24,7 @@ public class VoteController extends Controller {
 
 	private DataSource dsRds;
 	private VoteService voteService;
+	private ORGService orgService;
 
 	public VoteController(String node) {
 		super(node);
@@ -30,6 +32,7 @@ public class VoteController extends Controller {
 			dsRds = DataSourceUtils.getDataSource("rdsDefault");
 
 			voteService = Singleton.ins(VoteService.class);
+			orgService = Singleton.ins(ORGService.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -68,9 +71,13 @@ public class VoteController extends Controller {
 			@P(t = "备注") String remark, //
 			@P(t = "扩展（JSON）") String ext, //
 			@P(t = "开始时间") Date startTime, //
-			@P(t = "终止时间") Date expiryTime//
+			@P(t = "终止时间") Date expiryTime ,//
+			@P(t = "角色id") String roles,//
+			@P(t = "权限id" ) Long permissionId //
+			
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			orgService.userAuth(conn, orgId, roles, permissionId);
 			return APIResponse.getNewSuccessResp(voteService.createVote(conn, orgId, template, type, choiceCount, crowd,
 					reeditable, realName, isInternal, isAbstain, effectiveRatio, failureRatio, title, remark, ext,
 					startTime, expiryTime));

@@ -7,12 +7,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 
 import zyxhj.core.domain.User;
 import zyxhj.core.repository.UserRepository;
 import zyxhj.jiti.domain.ORG;
 import zyxhj.jiti.domain.ORGUser;
+import zyxhj.jiti.domain.ORGUserRole;
 import zyxhj.jiti.domain.Superior;
 import zyxhj.jiti.repository.ORGRepository;
 import zyxhj.jiti.repository.ORGUserRepository;
@@ -44,7 +46,6 @@ public class BankService {
 
 	// 查询省
 	public List<ORG> getPro(DruidPooledConnection conn, Integer count, Integer offset) throws Exception {
-
 		return orgRepository.getListByKey(conn, "level", ORG.LEVEL.PRO.v(), count, offset);
 	}
 
@@ -88,9 +89,10 @@ public class BankService {
 		return orgRepository.deleteByKey(conn, "id", bankId);
 	}
 
-	public ORGUser createBankAdmin(DruidPooledConnection conn, Long bankId, String address, String idNumber,
-			String mobile, String pwd, String realName) throws Exception {
-		User exisUser = userRepository.getByKey(conn, "id_number", idNumber);
+	public void createBankAdmin(DruidPooledConnection conn, Long bankId, String address, String idNumber, String mobile,
+			String pwd, String realName) throws Exception {
+		User exisUser = userRepository.getByANDKeys(conn, new String[] { "id_number", "mobile" },
+				new Object[] { idNumber, mobile });
 		// 用户不存在再去添加用户
 		if (exisUser == null) {
 			User user = new User();
@@ -106,22 +108,28 @@ public class BankService {
 			oru.orgId = bankId;
 			oru.userId = user.id;
 			oru.address = address;
-			oru.roles = "[102]";
+			JSONArray roles = new JSONArray();
+			roles.add(ORGUserRole.role_admin.roleId);
+			oru.roles = JSON.toJSONString(roles);
 
 			orgUserRepository.insert(conn, oru);
-
-			return oru;
 
 		} else {
-			ORGUser oru = new ORGUser();
-			oru.orgId = bankId;
-			oru.userId = exisUser.id;
-			oru.address = address;
-			oru.roles = "[102]";
-
-			orgUserRepository.insert(conn, oru);
-
-			return oru;
+			ORGUser existor = orgUserRepository.getByANDKeys(conn, new String[] { "org_id", "user_id" },
+					new Object[] { bankId, exisUser.id });
+			if (null == existor) {
+				ORGUser oru = new ORGUser();
+				oru.orgId = bankId;
+				oru.userId = exisUser.id;
+				oru.address = address;
+				JSONArray roles = new JSONArray();
+				roles.add(ORGUserRole.role_admin.roleId);
+				oru.roles = JSON.toJSONString(roles);
+				orgUserRepository.insert(conn, oru);
+				
+			} else {
+				throw new ServerException(BaseRC.ECM_ORG_USER_EXIST);
+			}
 		}
 
 	}
@@ -129,7 +137,6 @@ public class BankService {
 	public List<ORGUser> getBankAdmin(DruidPooledConnection conn, Long bankId, Integer count, Integer offset)
 			throws Exception {
 		return orgUserRepository.getListByKey(conn, "org_id", bankId, count, offset);
-
 	}
 
 	public int deleteBankAdmin(DruidPooledConnection conn, Long bankId, Long userId) throws Exception {

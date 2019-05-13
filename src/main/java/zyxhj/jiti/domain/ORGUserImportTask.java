@@ -8,18 +8,17 @@ import zyxhj.utils.data.rds.RDSAnnField;
 import zyxhj.utils.data.rds.RDSAnnID;
 
 /**
- * 资产导入任务（任务批次，方便管理）
+ * 用户导入任务（任务批次，方便管理）
  *
  */
-@RDSAnnEntity(alias = "tb_ecm_asset_import_task")
-public class AssetImportTask {
+@RDSAnnEntity(alias = "tb_ecm_org_user_import_task")
+public class ORGUserImportTask {
 
 	public static enum STATUS implements ENUMVALUE {
-		START((byte) 0, "正在导入"),//
-		END((byte) 1, "导入完成"),//
-		WAIT((byte) 2, "等待导入") ,//
+		START((byte) 0, "正在导入"), //
+		END((byte) 1, "导入完成"), //
+		WAIT((byte) 2, "等待导入"),//
 		;
-
 		private byte v;
 		private String txt;
 
@@ -42,7 +41,7 @@ public class AssetImportTask {
 	@RDSAnnID
 	@RDSAnnField(column = RDSAnnField.ID)
 	public Long id;
-	
+
 	/**
 	 * 组织编号
 	 */
@@ -80,7 +79,7 @@ public class AssetImportTask {
 	 */
 	@RDSAnnField(column = RDSAnnField.INTEGER)
 	public Integer sum;
-	
+
 	/**
 	 * 完成数量
 	 */

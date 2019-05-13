@@ -71,10 +71,10 @@ public class VoteController extends Controller {
 			@P(t = "备注") String remark, //
 			@P(t = "扩展（JSON）") String ext, //
 			@P(t = "开始时间") Date startTime, //
-			@P(t = "终止时间") Date expiryTime ,//
-			@P(t = "角色id") String roles,//
-			@P(t = "权限id" ) Long permissionId //
-			
+			@P(t = "终止时间") Date expiryTime, //
+			@P(t = "角色id") String roles, //
+			@P(t = "权限id") Long permissionId //
+
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			orgService.userAuth(conn, orgId, roles, permissionId);
@@ -434,6 +434,48 @@ public class VoteController extends Controller {
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			return APIResponse.getNewSuccessResp(voteService.getOptionByUserSelection(conn, userId, voteId));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getNotVoteByUserRoles", //
+			des = "查询用户未投票的投票", //
+			ret = "返回投票列表"//
+	)
+	public APIResponse getNotVoteByUserRoles(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "用户编号") Long userId, //
+			@P(t = "角色") String roles, //
+			Integer count, //
+			Integer offset //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse
+					.getNewSuccessResp(voteService.getNotVoteByUserRoles(conn, orgId, userId, roles, count, offset));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getVoteByUserRoles", //
+			des = "查询用户已投票的投票", //
+			ret = "返回投票列表"//
+	)
+	public APIResponse getVoteByUserRoles(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "用户编号") Long userId, //
+			@P(t = "角色") String roles, //
+			Integer count, //
+			Integer offset //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse
+					.getNewSuccessResp(voteService.getVoteByUserRoles(conn, orgId, userId, roles, count, offset));
 		}
 	}
 

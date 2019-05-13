@@ -64,7 +64,6 @@ public class AssetRepository extends RDSRepository<Asset> {
 			}
 		}
 		sql.fillSQL(sb);
-		System.out.println(sb.toString());
 		return getList(conn, sb.toString(), sql.getParams(), count, offset);
 	}
 

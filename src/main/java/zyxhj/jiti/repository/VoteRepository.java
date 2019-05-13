@@ -34,8 +34,8 @@ public class VoteRepository extends RDSRepository<Vote> {
 				count, offset);
 	}
 
-	public List<Vote> getVotesByOrgId(DruidPooledConnection conn, JSONArray orgIds, Byte status,
-			Integer count, Integer offset) throws Exception {
+	public List<Vote> getVotesByOrgId(DruidPooledConnection conn, JSONArray orgIds, Byte status, Integer count,
+			Integer offset) throws Exception {
 		// 区id暂时未使用
 		// 遍历orgId for(orgIds)
 		// 再判断status是否为空 if(status == null ) 为空则全查
@@ -68,7 +68,53 @@ public class VoteRepository extends RDSRepository<Vote> {
 				"SELECT vo.* FROM tb_ecm_vote vo LEFT JOIN tb_ecm_vote_ticket tk ON vo.id = tk.vote_id WHERE tk.user_id = ? AND vo.org_id = ?",
 				new Object[] { userId, orgId }, count, offset);
 	}
-	
+
+	public List<Vote> getNotVoteByUserRoles(DruidPooledConnection conn, Long orgId, String roles, Integer count,
+			Integer offset) throws Exception {
+		// 根据orgId以及roles获取用户的可投票列表
+		// SELECT * FROM tb_ecm_vote WHERE org_id = a AND (...)
+		// (JSON_CONTAINS(crowd, '104','$.roles') OR JSON_CONTAINS(crowd,
+		// '106','$.roles'))
+
+		StringBuffer sb = new StringBuffer("WHERE ");
+		JSONArray json = JSONArray.parseArray(roles);
+		SQL sql = new SQL();
+		sql.addEx("org_id = ?", orgId);
+		SQL sqlEx = new SQL();
+		for (int i = 0; i < json.size(); i++) {
+			sqlEx.OR(StringUtils.join("JSON_CONTAINS(crowd, '", json.getLong(i), "','$.roles')"));
+		}
+		sql.AND(sqlEx);
+		sql.fillSQL(sb);
+
+		return getList(conn, sb.toString(), sql.getParams(), count, offset);
+
+	}
+
+	public JSONArray getVoteByUserRoles(DruidPooledConnection conn, Long orgId, Long userId, String roles,
+			Integer count, Integer offset) throws Exception {
+		// SELECT * FROM tb_ecm_vote vo LEFT JOIN tb_ecm_vote_ticket tk ON vo.id =
+		// tk.vote_id WHERE vo.org_id = 397652553337218 AND tk.user_id = 397652700169528
+		// AND (JSON_CONTAINS(crowd, '104','$.roles') OR JSON_CONTAINS(crowd,
+		// '106','$.roles'))
+
+		StringBuffer sb = new StringBuffer(
+				"SELECT vo.* FROM tb_ecm_vote vo LEFT JOIN tb_ecm_vote_ticket tk ON vo.id = tk.vote_id WHERE ");
+		JSONArray json = JSONArray.parseArray(roles);
+		SQL sql = new SQL();
+		sql.addEx("vo.org_id = ? ", orgId);
+		sql.AND("tk.user_id = ? ", userId);
+
+		SQL sqlEx = new SQL();
+		for (int i = 0; i < json.size(); i++) {
+			sqlEx.OR(StringUtils.join("JSON_CONTAINS(crowd, '", json.getLong(i), "','$.roles')"));
+		}
+		sql.AND(sqlEx);
+		sql.fillSQL(sb);
+
+		return sqlGetJSONArray(conn, sb.toString(), sql.getParams(), count, offset);
+
+	}
 
 //	//统计组织下可投票人数
 //	public void countNumberByOrgId(DruidPooledConnection conn, JSONArray orgIds) {

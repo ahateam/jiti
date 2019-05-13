@@ -16,9 +16,9 @@ import com.alibaba.fastjson.JSONObject;
 
 import zyxhj.core.domain.User;
 import zyxhj.core.repository.UserRepository;
+import zyxhj.jiti.domain.ORG;
 import zyxhj.jiti.domain.ORGUser;
 import zyxhj.jiti.domain.ORGUserRole;
-import zyxhj.jiti.domain.ORGUserTagGroup;
 import zyxhj.utils.ServiceUtils;
 import zyxhj.utils.Singleton;
 import zyxhj.utils.api.BaseRC;
@@ -135,14 +135,15 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 
 	public List<ORGUser> getORGUsersByRoles(DruidPooledConnection conn, Long orgId, String[] roles, Integer count,
 			Integer offset) throws ServerException {
-		return getListByTagsJSONArray(conn, "roles","", roles, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
+		return getListByTagsJSONArray(conn, "roles", "", roles, "WHERE org_id=? ", new Object[] { orgId }, count,
+				offset);
 	}
 
 	public List<ORGUser> getORGUsersByGroups(DruidPooledConnection conn, Long orgId, String[] groups, Integer count,
 			Integer offset) throws ServerException {
 
-		
-		return getListByTagsJSONArray(conn, "groups", "", groups, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
+		return getListByTagsJSONArray(conn, "groups", "", groups, "WHERE org_id=? ", new Object[] { orgId }, count,
+				offset);
 	}
 
 	public List<ORGUser> getORGUsersByTags(DruidPooledConnection conn, Long orgId, JSONObject tags, Integer count,
@@ -199,42 +200,44 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 
 	}
 
-	public int batchEditORGUsersGroups(DruidPooledConnection conn, Long orgId, JSONArray userIds, JSONArray groups)
+	public void batchEditORGUsersGroups(DruidPooledConnection conn, Long orgId, JSONArray userIds, Long groups)
 			throws ServerException {
 
 		// SET groups="[123,456,345]"
-		StringBuffer sbset = new StringBuffer(" SET ");
-		ArrayList<Object> pset = new ArrayList<>();
-		SQL sqlset = new SQL();
+	//	StringBuffer sbset = new StringBuffer(" SET ");
+	//	ArrayList<Object> pset = new ArrayList<>();
+	//	SQL sqlset = new SQL();
 
 		// 不能为空，为空需要填写默认分组
 //		sbset.append("SET groups=?");
-		if (groups == null || groups.size() <= 0) {
-			// 填入未分组，避免空
-			groups = new JSONArray();
-			groups.add(ORGUserTagGroup.group_undefine.groupId);
+//		if (groups == null || groups.size() <= 0) {
+//			// 填入未分组，避免空
+//			groups = new JSONArray();
+//			groups.add(ORGUserTagGroup.group_undefine.groupId);
+//		}
+		// 判断原来的用户是否有这个分组 没有的话添加分组 不要直接覆盖分组
+		// SELECT * FROM tb_ecm_org_user WHERE org_id = 397652553337218 and user_id =
+		// 397652692024985
+		// AND JSON_CONTAINS(groups,'397652645549447','$')
+
+		for (int i = 0; i < userIds.size(); i++) {
+			// 查询用户
+			ORGUser getORGUser = getByANDKeys(conn, new String[] { "org_id", "user_id" },
+					new Object[] { orgId, userIds.getLong(i) });
+
+			// 等于-1表示不存在
+			if (getORGUser.groups.indexOf(groups.toString()) == -1) {
+				// 不存在分组 给组织用户添加分组
+				JSONArray json = JSONArray.parseArray(getORGUser.groups);
+				json.add(groups);
+				ORGUser or = new ORGUser();
+				or.groups = json.toString();
+				updateByANDKeys(conn, new String[] { "org_id", "user_id" }, new Object[] { orgId, userIds.getLong(i) },
+						or, true);
+			}
+
 		}
-		
-		sqlset.addEx(" groups=? ");
-		pset.add(JSON.toJSONString(groups));
-		sqlset.fillSQL(sbset);
 
-		StringBuffer sbwhere = new StringBuffer();
-
-		sbwhere.append(" WHERE ");
-		SQL sqlWhere = new SQL();
-		sqlWhere.addEx("org_id= ? ", orgId);
-
-		if (userIds != null && userIds.size() > 0) {
-			
-			sqlWhere.AND(SQLEx.exIn("user_id", userIds.toArray()));
-			sqlWhere.fillSQL(sbwhere);
-			
-			System.out.println(sbset.toString() + " " + sbwhere.toString());
-			return this.update(conn, sbset.toString(), pset.toArray(), sbwhere.toString(), sqlWhere.getParams());
-		} else {
-			return 0;
-		}
 	}
 
 	public Map<String, Integer> countRole(DruidPooledConnection conn, Long orgId, JSONArray roles) throws Exception {
@@ -260,8 +263,29 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		sql.addEx("org_id = ?", orgId);
 		sql.AND(SQLEx.exIn("user_id", values));
 		sql.fillSQL(sb);
-		//System.out.println(sb.toString());
+		// System.out.println(sb.toString());
 		return getList(conn, sb.toString(), sql.getParams(), null, null);
+	}
+
+	public JSONArray getORGAdmin(DruidPooledConnection conn, Long orgId, Byte level, Integer count, Integer offset)
+			throws Exception {
+		SQL sql = new SQL();
+		// SELECT u.* FROM tb_ecm_org_user oru LEFT JOIN tb_user u ON oru.user_id = u.id
+		// WHERE org_id = 397652553337218 AND JSON_CONTAINS(oru.roles, "102",'$')
+		StringBuffer sb = new StringBuffer(
+				"SELECT u.* FROM tb_ecm_org_user oru LEFT JOIN tb_user u ON oru.user_id = u.id WHERE ");
+		sql.addEx("org_id = ?", orgId);
+		SQL sqlAnd = new SQL();
+		if (level == ORG.LEVEL.COOPERATIVE.v()) {
+			sqlAnd.AND(StringUtils.join("JSON_CONTAINS(oru.roles, \"102\",'$')"));
+		}
+		if (level != ORG.LEVEL.COOPERATIVE.v()) {
+			sqlAnd.OR(StringUtils.join("JSON_CONTAINS(oru.roles, \"112\",'$')"));
+		}
+		sql.AND(sqlAnd);
+		sql.fillSQL(sb);
+		System.out.println(sb.toString());
+		return sqlGetJSONArray(conn, sb.toString(), sql.getParams(), count, offset);
 	}
 
 }

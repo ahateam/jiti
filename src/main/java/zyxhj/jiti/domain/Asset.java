@@ -7,7 +7,7 @@ import zyxhj.utils.data.rds.RDSAnnField;
 import zyxhj.utils.data.rds.RDSAnnID;
 
 /**
- * 表决（投票）
+ * 资产信息
  *
  */
 @RDSAnnEntity(alias = "tb_ecm_asset")
@@ -205,13 +205,13 @@ public class Asset {
 	 */
 	@RDSAnnField(column = RDSAnnField.SHORT_TEXT)
 	public String remark;
-	
+
 	/**
 	 * 分组，怕长度不够2048
 	 */
 	@RDSAnnField(column = "VARCHAR(2048)")
 	public String groups;
-	
+
 	/**
 	 * 标签
 	 */

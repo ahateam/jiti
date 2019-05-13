@@ -156,7 +156,7 @@ public class ORGController extends Controller {
 	 */
 	@POSTAPI(//
 			path = "getORGs", //
-			des = "获取全部组织列表", //
+			des = "获取下级组织列表", //
 			ret = "组织对象列表"//
 	)
 	public APIResponse getORGs(//
@@ -311,12 +311,12 @@ public class ORGController extends Controller {
 	public APIResponse batchEditORGUsersGroups(//
 			@P(t = "组织编号") Long orgId, //
 			@P(t = "用户编号列表，JSONArray格式") JSONArray userIds, //
-			@P(t = "分组信息列表，JSONArray格式") JSONArray groups//
+			@P(t = "分组信息列表 字符串") Long groups//
 
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-
-			return APIResponse.getNewSuccessResp(orgUserService.batchEditORGUsersGroups(conn, orgId, userIds, groups));
+			orgUserService.batchEditORGUsersGroups(conn, orgId, userIds, groups);
+			return APIResponse.getNewSuccessResp();
 		}
 	}
 
@@ -351,6 +351,24 @@ public class ORGController extends Controller {
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			return APIResponse.getNewSuccessResp(ServiceUtils.checkNull(orgService.loginByMobile(conn, mobile, pwd)));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "loginByIdNumber", //
+			des = "身份证号密码登录", //
+			ret = "LoginBO对象，包含user，session等信息"//
+	)
+	public APIResponse loginByIdNumber(//
+			@P(t = "身份证号") String idNumber, //
+			@P(t = "密码") String pwd//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse
+					.getNewSuccessResp(ServiceUtils.checkNull(orgService.loginByIdNumber(conn, idNumber, pwd)));
 		}
 	}
 
@@ -1028,6 +1046,220 @@ public class ORGController extends Controller {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			return APIResponse
 					.getNewSuccessResp(orgPermissionService.insertPermissionRole(conn, orgId, permissionId, role));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "createORGUserImportTask", //
+			des = "创建组织用户导入任务", //
+			ret = ""//
+	)
+	public APIResponse createORGUserImportTask(//
+			@P(t = "组织id") Long orgId, //
+			@P(t = "用户id") Long userId, //
+			@P(t = "任务名称") String name //
+
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			orgUserService.createORGUserImportTask(conn, orgId, userId, name);
+			return APIResponse.getNewSuccessResp();
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getORGUserImportTasks", //
+			des = "获取组织用户导入任务", //
+			ret = ""//
+	)
+	public APIResponse getORGUserImportTasks(//
+			@P(t = "组织id") Long orgId, //
+			@P(t = "用户id") Long userId, //
+			Integer count, //
+			Integer offset//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse
+					.getNewSuccessResp(orgUserService.getORGUserImportTasks(conn, orgId, userId, count, offset));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getORGUserImportTask", //
+			des = "获取当前导入任务信息", //
+			ret = ""//
+	)
+	public APIResponse getORGUserImportTask(//
+			@P(t = "组织id") Long orgId, //
+			@P(t = "用户id") Long userId, //
+			@P(t = "导入任务id") Long importTaskId//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse
+					.getNewSuccessResp(orgUserService.getORGUserImportTask(conn, importTaskId, orgId, userId));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "importORGUserRecord", //
+			des = "导入组织用户列表" //
+	)
+	public APIResponse importORGUserRecord(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "用户编号") Long userId, //
+			@P(t = "excel文件url") String url, //
+			@P(t = "导入任务id") Long importTaskId//
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			orgUserService.importORGUserRecord(conn, orgId, userId, url, importTaskId);
+			return APIResponse.getNewSuccessResp();
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getORGUserImportRecords", //
+			des = "获取导入组织用户列表", //
+			ret = "需导入的组织用户列表")
+	public APIResponse getORGUserImportRecords(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "导入任务id") Long importTaskId, //
+			Integer count, //
+			Integer offset //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(
+					orgUserService.getORGUserImportRecords(conn, orgId, importTaskId, count, offset));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "importORGUser", //
+			des = "开始导入组织用户列表", //
+			ret = "")
+	public APIResponse importORGUser(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "导入任务id") Long importTaskId //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			orgUserService.importORGUser(orgId, importTaskId);
+			return APIResponse.getNewSuccessResp();
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getNotcompletionRecord", //
+			des = "获取导入失败的组织用户", //
+			ret = ""//
+	)
+	public APIResponse getNotcompletionRecord(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "导入任务id") Long importTaskId, //
+			Integer count, //
+			Integer offset //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse
+					.getNewSuccessResp(orgUserService.getNotcompletionRecord(conn, orgId, importTaskId, count, offset));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getSubORGUser", //
+			des = "获取组织管理员信息", //
+			ret = ""//
+	)
+	public APIResponse getSubORGUser(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "组织级别") Byte level, //
+			Integer count, //
+			Integer offset //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.getSubORGUser(conn, orgId, level, count, offset));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "createORGAdmin", //
+			des = "创建组织管理员", //
+			ret = ""//
+	)
+
+	public APIResponse createORGAdmin(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "组织等级 1 2 3 行政管理员  4 合作社管理员") Byte level, //
+			@P(t = "身份证号码") String idNumber, //
+			@P(t = "电话号码") String mobile, //
+			@P(t = "真实姓名") String realName //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			orgUserService.createORGAdmin(conn, orgId, level, idNumber, mobile, realName);
+			return APIResponse.getNewSuccessResp();
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "delORGUserAdmin", //
+			des = "获取组织管理员信息", //
+			ret = ""//
+	)
+	public APIResponse delORGUserAdmin(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "组织编号") Long userId //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgUserService.delORGUserAdmin(conn, orgId, userId));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "editORGAdmin", //
+			des = "修改组织管理员信息", //
+			ret = ""//
+	)
+	public APIResponse editORGAdmin(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "用户编号") Long userId, //
+			@P(t = "身份证号码") String idNumber, //
+			@P(t = "电话号码") String mobile, //
+			@P(t = "真实姓名") String realName //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+
+			return APIResponse
+					.getNewSuccessResp(orgUserService.editORGAdmin(conn, orgId, userId, idNumber, mobile, realName));
 		}
 	}
 

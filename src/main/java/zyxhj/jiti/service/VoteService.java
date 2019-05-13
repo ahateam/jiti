@@ -636,8 +636,8 @@ public class VoteService {
 	}
 
 	// 根据组织分类查询投票列表 可能为多个组织
-	public List<Vote> getVotesByOrgId(DruidPooledConnection conn, JSONArray orgIds, Byte status,
-			Integer count, Integer offset) throws Exception {
+	public List<Vote> getVotesByOrgId(DruidPooledConnection conn, JSONArray orgIds, Byte status, Integer count,
+			Integer offset) throws Exception {
 		return voteRepository.getVotesByOrgId(conn, orgIds, status, count, offset);
 	}
 
@@ -666,7 +666,31 @@ public class VoteService {
 		} else {
 			return new ArrayList<VoteOption>();
 		}
+	}
 
+	// 未投票列表
+	public JSONArray getNotVoteByUserRoles(DruidPooledConnection conn, Long orgId, Long userId, String roles,
+			Integer count, Integer offset) throws Exception {
+		// 根据orgId以及roles获取用户的可投票列表 select * from aa where org_id = ? And
+		// (JSON_CONTAINS(role,101,'$') OR JSON_CON.... )
+		List<Vote> vote = voteRepository.getNotVoteByUserRoles(conn, orgId, roles, count, offset); // 获取到了vote
+
+		// 再去根据用户id去查询当前用户是否已经投了此票 如果用户id+投票id为空 则表示未投 不为空 则表示已经投了票
+		JSONArray json = new JSONArray();
+		for (Vote v : vote) {
+			VoteTicket voteTicket = ticketRepository.getByANDKeys(conn, new String[] { "vote_id", "user_id" },
+					new Object[] { v.id, userId });
+			if (voteTicket == null) {
+				json.add(v);
+			}
+		}
+		return json;
+	}
+
+	// 已投票列表
+	public JSONArray getVoteByUserRoles(DruidPooledConnection conn, Long orgId, Long userId, String roles,
+			Integer count, Integer offset) throws Exception {
+		return voteRepository.getVoteByUserRoles(conn, orgId, userId, roles, count, offset);
 	}
 
 }

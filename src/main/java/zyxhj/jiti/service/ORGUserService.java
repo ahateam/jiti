@@ -1,5 +1,6 @@
 package zyxhj.jiti.service;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -16,13 +17,20 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
+import io.vertx.core.Vertx;
 import zyxhj.core.domain.User;
 import zyxhj.core.repository.UserRepository;
+import zyxhj.jiti.domain.AssetImportTask;
 import zyxhj.jiti.domain.Family;
+import zyxhj.jiti.domain.ORG;
 import zyxhj.jiti.domain.ORGUser;
+import zyxhj.jiti.domain.ORGUserImportRecord;
+import zyxhj.jiti.domain.ORGUserImportTask;
 import zyxhj.jiti.domain.ORGUserRole;
 import zyxhj.jiti.domain.ORGUserTagGroup;
 import zyxhj.jiti.repository.FamilyRepository;
+import zyxhj.jiti.repository.ORGUserImportRecordRepository;
+import zyxhj.jiti.repository.ORGUserImportTaskRepository;
 import zyxhj.jiti.repository.ORGUserRepository;
 import zyxhj.utils.CodecUtils;
 import zyxhj.utils.ExcelUtils;
@@ -30,6 +38,8 @@ import zyxhj.utils.IDUtils;
 import zyxhj.utils.Singleton;
 import zyxhj.utils.api.BaseRC;
 import zyxhj.utils.api.ServerException;
+import zyxhj.utils.data.DataSource;
+import zyxhj.utils.data.DataSourceUtils;
 
 public class ORGUserService {
 
@@ -39,6 +49,8 @@ public class ORGUserService {
 	private UserRepository userRepository;
 
 	private FamilyRepository familyRepository;
+	private ORGUserImportTaskRepository orgUserImportTaskRepository;
+	private ORGUserImportRecordRepository orgUserImportRecordRepository;
 
 	public ORGUserService() {
 		try {
@@ -46,6 +58,8 @@ public class ORGUserService {
 			userRepository = Singleton.ins(UserRepository.class);
 
 			familyRepository = Singleton.ins(FamilyRepository.class);
+			orgUserImportTaskRepository = Singleton.ins(ORGUserImportTaskRepository.class);
+			orgUserImportRecordRepository = Singleton.ins(ORGUserImportRecordRepository.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -312,6 +326,7 @@ public class ORGUserService {
 		renew.weight = weight;
 		renew.roles = array2JsonString(roles);
 		renew.tags = obj2JsonString(tags);
+		renew.groups = array2JsonString(groups);
 
 		renew.familyNumber = familyNumber;
 		renew.familyMaster = familyMaster;
@@ -653,8 +668,408 @@ public class ORGUserService {
 		}
 	}
 
-	public int batchEditORGUsersGroups(DruidPooledConnection conn, Long orgId, JSONArray userIds, JSONArray groups)
+	public void batchEditORGUsersGroups(DruidPooledConnection conn, Long orgId, JSONArray userIds, Long groups)
 			throws Exception {
-		return orgUserRepository.batchEditORGUsersGroups(conn, orgId, userIds, groups);
+		orgUserRepository.batchEditORGUsersGroups(conn, orgId, userIds, groups);
 	}
+
+	// 创建组织角色导入任务
+	public void createORGUserImportTask(DruidPooledConnection conn, Long orgId, Long userId, String name)
+			throws Exception {
+		ORGUserImportTask orgUserImport = new ORGUserImportTask();
+		orgUserImport.id = IDUtils.getSimpleId();
+		orgUserImport.orgId = orgId;
+		orgUserImport.userId = userId;
+		orgUserImport.name = name;
+		orgUserImport.createTime = new Date();
+		orgUserImport.sum = 0;
+		orgUserImport.completion = 0;
+		orgUserImport.notCompletion = 0;
+		orgUserImport.success = 0;
+		orgUserImport.status = AssetImportTask.STATUS.WAIT.v();
+		orgUserImportTaskRepository.insert(conn, orgUserImport);
+	}
+
+	// 查询组织用户导入任务
+	public List<ORGUserImportTask> getORGUserImportTasks(DruidPooledConnection conn, Long orgId, Long userId,
+			Integer count, Integer offset) throws Exception {
+		return orgUserImportTaskRepository.getORGUserImportTasks(conn, orgId, userId, count, offset);
+	}
+
+	// 查询组织用户导入任务信息
+	public ORGUserImportTask getORGUserImportTask(DruidPooledConnection conn, Long importTaskId, Long orgId,
+			Long userId) throws Exception {
+		return orgUserImportTaskRepository.getByANDKeys(conn, new String[] { "id", "org_id", "user_id" },
+				new Object[] { importTaskId, orgId, userId });
+	}
+
+	public void importORGUserRecord(DruidPooledConnection conn, Long orgId, Long userId, String url, Long importTaskId)
+			throws Exception {
+		Integer sum = 0;
+		JSONArray json = JSONArray.parseArray(url);
+		for (int o = 0; o < json.size(); o++) {
+			List<ORGUserImportRecord> list = new ArrayList<ORGUserImportRecord>();
+			// 1行表头，17列，文件格式写死的
+			List<List<Object>> table = ExcelUtils.readExcelOnline(json.getString(o), 1, 17, 0);
+			for (List<Object> row : table) {
+				ORGUserImportRecord orgUserImportRecord = new ORGUserImportRecord();
+				try {
+					int tt = 0;
+					orgUserImportRecord.familyNumber = ExcelUtils.getString(row.get(tt++));// 户序号
+
+					if (StringUtils.isBlank(orgUserImportRecord.familyNumber)) {
+						// 户序号为空，直接跳过
+						log.error("---->>户序号为空");
+						continue;
+					}
+					orgUserImportRecord.id = IDUtils.getSimpleId();
+					orgUserImportRecord.orgId = orgId;
+					orgUserImportRecord.userId = userId;
+					orgUserImportRecord.taskId = importTaskId;
+					orgUserImportRecord.status = ORGUserImportRecord.STATUS.UNDETECTED.v();
+					orgUserImportRecord.realName = ExcelUtils.getString(row.get(tt++));
+					orgUserImportRecord.idNumber = ExcelUtils.getString(row.get(tt++));
+					orgUserImportRecord.mobile = ExcelUtils.getString(row.get(tt++));
+					orgUserImportRecord.shareAmount = ExcelUtils.parseInt(row.get(tt++));
+
+					orgUserImportRecord.weight = ExcelUtils.parseInt(row.get(tt++));
+					orgUserImportRecord.address = ExcelUtils.getString(row.get(tt++));
+					orgUserImportRecord.familyMaster = ExcelUtils.getString(row.get(tt++));
+					orgUserImportRecord.shareCerHolder = ExcelUtils.parseShiFou(row.get(tt++));
+					orgUserImportRecord.shareCerNo = ExcelUtils.getString(row.get(tt++));
+
+					String dutyShareholders = ExcelUtils.getString(row.get(tt++));
+					String dutyDirectors = ExcelUtils.getString(row.get(tt++));
+					String dutyVisors = ExcelUtils.getString(row.get(tt++));
+					String dutyOthers = ExcelUtils.getString(row.get(tt++));
+					String dutyAdmins = ExcelUtils.getString(row.get(tt++));
+
+					orgUserImportRecord.groups = ExcelUtils.getString(row.get(tt++));
+					orgUserImportRecord.tags = ExcelUtils.getString(row.get(tt++));
+
+					// 合并roles
+					JSONArray roles = new JSONArray();
+					JSONArray temp = null;
+					{
+						// 股东成员职务
+						String ts = StringUtils.trim(dutyShareholders);
+						if (ts.equals(ORGUserRole.role_shareHolder.name)) {
+							roles.add(ORGUserRole.role_shareHolder.roleId);// 股东
+						} else if (ts.equals(ORGUserRole.role_shareDeputy.name)) {
+							roles.add(ORGUserRole.role_shareDeputy.roleId);// 股东代表
+						} else if (ts.equals(ORGUserRole.role_shareFamily.name)) {
+							roles.add(ORGUserRole.role_shareFamily.roleId);// 股东户代表
+						} else {
+							// 无，不加
+						}
+					}
+
+					{
+						// 董事会职务
+						String ts = StringUtils.trim(dutyDirectors);
+						if (ts.equals(ORGUserRole.role_director.name)) {
+							roles.add(ORGUserRole.role_director.roleId);// 董事
+						} else if (ts.equals(ORGUserRole.role_dirChief.name)) {
+							roles.add(ORGUserRole.role_dirChief.roleId);// 董事长
+						} else if (ts.equals(ORGUserRole.role_dirVice.name)) {
+							roles.add(ORGUserRole.role_dirVice.roleId);// 副董事长
+						} else {
+							// 无，不加
+						}
+					}
+
+					{
+						// 监事会职务
+						String ts = StringUtils.trim(dutyVisors);
+						if (ts.equals(ORGUserRole.role_supervisor.name)) {
+							roles.add(ORGUserRole.role_supervisor.roleId);// 监事
+						} else if (ts.equals(ORGUserRole.role_supChief.name)) {
+							roles.add(ORGUserRole.role_supChief.roleId);// 监事长
+						} else if (ts.equals(ORGUserRole.role_supVice.name)) {
+							roles.add(ORGUserRole.role_supVice.roleId);// 副监事长
+						} else {
+							// 无，不加
+						}
+					}
+
+					{
+						// 其它管理角色
+
+						temp = CodecUtils.convertCommaStringList2JSONArray(dutyAdmins);
+						for (int i = 0; i < temp.size(); i++) {
+							String ts = StringUtils.trim(temp.getString(i));
+
+							if (ts.equals(ORGUserRole.role_user.name)) {
+								roles.add(ORGUserRole.role_user.roleId);// 用户
+							} else if (ts.equals(ORGUserRole.role_outuser.name)) {
+								roles.add(ORGUserRole.role_outuser.roleId);// 外部人员
+							} else if (ts.equals(ORGUserRole.role_admin.name)) {
+								roles.add(ORGUserRole.role_admin.roleId);// 管理员
+							} else {
+								// 无，不填默认当作用户
+								roles.add(ORGUserRole.role_user.roleId);// 用户
+							}
+						}
+					}
+
+					{
+
+						// TODO 这个地方要跟系统中的其它角色做匹配
+						// 其它角色
+						temp = CodecUtils.convertCommaStringList2JSONArray(dutyOthers);
+
+						// for (int i = 0; i < temp.size(); i++) {
+						// String ts = StringUtils.trim(temp.getString(i));
+						// if (ts.equals("null") || ts.equals("无")) {
+						// // 无和null，不加
+						// } else {
+						// roles.add(ts);
+						// }
+						// }
+					}
+
+					orgUserImportRecord.roles = roles.toString();
+
+					// 开始处理分组和标签
+
+					JSONArray arrGroups = new JSONArray();
+
+					{
+						// 分组
+						temp = CodecUtils.convertCommaStringList2JSONArray(orgUserImportRecord.groups);
+
+						for (int i = 0; i < temp.size(); i++) {
+							String ts = StringUtils.trim(temp.getString(i));
+							if (ts.equals("null") || ts.equals("无")) {
+								// 无和null，不加
+							} else {
+								arrGroups.add(ts);
+							}
+						}
+						orgUserImportRecord.groups = arrGroups.toJSONString();
+					}
+
+					JSONObject joTags = new JSONObject();
+					JSONArray arrTags = new JSONArray();
+					{
+						// 标签
+						temp = CodecUtils.convertCommaStringList2JSONArray(orgUserImportRecord.tags);
+
+						for (int i = 0; i < temp.size(); i++) {
+							String ts = StringUtils.trim(temp.getString(i));
+							if (ts.equals("null") || ts.equals("无")) {
+								// 无和null，不加
+							} else {
+								arrTags.add(ts);
+							}
+						}
+						if (arrTags.size() > 0) {
+							joTags.put("tags", arrTags);
+						}
+						orgUserImportRecord.tags = joTags.toJSONString();
+					}
+
+					// 处理idNunber为空的问题
+					if (StringUtils.isBlank(orgUserImportRecord.idNumber)) {
+						orgUserImportRecord.idNumber = StringUtils.join(orgId, "-", orgUserImportRecord.familyNumber,
+								"-", IDUtils.getHexSimpleId());
+					}
+					if (StringUtils.isBlank(orgUserImportRecord.mobile)) {
+						orgUserImportRecord.mobile = StringUtils.join(orgId, "-", orgUserImportRecord.familyNumber, "-",
+								IDUtils.getHexSimpleId());
+					}
+					sum++;
+					list.add(orgUserImportRecord);
+
+					if (list.size() % 10 == 0) {
+						orgUserImportRecordRepository.insertList(conn, list);
+						list = new ArrayList<ORGUserImportRecord>();
+					}
+					if (sum == table.size()) {
+						orgUserImportRecordRepository.insertList(conn, list);
+					}
+					Thread.sleep(5L);
+				} catch (Exception e) {
+					log.error(e.getMessage());
+				}
+			}
+		}
+		// 添加总数到任务表中
+		orgUserImportTaskRepository.countImportTaskSum(conn, importTaskId, sum);
+	}
+
+	// 组织用户回调页面
+	public List<ORGUserImportRecord> getORGUserImportRecords(DruidPooledConnection conn, Long orgId, Long importTaskId,
+			Integer count, Integer offset) throws Exception {
+		return orgUserImportRecordRepository.getListByANDKeys(conn, new String[] { "org_id", "task_id" },
+				new Object[] { orgId, importTaskId }, count, offset);
+	}
+
+	private void imp(DruidPooledConnection conn, Long orgId, List<ORGUserImportRecord> orgUserRec, Long importTaskId)
+			throws Exception {
+		for (ORGUserImportRecord orgUserImportRecord : orgUserRec) {
+			String mobile = orgUserImportRecord.mobile;
+			String realName = orgUserImportRecord.realName;
+			String idNumber = orgUserImportRecord.idNumber;
+			String address = orgUserImportRecord.address;
+			String shareCerNo = orgUserImportRecord.shareCerNo;
+			Boolean shareCerHolder = orgUserImportRecord.shareCerHolder;
+			Integer shareAmount = orgUserImportRecord.shareAmount;
+			Integer weight = orgUserImportRecord.weight;
+			JSONArray roles = JSONArray.parseArray(orgUserImportRecord.roles);
+			JSONArray groups = JSONArray.parseArray(orgUserImportRecord.groups);
+			JSONObject tags = JSONObject.parseObject(orgUserImportRecord.tags);
+			String familyNumber = orgUserImportRecord.familyNumber;
+			String familyMaster = orgUserImportRecord.familyMaster;
+
+			try {
+				createORGUser(conn, orgId, mobile, realName, idNumber, address, shareCerNo, "", shareCerHolder,
+						shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+				orgUserImportRecord.status = ORGUserImportRecord.STATUS.COMPLETION.v();
+				// 修改导入数据状态为通过
+				orgUserImportRecordRepository.updateStatus(conn, orgUserImportRecord.id, orgUserImportRecord.status);
+				// 导入任务 成功数+1
+				orgUserImportTaskRepository.countORGUserImportCompletionTask(conn, importTaskId);
+			} catch (Exception e) {
+				orgUserImportRecord.status = ORGUserImportRecord.STATUS.NOTCOMPLETION.v();
+				// 修改导入数据状态为失败
+				orgUserImportRecordRepository.updateStatus(conn, orgUserImportRecord.id, orgUserImportRecord.status);
+				// 导入任务 失败数+1
+				orgUserImportTaskRepository.countORGUserImportNotCompletionTask(conn, importTaskId);
+			}
+		}
+	}
+
+	// 开始导入数据
+	public void importORGUser(Long orgId, Long importTaskId) throws Exception {
+
+		// 异步方法，不会阻塞
+		Vertx.vertx().executeBlocking(future -> {
+			// 下面这行代码可能花费很长时间
+			DataSource dsRds;
+			DruidPooledConnection conn = null;
+			try {
+				dsRds = DataSourceUtils.getDataSource("rdsDefault");
+				conn = (DruidPooledConnection) dsRds.openConnection();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			try {
+				// 修改导入任务状态为正在导入
+				ORGUserImportTask orgUs = new ORGUserImportTask();
+				orgUs.status = ORGUserImportTask.STATUS.START.v();
+				orgUserImportTaskRepository.updateByKey(conn, "id", importTaskId, orgUs, true);
+
+				// 把数据取出进行处理
+				ORGUserImportTask orgUserTa = orgUserImportTaskRepository.getByKey(conn, "id", importTaskId);
+				for (int i = 0; i < (orgUserTa.sum / 100) + 1; i++) {
+					// 从导入任务数据表中取出数据
+					List<ORGUserImportRecord> orgUserRec = orgUserImportRecordRepository.getListByANDKeys(conn,
+							new String[] { "org_id", "task_id", "status" },
+							new Object[] { orgId, importTaskId, ORGUserImportRecord.STATUS.UNDETECTED.v() }, 100, 0);
+
+					System.out.println("");
+					imp(conn, orgId, orgUserRec, importTaskId);
+				}
+				// 修改导入任务的导入状态为导入完成
+				orgUs.status = ORGUserImportTask.STATUS.END.v();
+				orgUserImportTaskRepository.updateByKey(conn, "id", importTaskId, orgUs, true);
+
+			} catch (Exception eee) {
+				eee.printStackTrace();
+			} finally {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+			future.complete("ok");
+		}, res -> {
+			System.out.println("The result is: " + res.result());
+		});
+
+	}
+
+	// 获取导入失败的组织用户
+	public List<ORGUserImportRecord> getNotcompletionRecord(DruidPooledConnection conn, Long orgId, Long importTaskId,
+			Integer count, Integer offset) throws Exception {
+		return orgUserImportRecordRepository.getListByANDKeys(conn, new String[] { "org_id", "task_id", "status" },
+				new Object[] { orgId, importTaskId, ORGUserImportRecord.STATUS.NOTCOMPLETION.v() }, count, offset);
+	}
+
+	// 创建行政机构管理员
+	public void createORGAdmin(DruidPooledConnection conn, Long orgId, Byte level, String idNumber, String mobile,
+			String realName) throws Exception {
+		createORGUserAdmin(conn, orgId, mobile, realName, idNumber, level);
+	}
+
+	private void createORGUserAdmin(DruidPooledConnection conn, Long orgId, String mobile, String realName,
+			String idNumber, Byte level) throws Exception {
+		User extUser = userRepository.getByKey(conn, "id_number", idNumber);
+		if (null == extUser) {
+			// 用户完全不存在，则User和ORGUser记录都创建
+
+			User newUser = new User();
+			newUser.id = IDUtils.getSimpleId();
+			newUser.createDate = new Date();
+			newUser.realName = realName;
+			newUser.mobile = mobile;
+			newUser.idNumber = idNumber;
+
+			// 默认密码,身份证后6位
+			newUser.pwd = idNumber.substring(idNumber.length() - 6);
+
+			// 创建用户
+			userRepository.insert(conn, newUser);
+
+			// 写入股东信息表
+			insertORGUserAdmin(conn, orgId, newUser.id, level);
+
+		} else {
+			// 判断ORGUser是否存在
+			ORGUser existor = orgUserRepository.getByANDKeys(conn, new String[] { "org_id", "user_id" },
+					new Object[] { orgId, extUser.id });
+			if (null == existor) {
+				// ORGUser用户不存在，直接创建
+
+				// 写入股东信息表
+				insertORGUserAdmin(conn, orgId, extUser.id, level);
+			} else {
+				throw new ServerException(BaseRC.ECM_ORG_USER_EXIST);
+			}
+		}
+	}
+
+	private void insertORGUserAdmin(DruidPooledConnection conn, Long orgId, Long userId, Byte level) throws Exception {
+		ORGUser or = new ORGUser();
+		or.orgId = orgId;
+		or.userId = userId;
+		JSONArray json = new JSONArray();
+		if (level == ORG.LEVEL.COOPERATIVE.v()) {
+			json.add(ORGUserRole.role_admin.roleId);
+			or.roles = json.toString();
+		} else if (level == ORG.LEVEL.CITY.v() || level == ORG.LEVEL.PRO.v() || level == ORG.LEVEL.DISTRICT.v()) {
+			json.add(ORGUserRole.role_Administractive_admin.roleId);
+			or.roles = json.toString();
+		}
+		orgUserRepository.insert(conn, or);
+	}
+
+	public int delORGUserAdmin(DruidPooledConnection conn, Long orgId, Long userId) throws Exception {
+		return orgUserRepository.deleteByANDKeys(conn, new String[] { "org_id", "user_id" },
+				new Object[] { orgId, userId });
+	}
+
+	public int editORGAdmin(DruidPooledConnection conn, Long orgId, Long userId, String idNumber, String mobile,
+			String realName) throws Exception {
+
+		User u = new User();
+		u.idNumber = idNumber;
+		u.mobile = mobile;
+		u.realName = realName;
+		return userRepository.updateByKey(conn, "id", userId, u, true);
+
+	}
+
 }

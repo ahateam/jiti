@@ -76,6 +76,19 @@ public class Test {
 //		json.remove("234");
 //		System.out.println(json);
 		
+//		String s = "1 2 3 4 5";
+//		String[] ar = s.split("");
+//		System.out.println(s);
+//		for (String a : ar) {
+//			System.out.println(a);
+//		}
+		/*
+		 * float a = 1802 / 100; System.out.println(a);
+		 * System.out.println(Math.ceil(a));
+		 */
+		String i = "{}";
+		JSONObject js = JSONObject.parseObject(i);
+		System.out.println(js);
 	}
 
 	private static void batchEdit() throws ServerException {

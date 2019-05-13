@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,12 +26,10 @@ import zyxhj.jiti.domain.ORG;
 import zyxhj.jiti.domain.ORGDistrict;
 import zyxhj.jiti.domain.ORGExamine;
 import zyxhj.jiti.domain.ORGLoginBo;
-import zyxhj.jiti.domain.ORGPermission;
 import zyxhj.jiti.domain.ORGPermissionRel;
 import zyxhj.jiti.domain.ORGUser;
 import zyxhj.jiti.domain.ORGUserRole;
 import zyxhj.jiti.domain.Superior;
-import zyxhj.jiti.domain.Vote;
 import zyxhj.jiti.repository.DistrictRepository;
 import zyxhj.jiti.repository.FamilyRepository;
 import zyxhj.jiti.repository.ORGDistrictRepository;
@@ -319,6 +316,29 @@ public class ORGService {
 	 */
 	public LoginBo loginByMobile(DruidPooledConnection conn, String mobile, String pwd) throws Exception {
 		User existUser = userRepository.getByKey(conn, "mobile", mobile);
+		if (null == existUser) {
+			// 用户不存在
+			throw new ServerException(BaseRC.USER_NOT_EXIST);
+		} else {
+			// 用户已存在，匹配密码
+			// TODO 目前是明文，需要加料然后匹配
+			if (pwd.equals(existUser.pwd)) {
+
+				return login(conn, existUser);
+			} else {
+				// 密码错误
+				throw new ServerException(BaseRC.USER_PWD_ERROR);
+			}
+		}
+	}
+
+	/**
+	 * 
+	 * @param idNumber 身份证号码
+	 * @param pwd      密码
+	 */
+	public LoginBo loginByIdNumber(DruidPooledConnection conn, String idNumber, String pwd) throws Exception {
+		User existUser = userRepository.getByKey(conn, "id_number", idNumber);
 		if (null == existUser) {
 			// 用户不存在
 			throw new ServerException(BaseRC.USER_NOT_EXIST);
@@ -739,6 +759,12 @@ public class ORGService {
 				throw new ServerException(BaseRC.USER_NO_PERMISSION);
 			}
 		}
+	}
+
+	// 查询下级组织管理员
+	public JSONArray getSubORGUser(DruidPooledConnection conn, Long orgId, Byte level, Integer count, Integer offset)
+			throws Exception {
+		return orgUserRepository.getORGAdmin(conn, orgId, level, count, offset);
 	}
 
 }

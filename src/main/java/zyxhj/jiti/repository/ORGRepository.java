@@ -27,7 +27,8 @@ public class ORGRepository extends RDSRepository<ORG> {
 		SQL sql = new SQL();
 		sql.addEx("user_id = ?", userId);
 		if (level == ORG.LEVEL.DISTRICT.v()) {
-			sql.AND("  ( level = 1 OR level = 2 OR level = 3 ) ");
+			sql.AND(StringUtils.join("(level = ", ORG.LEVEL.PRO.v(), " OR level = ", ORG.LEVEL.CITY.v(), " OR level = ",
+					ORG.LEVEL.DISTRICT.v(), ")"));
 		} else {
 			sql.AND("level = ? ", level);
 		}

@@ -26,10 +26,12 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
+import io.vertx.core.impl.TaskQueue;
 import me.chanjar.weixin.common.api.WxConsts;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.bean.WxMpMassOpenIdsMessage;
+import me.chanjar.weixin.mp.bean.WxMpMassTagMessage;
 import me.chanjar.weixin.mp.bean.card.WxMpCardQrcodeCreateResult;
 import me.chanjar.weixin.mp.bean.result.WxMpMassSendResult;
 import me.chanjar.weixin.mp.bean.result.WxMpOAuth2AccessToken;
@@ -38,14 +40,18 @@ import me.chanjar.weixin.mp.bean.result.WxMpUser;
 import me.chanjar.weixin.mp.bean.result.WxMpUserList;
 import me.chanjar.weixin.mp.bean.template.WxMpTemplateData;
 import me.chanjar.weixin.mp.bean.template.WxMpTemplateMessage;
+import zyxhj.jiti.repository.NoticeTaskRecordRepository;
+import zyxhj.utils.Singleton;
 
 public class WxFuncService {
 
 	private static Logger log = LoggerFactory.getLogger(WxFuncService.class);
 
+	private NoticeTaskRecordRepository noticeTaskRecordRepository;
+
 	public WxFuncService() {
 		try {
-
+			noticeTaskRecordRepository = Singleton.ins(NoticeTaskRecordRepository.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -108,12 +114,24 @@ public class WxFuncService {
 	}
 
 	/*
+	 * 根据标签群发消息
+	 */
+	public WxMpMassSendResult messageToTags(WxMpService wxMpService, Long TagId) throws WxErrorException {
+		WxMpMassTagMessage massMessage = new WxMpMassTagMessage();
+		massMessage.setMsgType(WxConsts.MassMsgType.TEXT); // 设置消息类型
+		massMessage.setContent("test messageToTags");
+		massMessage.setTagId(TagId);
+		WxMpMassSendResult massResult = wxMpService.getMassMessageService().massGroupMessageSend(massMessage);
+		return massResult;
+	}
+
+	/*
 	 * 消息群发
 	 */
 	public WxMpMassSendResult messageToMany(WxMpService wxMpService, List<String> openIds) throws WxErrorException {
 		WxMpMassOpenIdsMessage massMessage = new WxMpMassOpenIdsMessage();
 		massMessage.setMsgType(WxConsts.MassMsgType.TEXT);
-		massMessage.setContent("牛逼牛逼！！");
+		massMessage.setContent("test test test test");
 		for (String openId : openIds) {
 			massMessage.getToUsers().add(openId);
 		}
@@ -122,14 +140,14 @@ public class WxFuncService {
 	}
 
 	/*
-	 * 模板消息测试（暂未开通，需申请）
+	 * 模板消息测试
 	 */
 	public void templateMessageTest(WxMpService wxMpService) throws WxErrorException {
-		WxMpTemplateMessage templateMessage = WxMpTemplateMessage.builder().toUser("ou_IQ1cNT-BpkpvHHtUa-6c-JivA")
-				.templateId("123").url("http://aha-element.oss-cn-hangzhou.aliyuncs.com/index.html").build();
-
+		WxMpTemplateMessage templateMessage = WxMpTemplateMessage.builder().toUser("") //oppenid
+				.templateId("nQ0-qyYKcvcwLeBN2_cwkj6yJjC2xgGA0lQr_4odvZE")
+				.url("http://aha-element.oss-cn-hangzhou.aliyuncs.com/index.html").build();
+		// // 非必填
 		templateMessage.addData(new WxMpTemplateData("test", "Let us test this!!", "blue"));
-
 		wxMpService.getTemplateMsgService().sendTemplateMsg(templateMessage);
 	}
 

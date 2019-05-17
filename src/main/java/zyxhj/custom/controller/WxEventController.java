@@ -25,6 +25,7 @@ import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutTextMessage;
+import me.chanjar.weixin.mp.bean.template.WxMpTemplateMessage;
 import zyxhj.custom.service.WxDataService;
 import zyxhj.custom.service.WxFuncService;
 import zyxhj.utils.CodecUtils;
@@ -122,6 +123,32 @@ public class WxEventController extends Controller {
 		}
 	}
 
+	@POST(path = "template", //
+			des = "微信通知")
+	public void template(RoutingContext context, HttpServerRequest req, HttpServerResponse resp)
+			throws WxErrorException {
+		System.out.println("xxxxxx");
+		try {
+			wxFuncService.templateMessageTest(wxDataService.getWxMpService());
+		} catch (WxErrorException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@POST(path = "messageToMany", //
+			des = "微信群发")
+	public void messageToMany(RoutingContext context, HttpServerRequest req, HttpServerResponse resp)
+			throws WxErrorException {
+		List<String> openIds = new ArrayList<String>();
+		openIds.add("omGso0iZ2TVFNRNYIciM6NTubtaU");
+		openIds.add("omGso0qy2sz0ZNRPnibdTVL4vOYE");
+		try {
+			wxFuncService.messageToMany(wxDataService.getWxMpService(), openIds);
+		} catch (WxErrorException e) {
+			e.printStackTrace();
+		}
+	}
+
 	// 微信监听入口
 	@GET(path = "entry", //
 			des = "微信消息入口"//
@@ -215,4 +242,13 @@ public class WxEventController extends Controller {
 		}
 		return ret;
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }

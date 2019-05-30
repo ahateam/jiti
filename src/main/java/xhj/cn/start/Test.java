@@ -4,6 +4,9 @@ import com.alibaba.druid.pool.DruidPooledConnection;
 
 import zyxhj.jiti.domain.AssetImportRecord;
 import zyxhj.jiti.domain.AssetImportTask;
+import zyxhj.jiti.domain.Examine;
+import zyxhj.jiti.domain.NoticeTask;
+import zyxhj.jiti.domain.NoticeTaskRecord;
 import zyxhj.jiti.domain.ORG;
 import zyxhj.jiti.domain.ORGDistrict;
 import zyxhj.jiti.domain.ORGExamine;
@@ -48,7 +51,7 @@ public class Test {
 
 		//	 RDSUtils.dropTableByEntity(dsRds, ORGPermission.class);
 
-		//	 RDSUtils.createTableByEntity(dsRds, Video.class); 
+		//	 RDSUtils.createTableByEntity(dsRds, Examine.class); 
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

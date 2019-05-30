@@ -51,8 +51,8 @@ public class ORGUser {
 	/**
 	 * 股份数
 	 */
-	@RDSAnnField(column = RDSAnnField.INTEGER)
-	public Integer shareAmount;
+	@RDSAnnField(column = RDSAnnField.DOUBLE)
+	public Double shareAmount;
 
 	/**
 	 * 投票权重
@@ -81,8 +81,8 @@ public class ORGUser {
 	/**
 	 * 户序号
 	 */
-	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
-	public String familyNumber;
+	@RDSAnnField(column = RDSAnnField.ID)
+	public Long familyNumber;
 
 	/**
 	 * 户主名

@@ -2,6 +2,7 @@ package zyxhj.custom.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -23,10 +24,11 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
-import io.vertx.core.impl.TaskQueue;
+import io.vertx.core.Vertx;
 import me.chanjar.weixin.common.api.WxConsts;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.mp.api.WxMpService;
@@ -40,18 +42,25 @@ import me.chanjar.weixin.mp.bean.result.WxMpUser;
 import me.chanjar.weixin.mp.bean.result.WxMpUserList;
 import me.chanjar.weixin.mp.bean.template.WxMpTemplateData;
 import me.chanjar.weixin.mp.bean.template.WxMpTemplateMessage;
+import zyxhj.jiti.domain.NoticeTask;
+import zyxhj.jiti.domain.NoticeTaskRecord;
 import zyxhj.jiti.repository.NoticeTaskRecordRepository;
+import zyxhj.jiti.repository.NoticeTaskRepository;
 import zyxhj.utils.Singleton;
+import zyxhj.utils.data.DataSource;
+import zyxhj.utils.data.DataSourceUtils;
 
 public class WxFuncService {
 
 	private static Logger log = LoggerFactory.getLogger(WxFuncService.class);
 
 	private NoticeTaskRecordRepository noticeTaskRecordRepository;
+	private NoticeTaskRepository noticeTaskRepository;
 
 	public WxFuncService() {
 		try {
 			noticeTaskRecordRepository = Singleton.ins(NoticeTaskRecordRepository.class);
+			noticeTaskRepository = Singleton.ins(NoticeTaskRepository.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -142,13 +151,65 @@ public class WxFuncService {
 	/*
 	 * 模板消息测试
 	 */
-	public void templateMessageTest(WxMpService wxMpService) throws WxErrorException {
-		WxMpTemplateMessage templateMessage = WxMpTemplateMessage.builder().toUser("") //oppenid
-				.templateId("nQ0-qyYKcvcwLeBN2_cwkj6yJjC2xgGA0lQr_4odvZE")
-				.url("http://aha-element.oss-cn-hangzhou.aliyuncs.com/index.html").build();
-		// // 非必填
-		templateMessage.addData(new WxMpTemplateData("test", "Let us test this!!", "blue"));
-		wxMpService.getTemplateMsgService().sendTemplateMsg(templateMessage);
+	public void templateMessageTest(WxMpService wxMpService, Long taskId, Long orgId) throws WxErrorException {
+
+		// 异步方法，不会阻塞
+		Vertx.vertx().executeBlocking(future -> {
+			// 下面这行代码可能花费很长时间
+			DataSource dsRds;
+			DruidPooledConnection conn = null;
+			try {
+				dsRds = DataSourceUtils.getDataSource("rdsDefault");
+				conn = (DruidPooledConnection) dsRds.openConnection();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			try {
+				NoticeTaskRecord noticeTaskRec = new NoticeTaskRecord();
+				NoticeTask notice = noticeTaskRepository.getByKey(conn, "id", taskId);
+				for (int i = 0; i < (notice.sum / 100) + 1; i++) {
+					List<NoticeTaskRecord> noticeRe = noticeTaskRecordRepository.getListByANDKeys(conn,
+							new String[] { "task_id", "org_id", "status" },
+							new Object[] { taskId, orgId, NoticeTaskRecord.STATUS.UNDETECTED.v() }, 100, 0);
+
+					for (NoticeTaskRecord noticeTaskRecord : noticeRe) {
+						WxMpTemplateMessage templateMessage = WxMpTemplateMessage.builder()
+								.toUser(noticeTaskRecord.openId) // oppenid
+								.templateId("nQ0-qyYKcvcwLeBN2_cwkj6yJjC2xgGA0lQr_4odvZE")
+								.url("http://aha-element.oss-cn-hangzhou.aliyuncs.com/index.html").build();
+
+						templateMessage.addData(new WxMpTemplateData("first", "Let us test this!!", "blue"));
+						templateMessage.addData(new WxMpTemplateData("goods_name", "goods", "blue"));
+						templateMessage.addData(new WxMpTemplateData("service_content", "牛逼", "blue"));
+						templateMessage.addData(new WxMpTemplateData("fee_money", "100", "blue"));
+						templateMessage.addData(new WxMpTemplateData("cost_standard", "200", "blue"));
+						templateMessage.addData(new WxMpTemplateData("remark", "xxxxx", "blue"));
+						try {
+							wxMpService.getTemplateMsgService().sendTemplateMsg(templateMessage);
+							noticeTaskRec.status = NoticeTaskRecord.STATUS.SUCCESS.v();
+							noticeTaskRecordRepository.updateByKey(conn, "task_id", noticeTaskRecord.taskId,
+									noticeTaskRec, true);
+						} catch (Exception e) {
+							noticeTaskRec.status = NoticeTaskRecord.STATUS.FAILURE.v();
+							noticeTaskRecordRepository.updateByKey(conn, "task_id", noticeTaskRecord.taskId,
+									noticeTaskRec, true);
+						}
+					}
+				}
+			} catch (Exception eee) {
+				eee.printStackTrace();
+			} finally {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+			future.complete("ok");
+		}, res -> {
+			System.out.println("The result is: " + res.result());
+		});
+
 	}
 
 	/*

@@ -23,8 +23,8 @@ public class Family {
 	/**
 	 * 户序号
 	 */
-	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
-	public String familyNumber;
+	@RDSAnnField(column = RDSAnnField.ID)
+	public Long familyNumber;
 
 	/**
 	 * 户主名
@@ -33,7 +33,7 @@ public class Family {
 	public String familyMaster;
 	
 	/**
-	 * 家庭成员  使用JSON存成员id
+	 * 家庭成员
 	 */
 	@RDSAnnField(column = RDSAnnField.SHORT_TEXT)
 	public String familyMember;

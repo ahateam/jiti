@@ -83,7 +83,7 @@ public class WxOAuth2Controller extends Controller {
 	)
 	public void templateMessage(HttpServerRequest req, HttpServerResponse resp, RoutingContext context)
 			throws Exception {
-		wxFuncService.templateMessageTest(wxDataService.getWxMpService());
+	//	wxFuncService.templateMessageTest(wxDataService.getWxMpService());
 	}
 
 	// 回复编码

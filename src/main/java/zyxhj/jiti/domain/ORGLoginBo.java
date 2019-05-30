@@ -36,7 +36,7 @@ public class ORGLoginBo {
 	public String shareCerImg;
 	public Boolean shareCerHolder;
 
-	public Integer shareAmount;
+	public Double shareAmount;
 	public Integer weight;
 
 	public JSONArray orgRoles;

@@ -66,7 +66,7 @@ public class ORGUserImportRecord {
 	 * 户序号
 	 */
 	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
-	public String familyNumber;
+	public Long familyNumber;
 
 	/**
 	 * 用户真名
@@ -89,8 +89,8 @@ public class ORGUserImportRecord {
 	/**
 	 * 股份数
 	 */
-	@RDSAnnField(column = RDSAnnField.INTEGER)
-	public Integer shareAmount;
+	@RDSAnnField(column = RDSAnnField.DOUBLE)
+	public Double shareAmount;
 
 	/**
 	 * 投票权重

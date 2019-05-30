@@ -25,7 +25,6 @@ import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutTextMessage;
-import me.chanjar.weixin.mp.bean.template.WxMpTemplateMessage;
 import zyxhj.custom.service.WxDataService;
 import zyxhj.custom.service.WxFuncService;
 import zyxhj.utils.CodecUtils;
@@ -125,11 +124,14 @@ public class WxEventController extends Controller {
 
 	@POST(path = "template", //
 			des = "微信通知")
-	public void template(RoutingContext context, HttpServerRequest req, HttpServerResponse resp)
-			throws WxErrorException {
-		System.out.println("xxxxxx");
+	public void template(RoutingContext context, HttpServerRequest req, HttpServerResponse resp//
+			//@P(t = "任务id") Long taskId, //
+			//@P(t = "组织编号") Long orgId //
+	) throws WxErrorException {
 		try {
-			wxFuncService.templateMessageTest(wxDataService.getWxMpService());
+			Long taskId = 398867896026260L;
+			Long orgId = 397652553337218L;
+			wxFuncService.templateMessageTest(wxDataService.getWxMpService(), taskId, orgId);
 		} catch (WxErrorException e) {
 			e.printStackTrace();
 		}
@@ -242,13 +244,5 @@ public class WxEventController extends Controller {
 		}
 		return ret;
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
 }

@@ -13,6 +13,12 @@ import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.aliyuncs.CommonRequest;
+import com.aliyuncs.CommonResponse;
+import com.aliyuncs.DefaultAcsClient;
+import com.aliyuncs.IAcsClient;
+import com.aliyuncs.http.MethodType;
+import com.aliyuncs.profile.DefaultProfile;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
@@ -22,6 +28,7 @@ import zyxhj.core.domain.UserSession;
 import zyxhj.core.repository.UserRepository;
 import zyxhj.jiti.domain.District;
 import zyxhj.jiti.domain.Family;
+import zyxhj.jiti.domain.Notice;
 import zyxhj.jiti.domain.NoticeTask;
 import zyxhj.jiti.domain.ORG;
 import zyxhj.jiti.domain.ORGDistrict;
@@ -33,6 +40,7 @@ import zyxhj.jiti.domain.ORGUserRole;
 import zyxhj.jiti.domain.Superior;
 import zyxhj.jiti.repository.DistrictRepository;
 import zyxhj.jiti.repository.FamilyRepository;
+import zyxhj.jiti.repository.NoticeRepository;
 import zyxhj.jiti.repository.NoticeTaskRecordRepository;
 import zyxhj.jiti.repository.NoticeTaskRepository;
 import zyxhj.jiti.repository.ORGDistrictRepository;
@@ -64,6 +72,7 @@ public class ORGService {
 	private ORGPermissionService orgPermissionService;
 	private NoticeTaskRepository noticeTaskRepository;
 	private NoticeTaskRecordRepository noticeTaskRecordRepository;
+	private NoticeRepository noticeRepository;
 
 	public ORGService() {
 		try {
@@ -79,6 +88,7 @@ public class ORGService {
 			orgPermissionService = Singleton.ins(ORGPermissionService.class);
 			noticeTaskRepository = Singleton.ins(NoticeTaskRepository.class);
 			noticeTaskRecordRepository = Singleton.ins(NoticeTaskRecordRepository.class);
+			noticeRepository = Singleton.ins(NoticeRepository.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -292,7 +302,7 @@ public class ORGService {
 	 */
 	public List<ORG> getORGs(DruidPooledConnection conn, Long superiorId, int count, int offset) throws Exception {
 		JSONArray json = new JSONArray();
-		List<Superior> superior = superiorRepository.getListByKey(conn, "superior_id", superiorId, null, null);
+		List<Superior> superior = superiorRepository.getListByKey(conn, "superior_id", superiorId, 512, 0);
 		for (Superior sup : superior) {
 			json.add(sup.orgId);
 		}
@@ -554,7 +564,6 @@ public class ORGService {
 
 			superiorRepository.insert(conn, sup);
 		}
-
 	}
 
 	// 再次提交组织申请
@@ -627,7 +636,7 @@ public class ORGService {
 	}
 
 	// 添加分户
-	public Family createFamily(DruidPooledConnection conn, Long orgId, String familyNumber, String familyMaster)
+	public Family createFamily(DruidPooledConnection conn, Long orgId, Long familyNumber, String familyMaster)
 			throws Exception {
 		Family fa = new Family();
 		fa.id = IDUtils.getSimpleId();
@@ -652,7 +661,7 @@ public class ORGService {
 	}
 
 	// 修改分户 TODO 未完善
-	public int editFamily(DruidPooledConnection conn, Long orgId, String familyNumber, String familyMaster)
+	public int editFamily(DruidPooledConnection conn, Long orgId, Long familyNumber, String familyMaster)
 			throws Exception {
 		Family fa = new Family();
 		fa.orgId = orgId;
@@ -662,12 +671,6 @@ public class ORGService {
 		// Family fn = familyRepository.getByKey(conn, "family_number", familyNumber);
 
 		return familyRepository.updateByKey(conn, "org_id", orgId, fa, true);
-	}
-
-	// 所有户列表
-	public List<Family> getFamilyAll(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)
-			throws Exception {
-		return familyRepository.getListByKey(conn, "org_id", orgId, count, offset);
 	}
 
 	/**
@@ -790,14 +793,64 @@ public class ORGService {
 
 		// 根据crowd查询出用户的openid 再把openid放入通知任务表中
 
-		noticeTaskRecordRepository.addNoticeTaskRecord(conn, orgId, no.id, crowd);
-
+		Integer s = noticeTaskRecordRepository.addNoticeTaskRecord(conn, orgId, no.id, crowd);
+		no.sum = s;
+		noticeTaskRepository.updateByKey(conn, "id", no.id, no, true);
 		return no;
 	}
-	
-	
-	
-	
-	
+
+	// 创建公告
+	public Notice createNotice(DruidPooledConnection conn, Long orgId, String noticeName, String noticeContent,
+			Byte type, String crowd) throws Exception {
+		Notice no = new Notice();
+		no.id = IDUtils.getSimpleId();
+		no.orgId = orgId;
+		no.name = noticeName;
+		no.content = noticeContent;
+		no.type = type;
+		no.crowd = crowd;
+		no.createTime = new Date();
+		noticeRepository.insert(conn, no);
+		return no;
+	}
+
+	public List<Notice> getNotice(DruidPooledConnection conn, Long orgId, String roles, String groups, Integer count,
+			Integer offset) throws Exception {
+		return noticeRepository.getNotice(conn, orgId, roles, groups, count, offset);
+	}
+
+	// 绑定微信openid
+	public User bdUserOpenId(DruidPooledConnection conn, Long userId, String openId) {
+		// 将openid存入User表中
+		return null;
+	}
+
+	// 通过用户openId进行登陆
+	public User loginByOpenId(DruidPooledConnection conn, String openId) {
+		// 通过openId去数据库里匹配 如果有 则正常登陆 如果没有 则表示需要绑定
+		return null;
+	}
+
+	// 短信群发
+	public void SendSms() {
+		//accessKeyId  
+		DefaultProfile profile = DefaultProfile.getProfile("cn-hangzhou", "<accessKeyId>", "<accessSecret>");
+		IAcsClient client = new DefaultAcsClient(profile);
+		CommonRequest request = new CommonRequest();
+		// request.setProtocol(ProtocolType.HTTPS);
+		request.setMethod(MethodType.POST);
+		request.setDomain("dysmsapi.aliyuncs.com");
+		request.setVersion("2017-05-25");
+		request.setAction("SendSms");
+		request.putQueryParameter("RegionId", "cn-hangzhou");
+
+		try {
+			CommonResponse response = client.getCommonResponse(request);
+			System.out.println(response.getData());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
 
 }

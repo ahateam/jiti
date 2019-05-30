@@ -59,5 +59,11 @@ public class NoticeTask {
 	 */
 	@RDSAnnField(column = RDSAnnField.BYTE)
 	public Byte type;
+	
+	/**
+	 * 需要发送的人数
+	 */
+	@RDSAnnField(column = RDSAnnField.INTEGER)
+	public Integer sum;
 
 }

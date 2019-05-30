@@ -1,4 +1,4 @@
-package zyxhj.jiti.service;
+package jiti;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;

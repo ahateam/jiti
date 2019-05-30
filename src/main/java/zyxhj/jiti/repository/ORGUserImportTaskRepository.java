@@ -7,7 +7,6 @@ import org.apache.commons.lang3.StringUtils;
 import com.alibaba.druid.pool.DruidPooledConnection;
 
 import zyxhj.jiti.domain.ORGUserImportTask;
-import zyxhj.utils.api.ServerException;
 import zyxhj.utils.data.rds.RDSRepository;
 import zyxhj.utils.data.rds.SQL;
 

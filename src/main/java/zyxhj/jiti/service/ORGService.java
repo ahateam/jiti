@@ -22,6 +22,7 @@ import zyxhj.core.domain.UserSession;
 import zyxhj.core.repository.UserRepository;
 import zyxhj.jiti.domain.District;
 import zyxhj.jiti.domain.Family;
+import zyxhj.jiti.domain.NoticeTask;
 import zyxhj.jiti.domain.ORG;
 import zyxhj.jiti.domain.ORGDistrict;
 import zyxhj.jiti.domain.ORGExamine;
@@ -32,6 +33,8 @@ import zyxhj.jiti.domain.ORGUserRole;
 import zyxhj.jiti.domain.Superior;
 import zyxhj.jiti.repository.DistrictRepository;
 import zyxhj.jiti.repository.FamilyRepository;
+import zyxhj.jiti.repository.NoticeTaskRecordRepository;
+import zyxhj.jiti.repository.NoticeTaskRepository;
 import zyxhj.jiti.repository.ORGDistrictRepository;
 import zyxhj.jiti.repository.ORGExamineRepository;
 import zyxhj.jiti.repository.ORGPermissionRelaRepository;
@@ -59,6 +62,8 @@ public class ORGService {
 	private DistrictRepository districtRepository;
 	private ORGPermissionRelaRepository orgPermissionRelaRepository;
 	private ORGPermissionService orgPermissionService;
+	private NoticeTaskRepository noticeTaskRepository;
+	private NoticeTaskRecordRepository noticeTaskRecordRepository;
 
 	public ORGService() {
 		try {
@@ -72,6 +77,8 @@ public class ORGService {
 			districtRepository = Singleton.ins(DistrictRepository.class);
 			orgPermissionRelaRepository = Singleton.ins(ORGPermissionRelaRepository.class);
 			orgPermissionService = Singleton.ins(ORGPermissionService.class);
+			noticeTaskRepository = Singleton.ins(NoticeTaskRepository.class);
+			noticeTaskRecordRepository = Singleton.ins(NoticeTaskRecordRepository.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -766,5 +773,31 @@ public class ORGService {
 			throws Exception {
 		return orgUserRepository.getORGAdmin(conn, orgId, level, count, offset);
 	}
+
+	// 创建通知任务
+	public NoticeTask addNoticeTask(DruidPooledConnection conn, Long orgId, Long userId, String taskName, String remark,
+			JSONObject crowd) throws Exception {
+		// 添加任务信息
+		NoticeTask no = new NoticeTask();
+		no.id = IDUtils.getSimpleId();
+		no.orgId = orgId;
+		no.userId = userId;
+		no.name = taskName;
+		no.createTime = new Date();
+		no.remark = remark;
+		no.crowd = crowd.toJSONString();
+		noticeTaskRepository.insert(conn, no);
+
+		// 根据crowd查询出用户的openid 再把openid放入通知任务表中
+
+		noticeTaskRecordRepository.addNoticeTaskRecord(conn, orgId, no.id, crowd);
+
+		return no;
+	}
+	
+	
+	
+	
+	
 
 }

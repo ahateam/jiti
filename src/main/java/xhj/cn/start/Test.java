@@ -13,6 +13,7 @@ import zyxhj.jiti.domain.ORGUserImportRecord;
 import zyxhj.jiti.domain.ORGUserImportTask;
 import zyxhj.jiti.domain.ORGUserRole;
 import zyxhj.jiti.domain.Superior;
+import zyxhj.movie.Video;
 import zyxhj.utils.data.DataSource;
 import zyxhj.utils.data.DataSourceUtils;
 import zyxhj.utils.data.rds.RDSUtils;
@@ -47,7 +48,7 @@ public class Test {
 
 		//	 RDSUtils.dropTableByEntity(dsRds, ORGPermission.class);
 
-		//	 RDSUtils.createTableByEntity(dsRds, ORGUserImportTask.class); 
+		//	 RDSUtils.createTableByEntity(dsRds, Video.class); 
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

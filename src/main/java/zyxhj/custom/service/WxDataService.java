@@ -29,8 +29,8 @@ public class WxDataService {
 		}
 	}
 
-	public static final String APPID = "wx9aaf23b05328a771";
-	public static final String APPSECRET = "6b72b49c33db086d6f62931f94e9ee1b";
+	public static final String APPID = "wx547972e25ec85006";
+	public static final String APPSECRET = "0406d93e33c3400e3b4b673ea86a2679";
 	public static final String TOKEN = "wx3ch";
 	public static final String AESKEY = "XZ2ZdYwchouGBDzZEzpAJEKdAqTwKrcwiOMP7n2cNDJ";
 

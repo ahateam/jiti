@@ -1263,4 +1263,28 @@ public class ORGController extends Controller {
 		}
 	}
 
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "addNoticeTask", //
+			des = "创建通知任务", //
+			ret = "返回任务信息"//
+	)
+	public APIResponse addNoticeTask(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "用户编号") Long userId, //
+			@P(t = "任务名称") String taskName, //
+			@P(t = "通知类容") String remark, //
+			@P(t = "需要发送的人群  [roles:{[xxx,xxx,xx]}]") JSONObject crowd //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse
+					.getNewSuccessResp(orgService.addNoticeTask(conn, orgId, userId, taskName, remark, crowd));
+		}
+	}
+	
+	
+	
+
 }

@@ -1,8 +1,5 @@
 package zyxhj.jiti.service;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -10,7 +7,6 @@ import com.alibaba.fastjson.JSONObject;
 import zyxhj.jiti.repository.AssetRepository;
 import zyxhj.jiti.repository.ORGUserRepository;
 import zyxhj.jiti.repository.VoteRepository;
-import zyxhj.test.repository.TestRepository;
 import zyxhj.utils.api.ServerException;
 import zyxhj.utils.data.DataSourceUtils;
 
@@ -27,7 +23,6 @@ public class Test {
 		}
 	}
 
-	private static TestRepository testRepository = new TestRepository();
 	private static ORGUserRepository oRGUserRepository = new ORGUserRepository();
 	private static VoteRepository voteRepository = new VoteRepository();
 	private static AssetRepository assetRepository = new AssetRepository();

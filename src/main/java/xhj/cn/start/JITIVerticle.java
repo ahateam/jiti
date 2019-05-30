@@ -26,6 +26,10 @@ public class JITIVerticle extends ZeroVerticle {
 		return "jiti";
 	}
 
+	public int port() {
+		return 8080;
+	}
+
 	protected void init() throws Exception {
 
 		DataSourceUtils.initDataSourceConfig();
@@ -47,11 +51,11 @@ public class JITIVerticle extends ZeroVerticle {
 		initCtrl(ctrlMap, Singleton.ins(WxEventController.class, "wx"));
 
 		initCtrl(ctrlMap, Singleton.ins(ContentController.class, "content"));
-		
+
 		initCtrl(ctrlMap, Singleton.ins(DemonstrationController.class, "demon"));
-		
+
 		initCtrl(ctrlMap, Singleton.ins(BankController.class, "bank"));
-		
+
 	}
 
 }

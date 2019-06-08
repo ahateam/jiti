@@ -7,7 +7,9 @@ import org.apache.commons.lang3.StringUtils;
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
 
+import zyxhj.jiti.domain.ORGPermission;
 import zyxhj.jiti.domain.ORGPermissionRel;
+import zyxhj.utils.api.ServerException;
 import zyxhj.utils.data.rds.RDSRepository;
 import zyxhj.utils.data.rds.SQL;
 
@@ -47,6 +49,27 @@ public class ORGPermissionRelaRepository extends RDSRepository<ORGPermissionRel>
 		}
 		sql.fillSQL(sb);
 		return getList(conn, sb.toString(), sql.getParams(), 512, 0);
+	}
+
+	public ORGPermissionRel getPermissionRela(DruidPooledConnection conn, Long orgId, String roles, Long permissionId)
+			throws Exception {
+		StringBuffer sb = new StringBuffer("WHERE ");
+		JSONArray role = JSONArray.parseArray(roles);
+		SQL sql = new SQL();
+		sql.addEx("org_id = ? ", orgId);
+		SQL sqlEx = new SQL();
+		if (role != null && role.size() > 0) {
+			for (int i = 0; i < role.size(); i++) {
+				sqlEx.OR(StringUtils.join("role_id = ", role.getLong(i)));
+			}
+			sql.AND(sqlEx);
+			sql.AND(StringUtils.join("permission_id = ", permissionId));
+		} else {
+			return null;
+		}
+		sql.fillSQL(sb);
+
+		return this.get(conn, sb.toString(), sql.getParams());
 	}
 
 }

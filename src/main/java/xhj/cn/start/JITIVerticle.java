@@ -6,6 +6,7 @@ import zyxhj.core.controller.TagController;
 import zyxhj.core.controller.TestController;
 import zyxhj.core.controller.UserController;
 import zyxhj.custom.controller.WxEventController;
+import zyxhj.custom.controller.WxOAuth2Controller;
 import zyxhj.jiti.controller.AssetController;
 import zyxhj.jiti.controller.BankController;
 import zyxhj.jiti.controller.DemonstrationController;
@@ -50,6 +51,8 @@ public class JITIVerticle extends ZeroVerticle {
 		initCtrl(ctrlMap, Singleton.ins(TagController.class, "tag"));
 
 		initCtrl(ctrlMap, Singleton.ins(WxEventController.class, "wx"));
+
+		initCtrl(ctrlMap, Singleton.ins(WxOAuth2Controller.class, "wxOAuth"));
 
 		initCtrl(ctrlMap, Singleton.ins(ContentController.class, "content"));
 

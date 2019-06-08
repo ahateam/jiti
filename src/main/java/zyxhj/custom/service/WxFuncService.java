@@ -2,8 +2,9 @@ package zyxhj.custom.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -24,11 +25,9 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
-import io.vertx.core.Vertx;
 import me.chanjar.weixin.common.api.WxConsts;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.mp.api.WxMpService;
@@ -42,25 +41,13 @@ import me.chanjar.weixin.mp.bean.result.WxMpUser;
 import me.chanjar.weixin.mp.bean.result.WxMpUserList;
 import me.chanjar.weixin.mp.bean.template.WxMpTemplateData;
 import me.chanjar.weixin.mp.bean.template.WxMpTemplateMessage;
-import zyxhj.jiti.domain.NoticeTask;
-import zyxhj.jiti.domain.NoticeTaskRecord;
-import zyxhj.jiti.repository.NoticeTaskRecordRepository;
-import zyxhj.jiti.repository.NoticeTaskRepository;
-import zyxhj.utils.Singleton;
-import zyxhj.utils.data.DataSource;
-import zyxhj.utils.data.DataSourceUtils;
 
 public class WxFuncService {
 
 	private static Logger log = LoggerFactory.getLogger(WxFuncService.class);
 
-	private NoticeTaskRecordRepository noticeTaskRecordRepository;
-	private NoticeTaskRepository noticeTaskRepository;
-
 	public WxFuncService() {
 		try {
-			noticeTaskRecordRepository = Singleton.ins(NoticeTaskRecordRepository.class);
-			noticeTaskRepository = Singleton.ins(NoticeTaskRepository.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -149,66 +136,62 @@ public class WxFuncService {
 	}
 
 	/*
-	 * 模板消息测试
+	 * 模板消息
 	 */
-	public void templateMessageTest(WxMpService wxMpService, Long taskId, Long orgId) throws WxErrorException {
+	public void templateMessage(WxMpService wxMpService, String openId, String title, String content, Date createDate)
+			throws WxErrorException {
+		WxMpTemplateMessage templateMessage = WxMpTemplateMessage.builder().toUser(openId) // oppenid
+				.templateId("nQ0-qyYKcvcwLeBN2_cwkj6yJjC2xgGA0lQr_4odvZE")
+				.url("http://jiti.online.3ch.org.cn/wap/index.html").build();
 
-		// 异步方法，不会阻塞
-		Vertx.vertx().executeBlocking(future -> {
-			// 下面这行代码可能花费很长时间
-			DataSource dsRds;
-			DruidPooledConnection conn = null;
-			try {
-				dsRds = DataSourceUtils.getDataSource("rdsDefault");
-				conn = (DruidPooledConnection) dsRds.openConnection();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			try {
-				NoticeTaskRecord noticeTaskRec = new NoticeTaskRecord();
-				NoticeTask notice = noticeTaskRepository.getByKey(conn, "id", taskId);
-				for (int i = 0; i < (notice.sum / 100) + 1; i++) {
-					List<NoticeTaskRecord> noticeRe = noticeTaskRecordRepository.getListByANDKeys(conn,
-							new String[] { "task_id", "org_id", "status" },
-							new Object[] { taskId, orgId, NoticeTaskRecord.STATUS.UNDETECTED.v() }, 100, 0);
+		templateMessage.addData(new WxMpTemplateData("first", title, "blue"));
+		templateMessage.addData(new WxMpTemplateData("keynote1", content, "blue"));
+		templateMessage.addData(new WxMpTemplateData("keynote2", createDate.toString(), "blue"));
 
-					for (NoticeTaskRecord noticeTaskRecord : noticeRe) {
-						WxMpTemplateMessage templateMessage = WxMpTemplateMessage.builder()
-								.toUser(noticeTaskRecord.openId) // oppenid
-								.templateId("nQ0-qyYKcvcwLeBN2_cwkj6yJjC2xgGA0lQr_4odvZE")
-								.url("http://aha-element.oss-cn-hangzhou.aliyuncs.com/index.html").build();
+		wxMpService.getTemplateMsgService().sendTemplateMsg(templateMessage);
 
-						templateMessage.addData(new WxMpTemplateData("first", "Let us test this!!", "blue"));
-						templateMessage.addData(new WxMpTemplateData("goods_name", "goods", "blue"));
-						templateMessage.addData(new WxMpTemplateData("service_content", "牛逼", "blue"));
-						templateMessage.addData(new WxMpTemplateData("fee_money", "100", "blue"));
-						templateMessage.addData(new WxMpTemplateData("cost_standard", "200", "blue"));
-						templateMessage.addData(new WxMpTemplateData("remark", "xxxxx", "blue"));
-						try {
-							wxMpService.getTemplateMsgService().sendTemplateMsg(templateMessage);
-							noticeTaskRec.status = NoticeTaskRecord.STATUS.SUCCESS.v();
-							noticeTaskRecordRepository.updateByKey(conn, "task_id", noticeTaskRecord.taskId,
-									noticeTaskRec, true);
-						} catch (Exception e) {
-							noticeTaskRec.status = NoticeTaskRecord.STATUS.FAILURE.v();
-							noticeTaskRecordRepository.updateByKey(conn, "task_id", noticeTaskRecord.taskId,
-									noticeTaskRec, true);
-						}
-					}
-				}
-			} catch (Exception eee) {
-				eee.printStackTrace();
-			} finally {
-				try {
-					conn.close();
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-			}
-			future.complete("ok");
-		}, res -> {
-			System.out.println("The result is: " + res.result());
-		});
+	}
+
+	/*
+	 * 投票模板消息
+	 */
+	public void voteMessage(WxMpService wxMpService, String openId, String title, String options, Date startTime,
+			Date expiryTime) throws WxErrorException {
+		WxMpTemplateMessage templateMessage = WxMpTemplateMessage.builder().toUser(openId) // oppenid
+				.templateId("jOSl7ivdeibf2_axLpr5w8Jdo3Jq-OPjSiqsqyKKhfI")
+				.url("http://jiti.online.3ch.org.cn/wap/index.html").build();
+
+		templateMessage.addData(new WxMpTemplateData("first", "您有一条新的投票"));
+		templateMessage.addData(new WxMpTemplateData("keyword1", title));
+		templateMessage.addData(new WxMpTemplateData("keyword2", options));
+		templateMessage.addData(new WxMpTemplateData("keyword3", startTime.toString()));
+		templateMessage.addData(new WxMpTemplateData("keyword4", expiryTime.toString()));
+		templateMessage.addData(new WxMpTemplateData("remark", "请及时查看并投出您宝贵的一票"));
+
+		wxMpService.getTemplateMsgService().sendTemplateMsg(templateMessage);
+
+	}
+
+	/*
+	 * 审核通知模板消息
+	 */
+	public void examineMessage(WxMpService wxMpService, String openId, String orgName, String familyMaster, String type,
+			Date createTime) throws WxErrorException {
+		WxMpTemplateMessage templateMessage = WxMpTemplateMessage.builder().toUser(openId) // oppenid
+				.templateId("TdZQ3y4_2mXVzJFFgqbnAMwnNShEXHGrFJFZbt67V-U")
+				.url("http://jiti.online.3ch.org.cn/wap/index.html").build();
+
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MM月dd日 hh:mm:ss");
+		String date2 = sdf.format(createTime);
+
+		templateMessage.addData(new WxMpTemplateData("first", "您有一条新的审核"));
+		templateMessage.addData(new WxMpTemplateData("keyword1", orgName));
+		templateMessage.addData(new WxMpTemplateData("keyword2", familyMaster));
+		templateMessage.addData(new WxMpTemplateData("keyword3", type));
+		templateMessage.addData(new WxMpTemplateData("keyword4", date2));
+		templateMessage.addData(new WxMpTemplateData("remark", "请及时处理"));
+
+		wxMpService.getTemplateMsgService().sendTemplateMsg(templateMessage);
 
 	}
 

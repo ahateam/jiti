@@ -73,6 +73,8 @@ public class Examine {
 		ADDFAMILYUSER((byte) 2, "新增户成员"), //
 		DELFAMILYUSER((byte) 3, "移除户成员"), //
 		MOVEFAMILYUSER((byte) 4, "移户"), //
+		UPSHARE((byte) 5, "股权变更"), //
+		
 		;
 
 		private byte v;

@@ -17,6 +17,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
+import zyxhj.core.repository.UserRepository;
+import zyxhj.custom.service.WxDataService;
+import zyxhj.custom.service.WxFuncService;
 import zyxhj.jiti.domain.ORGUser;
 import zyxhj.jiti.domain.Vote;
 import zyxhj.jiti.domain.VoteOption;
@@ -38,6 +41,8 @@ public class VoteService {
 	private VoteOptionRepository optionRepository;
 	private VoteTicketRepository ticketRepository;
 	private ORGUserRepository orgUserRepository;
+	private WxDataService wxDataService;
+	private WxFuncService wxFuncService;
 
 	public VoteService() {
 		try {
@@ -45,6 +50,8 @@ public class VoteService {
 			optionRepository = Singleton.ins(VoteOptionRepository.class);
 			ticketRepository = Singleton.ins(VoteTicketRepository.class);
 			orgUserRepository = Singleton.ins(ORGUserRepository.class);
+			wxDataService = Singleton.ins(WxDataService.class);
+			wxFuncService = Singleton.ins(WxFuncService.class);
 
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
@@ -138,6 +145,34 @@ public class VoteService {
 		}
 
 		return v;
+	}
+
+	// 发送微信通知
+	public void sendVoteMessage(DruidPooledConnection conn, Long orgId, Long voteId) throws Exception {
+		Vote vote = voteRepository.getByANDKeys(conn, new String[] { "id", "org_id" }, new Object[] { voteId, orgId });
+		JSONObject crowd = JSONObject.parseObject(vote.crowd);
+		// 发送微信通知 解析crowd 获取roles 通过roles获取到用户 然后通过用户得wxopenId去发送模板消息 TODO 应该得开新线程处理
+		// 查询可投票选项
+		JSONArray options = new JSONArray();
+		List<VoteOption> option = optionRepository.getOptionByVoteId(conn, voteId);
+		for (VoteOption voteOption : option) {
+			options.add(voteOption.title);
+		}
+
+		JSONArray json = crowd.getJSONArray("roles");
+		Integer offset = 0;
+		for (int i = 0; i < vote.quorum / 100 + 1; i++) {
+			// 获取openId 
+			
+			JSONArray openIds = orgUserRepository.getORGUsersByRole(conn, orgId, json, 100, offset);
+			for (int j = 0; j < openIds.size(); j++) {
+				JSONObject jo = openIds.getJSONObject(j);
+				// 发送微信通知
+				wxFuncService.voteMessage(wxDataService.getWxMpService(), jo.getString("wxOpenId"), vote.title,
+						options.toJSONString(), vote.startTime, vote.expiryTime);
+			}
+			offset = offset + 100;
+		}
 	}
 
 	public int editVote(DruidPooledConnection conn, Long orgId, Long voteId, Byte type, Byte choiceCount,

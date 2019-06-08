@@ -479,4 +479,22 @@ public class VoteController extends Controller {
 		}
 	}
 
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "sendVoteMessage", //
+			des = "发送投票消息", //
+			ret = ""//
+	)
+	public APIResponse sendVoteMessage(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "投票id") Long voteId //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			voteService.sendVoteMessage(conn, orgId, voteId);
+			return APIResponse.getNewSuccessResp();
+		}
+	}
+
 }

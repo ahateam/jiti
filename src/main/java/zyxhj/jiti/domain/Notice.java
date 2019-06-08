@@ -16,6 +16,7 @@ public class Notice {
 	public static enum TYPE implements ENUMVALUE {
 		ORG((byte) 0, "会议公告"), //
 		FAMILY((byte) 1, "投票公告"), //
+		OTHER((byte) 2, "其他公告"),//
 		;
 
 		private byte v;
@@ -48,7 +49,7 @@ public class Notice {
 	 * 公告名称
 	 */
 	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
-	public String name;
+	public String title;
 
 	/**
 	 * 公告内容

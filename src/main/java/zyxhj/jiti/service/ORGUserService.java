@@ -20,6 +20,8 @@ import com.google.common.cache.CacheBuilder;
 import io.vertx.core.Vertx;
 import zyxhj.core.domain.User;
 import zyxhj.core.repository.UserRepository;
+import zyxhj.custom.service.WxDataService;
+import zyxhj.custom.service.WxFuncService;
 import zyxhj.jiti.domain.AssetImportTask;
 import zyxhj.jiti.domain.Examine;
 import zyxhj.jiti.domain.Family;
@@ -58,6 +60,8 @@ public class ORGUserService {
 	private ExamineRepository examineRepository;
 	private ORGService orgService;
 	private ORGPermissionRelaRepository orgPermissionRelaRepository;
+	private WxDataService wxDataService;
+	private WxFuncService wxFuncService;
 
 	public ORGUserService() {
 		try {
@@ -70,6 +74,8 @@ public class ORGUserService {
 			examineRepository = Singleton.ins(ExamineRepository.class);
 			orgService = Singleton.ins(ORGService.class);
 			orgPermissionRelaRepository = Singleton.ins(ORGPermissionRelaRepository.class);
+			wxDataService = Singleton.ins(WxDataService.class);
+			wxFuncService = Singleton.ins(WxFuncService.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -205,45 +211,45 @@ public class ORGUserService {
 		or.familyNumber = familyNumber;
 		or.familyMaster = familyMaster;
 
-		if (familyNumber != null) {
-			// 查询户序号在family表里是否拥有 有则把usreid插入到户成员下 无则添加户
-
-			Family fn = FAMILY_CACHE.getIfPresent(familyNumber);
-			if (fn == null) {
-
-				fn = familyRepository.getByANDKeys(conn, new String[] { "org_id", "family_number" },
-						new Object[] { orgId, familyNumber });
-				if (fn != null) {
-					FAMILY_CACHE.put(familyNumber.toString(), fn);
-				}
-
-			}
-
-			// 从缓存和数据库都取了一遍，
-			if (fn == null) {
-				// 如果空需要创建
-				// 添加户
-				fa.id = IDUtils.getSimpleId();
-				fa.orgId = orgId;
-				fa.familyNumber = familyNumber;
-				fa.familyMaster = familyMaster;
-
-				// 将当前用户的id插入到户成员里
-				JSONArray json = new JSONArray();
-				json.add(userId);
-				fa.familyMember = json.toString();
-				familyRepository.insert(conn, fa);
-			} else {
-				// 添加到户成员下
-				JSONArray json = JSONArray.parseArray(fn.familyMember);
-				json.add(userId);
-				fa.familyMember = json.toString();
-				familyRepository.updateByKey(conn, "family_number", familyNumber, fa, true);
-				FAMILY_CACHE.put(familyNumber.toString(), fa);
-
-			}
-
-		}
+//		if (familyNumber != null) {
+//			// 查询户序号在family表里是否拥有 有则把usreid插入到户成员下 无则添加户
+//
+//			Family fn = FAMILY_CACHE.getIfPresent(familyNumber);
+//			if (fn == null) {
+//
+//				fn = familyRepository.getByANDKeys(conn, new String[] { "org_id", "family_number" },
+//						new Object[] { orgId, familyNumber });
+//				if (fn != null) {
+//					FAMILY_CACHE.put(familyNumber.toString(), fn);
+//				}
+//
+//			}
+//
+//			// 从缓存和数据库都取了一遍，
+//			if (fn == null) {
+//				// 如果空需要创建
+//				// 添加户
+//				fa.id = IDUtils.getSimpleId();
+//				fa.orgId = orgId;
+//				fa.familyNumber = familyNumber;
+//				fa.familyMaster = familyMaster;
+//
+//				// 将当前用户的id插入到户成员里
+//				JSONArray json = new JSONArray();
+//				json.add(userId);
+//				fa.familyMember = json.toString();
+//				familyRepository.insert(conn, fa);
+//			} else {
+//				// 添加到户成员下
+//				JSONArray json = JSONArray.parseArray(fn.familyMember);
+//				json.add(userId);
+//				fa.familyMember = json.toString();
+//				familyRepository.updateByKey(conn, "family_number", familyNumber, fa, true);
+//				FAMILY_CACHE.put(familyNumber.toString(), fa);
+//
+//			}
+//
+//		}
 		orgUserRepository.insert(conn, or);
 	}
 
@@ -1014,6 +1020,7 @@ public class ORGUserService {
 		createORGUserAdmin(conn, orgId, mobile, realName, idNumber, level);
 	}
 
+	// 创建组织用户管理员
 	private void createORGUserAdmin(DruidPooledConnection conn, Long orgId, String mobile, String realName,
 			String idNumber, Byte level) throws Exception {
 		User extUser = userRepository.getByKey(conn, "id_number", idNumber);
@@ -1051,6 +1058,7 @@ public class ORGUserService {
 		}
 	}
 
+	// 添加组织管理员
 	private void insertORGUserAdmin(DruidPooledConnection conn, Long orgId, Long userId, Byte level) throws Exception {
 		ORGUser or = new ORGUser();
 		or.orgId = orgId;
@@ -1066,11 +1074,13 @@ public class ORGUserService {
 		orgUserRepository.insert(conn, or);
 	}
 
+	// 删除组织管理员
 	public int delORGUserAdmin(DruidPooledConnection conn, Long orgId, Long userId) throws Exception {
 		return orgUserRepository.deleteByANDKeys(conn, new String[] { "org_id", "user_id" },
 				new Object[] { orgId, userId });
 	}
 
+	// 修改组织管理员
 	public int editORGAdmin(DruidPooledConnection conn, Long orgId, Long userId, String idNumber, String mobile,
 			String realName) throws Exception {
 
@@ -1085,7 +1095,7 @@ public class ORGUserService {
 	// 所有户列表
 	public JSONArray getFamilyAll(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)
 			throws Exception {
-		return familyRepository.getFamilyAll(conn, orgId, count, offset);
+		return orgUserRepository.getFamilyAll(conn, orgId, count, offset);
 	}
 
 	// 模糊查询户主名
@@ -1145,7 +1155,81 @@ public class ORGUserService {
 		}
 		examine.remark = remark;
 		examineRepository.insert(conn, examine);
+
+		// 给审核人员发送通知
+		if (examine.type == Examine.TYPE.FAMILY.v()) {
+			examineMessage(conn, orgId, examine, ORGPermission.per_feparate_family.id);
+		} else if (examine.type == Examine.TYPE.SHARE.v()) {
+			examineMessage(conn, orgId, examine, ORGPermission.per_share_change.id);
+		}
 		return examine;
+
+	}
+
+	// 发送微信通知
+	private void examineMessage(DruidPooledConnection conn, Long orgId, Examine examine, Long permissionId)
+			throws Exception {
+		JSONObject jo = JSONObject.parseObject(examine.data);
+		JSONArray json = new JSONArray();
+		String type = "";
+		String familyMaster = "";
+		// 获取org信息
+		ORG or = orgService.getORGById(conn, orgId);
+		if (examine.status == Examine.STATUS.NOEXAMINE.v()) {
+			List<ORGPermissionRel> orgPermission = orgPermissionRelaRepository.getListByANDKeys(conn,
+					new String[] { "org_id", "permission_id" }, new Object[] { orgId, permissionId }, 64, 0);
+			for (ORGPermissionRel orgPermissionRel : orgPermission) {
+				json.add(orgPermissionRel.roleId);
+			}
+			JSONArray user = orgUserRepository.getUserByRoles(conn, orgId, json);
+			for (int i = 0; i < user.size(); i++) {
+				JSONObject userInfo = user.getJSONObject(i);
+				String openId = userInfo.getString("wxOpenId");
+				if (openId == null) {
+					continue;
+				}
+				JSONObject ext = jo.getJSONObject("ext");
+				Byte familyOperate = ext.getByte("familyOperate");
+				if (permissionId == ORGPermission.per_feparate_family.id) {
+					if (familyOperate == Examine.OPERATE.ADDFAMILY.v()) {
+						type = Examine.OPERATE.ADDFAMILY.txt();
+						JSONArray newDatas = jo.getJSONArray("newData");
+						JSONArray newData = JSONArray.parseArray(newDatas.getString(0));
+						JSONObject familyInfo = newData.getJSONObject(0);
+						familyMaster = familyInfo.getString("familyMaster");
+					} else if (familyOperate == Examine.OPERATE.HOUSEHOLD.v()) {
+						type = Examine.OPERATE.HOUSEHOLD.txt();
+						JSONArray data = jo.getJSONArray("oldData");
+						JSONObject familyInfo = data.getJSONObject(i);
+						familyMaster = familyInfo.getString("familyMaster");
+					} else if (familyOperate == Examine.OPERATE.ADDFAMILYUSER.v()) {
+						type = Examine.OPERATE.ADDFAMILYUSER.txt();
+						JSONArray data = jo.getJSONArray("oldData");
+						JSONObject familyInfo = data.getJSONObject(i);
+						familyMaster = familyInfo.getString("familyMaster");
+					} else if (familyOperate == Examine.OPERATE.DELFAMILYUSER.v()) {
+						type = Examine.OPERATE.DELFAMILYUSER.txt();
+						JSONArray data = jo.getJSONArray("oldData");
+						JSONObject familyInfo = data.getJSONObject(i);
+						familyMaster = familyInfo.getString("familyMaster");
+					} else if (familyOperate == Examine.OPERATE.MOVEFAMILYUSER.v()) {
+						type = Examine.OPERATE.MOVEFAMILYUSER.txt();
+						JSONArray data = jo.getJSONArray("oldData");
+						JSONObject familyInfo = data.getJSONObject(i);
+						familyMaster = familyInfo.getString("familyMaster");
+					}
+				} else if (permissionId == ORGPermission.per_share_change.id) {
+					type = Examine.OPERATE.UPSHARE.txt();
+					JSONArray newDatas = jo.getJSONArray("newData");
+					JSONArray newData = JSONArray.parseArray(newDatas.getString(0));
+					JSONObject familyInfo = newData.getJSONObject(0);
+					familyMaster = familyInfo.getString("familyMaster");
+				}
+				wxFuncService.examineMessage(wxDataService.getWxMpService(), openId, or.name, familyMaster, type,
+						examine.createDate);
+			}
+		}
+
 	}
 
 	// 根据审核类型，审核状态查询某个组织的审核
@@ -1153,6 +1237,37 @@ public class ORGUserService {
 			Integer offset) throws Exception {
 		return examineRepository.getListByANDKeys(conn, new String[] { "org_id", "type", "status" },
 				new Object[] { orgId, type, status }, count, offset);
+	}
+
+	// 根据用户审核权限查看审核 用户只能看到自己的审核 拥有审核权限的查看所有审核
+	public List<Examine> getExamineByPer(DruidPooledConnection conn, Long orgId, Long userId, String permissionIds,
+			Byte type, Byte status, Integer count, Integer offset) throws Exception {
+//		ORGPermissionRel permissionRela = orgPermissionRelaRepository.getPermissionRela(conn, orgId, roles,
+//				ORGPermission.per_examine.id);
+		JSONArray json = JSONArray.parseArray(permissionIds);
+		boolean check = false;
+		for (int i = 0; i < json.size(); i++) {
+			if (type == Examine.TYPE.FAMILY.v()) {
+				if (json.getLong(i) == ORGPermission.per_feparate_family.id) {
+					check = true;
+				}
+			} else if (type == Examine.TYPE.SHARE.v()) {
+				if (json.getLong(i) == ORGPermission.per_share_change.id) {
+					check = true;
+				}
+			}
+		}
+		if (check) {
+			// 有权限 获取审核列表
+			if (status == null) {
+				status = 0;
+			}
+			return examineRepository.getListByANDKeys(conn, new String[] { "org_id", "type", "status" },
+					new Object[] { orgId, type, status }, count, offset);
+		} else {
+			// 用户查看自己的审核 TODO 有问题
+			return examineRepository.getExamineLikeUserId(conn, orgId, userId, count, offset);
+		}
 	}
 
 	// 修改审核
@@ -1218,7 +1333,6 @@ public class ORGUserService {
 		} else {
 			return null;
 		}
-
 	}
 
 	// 移户操作
@@ -1303,41 +1417,45 @@ public class ORGUserService {
 		String editHouseholder = ext.getString("editHouseholder");
 		JSONArray newDatas = jsonObj.getJSONArray("newData");
 		for (int i = 0; i < newDatas.size(); i++) {
-			JSONObject json = newDatas.getJSONObject(i);
-			// 取到用户标记
-			Byte userTab = json.getByte("userTab");
-			if (userTab != null && userTab == Examine.TAB.ADD.v()) {
-				Long or = json.getLong("orgId");
-				String mobile = json.getString("mobile");
-				String realName = json.getString("realName");
-				String idNumber = json.getString("idNumber");
-				String address = json.getString("address");
-				String shareCerNo = json.getString("shareCerNo");
-				String shareCerImg = json.getString("shareCerImg");
-				Boolean shareCerHolder = json.getBoolean("shareCerHolder");
-				Double shareAmount = json.getDouble("shareAmount");
-				Integer weight = json.getInteger("weight");
-				JSONArray roles = json.getJSONArray("roles");
-				JSONArray groups = json.getJSONArray("groups");
-				Long familyNumber = json.getLong("familyNumber");
-				String familyMaster = json.getString("familyMaster");
-				JSONObject tags = json.getJSONObject("tags");
-				createORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo, shareCerImg, shareCerHolder,
-						shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
-			} else if (userTab != null && userTab == Examine.TAB.REMOVE.v()) {
-				// 移除户成员
-				Long or = json.getLong("orgId");
-				Long userId = json.getLong("userId");
-				orgUserRepository.deleteByANDKeys(conn, new String[] { "org_id", "user_id" },
-						new Object[] { or, userId });
-			} else {
-				continue;
+			JSONArray newData = newDatas.getJSONArray(i);
+			for (int j = 0; j < newData.size(); j++) {
+				JSONObject json = newData.getJSONObject(j);
+				// 取到用户标记
+				Byte userTab = json.getByte("userTab");
+				if (userTab != null && userTab == Examine.TAB.ADD.v()) {
+					Long or = json.getLong("orgId");
+					String mobile = json.getString("mobile");
+					String realName = json.getString("realName");
+					String idNumber = json.getString("idNumber");
+					String address = json.getString("address");
+					String shareCerNo = json.getString("shareCerNo");
+					String shareCerImg = json.getString("shareCerImg");
+					Boolean shareCerHolder = json.getBoolean("shareCerHolder");
+					Double shareAmount = json.getDouble("shareAmount");
+					Integer weight = json.getInteger("weight");
+					JSONArray roles = json.getJSONArray("roles");
+					JSONArray groups = json.getJSONArray("groups");
+					Long familyNumber = json.getLong("familyNumber");
+					String familyMaster = json.getString("familyMaster");
+					JSONObject tags = json.getJSONObject("tags");
+					createORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo, shareCerImg,
+							shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+				} else if (userTab != null && userTab == Examine.TAB.REMOVE.v()) {
+					// 移除户成员
+					Long or = json.getLong("orgId");
+					Long userId = json.getLong("userId");
+					orgUserRepository.deleteByANDKeys(conn, new String[] { "org_id", "user_id" },
+							new Object[] { or, userId });
+				} else {
+					continue;
+				}
 			}
 		}
 
 		if (StringUtils.isNotBlank(editHouseholder)) {
+			JSONArray js = newDatas.getJSONArray(0);
 			// 获取到新数据里每一个户
-			JSONObject jo = newDatas.getJSONObject(0);
+			JSONObject jo = js.getJSONObject(0);
 			Long or = jo.getLong("orgId");
 			Long familyNumber = jo.getLong("familyNumber");
 			String familyMaster = jo.getString("familyMaster");
@@ -1443,36 +1561,41 @@ public class ORGUserService {
 		// 获取组织户序号 并加上1
 		ORGUser faNum = orgUserRepository.maxFamilyNumber(conn, orgId);
 		Long maxNum = faNum.familyNumber + 1;// TODO 线程不安全，目前不解决
-		JSONArray js = new JSONArray();
-		JSONArray newData = jsonObj.getJSONArray("newData");
-		for (int i = 0; i < newData.size(); i++) {
-			JSONObject json = newData.getJSONObject(i);
-			Long or = json.getLong("orgId");
-			String mobile = json.getString("mobile");
-			String realName = json.getString("realName");
-			String idNumber = json.getString("idNumber");
-			String address = json.getString("address");
-			String shareCerNo = json.getString("shareCerNo");
-			String shareCerImg = json.getString("shareCerImg");
-			Boolean shareCerHolder = json.getBoolean("shareCerHolder");
-			Double shareAmount = json.getDouble("shareAmount");
-			Integer weight = json.getInteger("weight");
-			JSONArray roles = json.getJSONArray("roles");
-			JSONArray groups = json.getJSONArray("groups");
-			Long familyNumber = maxNum;
-			String familyMaster = json.getString("familyMaster");
-			JSONObject tags = json.getJSONObject("tags");
-			json.put("familyNumber", maxNum);
-			createORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo, shareCerImg, shareCerHolder,
-					shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
-			js.add(json);
+		JSONArray addNewData = new JSONArray();
+		JSONArray newDatas = jsonObj.getJSONArray("newData");
+		for (int i = 0; i < newDatas.size(); i++) {
+			JSONArray newData = newDatas.getJSONArray(i);
+			JSONArray addFamily = new JSONArray();
+			for (int j = 0; j < newData.size(); j++) {
+				JSONObject json = newData.getJSONObject(j);
+				Long or = json.getLong("orgId");
+				String mobile = json.getString("mobile");
+				String realName = json.getString("realName");
+				String idNumber = json.getString("idNumber");
+				String address = json.getString("address");
+				String shareCerNo = json.getString("shareCerNo");
+				String shareCerImg = json.getString("shareCerImg");
+				Boolean shareCerHolder = json.getBoolean("shareCerHolder");
+				Double shareAmount = json.getDouble("shareAmount");
+				Integer weight = json.getInteger("weight");
+				JSONArray roles = json.getJSONArray("roles");
+				JSONArray groups = json.getJSONArray("groups");
+				Long familyNumber = maxNum;
+				String familyMaster = json.getString("familyMaster");
+				JSONObject tags = json.getJSONObject("tags");
+				json.put("familyNumber", maxNum);
+				createORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo, shareCerImg, shareCerHolder,
+						shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+				addFamily.add(json);
+			}
+			addNewData.add(addFamily);
 		}
-		jsonObj.put("newData", js);
+		jsonObj.put("newData", addNewData);
 		Examine ex = new Examine();
 		ex.data = jsonObj.toJSONString();
 		examineRepository.updateByKey(conn, "id", examineId, ex, true);
 
-		return js;
+		return addNewData;
 	}
 
 	// 区级请求本组织下其他组织提交的审核
@@ -1561,7 +1684,7 @@ public class ORGUserService {
 			examineRepository.updateByANDKeys(conn, new String[] { "id", "org_id" }, new Object[] { examineId, orgId },
 					ex, true);
 			return ex;
-		} else if (status == Examine.STATUS.ORGEXAMINE.v()) {
+		} else if (status == Examine.STATUS.DISEXAMINE.v()) {
 			// 拿到数据
 			// JSONObject jsonO = jsonObj.getJSONObject("newData");
 			JSONArray json = jsonObj.getJSONArray("newData");
@@ -1581,7 +1704,7 @@ public class ORGUserService {
 			}
 			// 区级审核
 			ex.examineDate = new Date();
-			ex.status = Examine.STATUS.WAITEC.v();
+			ex.status = Examine.STATUS.DISEXAMINE.v();
 			examineRepository.updateByANDKeys(conn, new String[] { "id", "org_id" }, new Object[] { examineId, orgId },
 					ex, true);
 			return ex;
@@ -1596,6 +1719,7 @@ public class ORGUserService {
 		}
 	}
 
+	// 删除审核
 	public int delExamine(DruidPooledConnection conn, Long examineId) throws Exception {
 		Examine ex = examineRepository.getByKey(conn, "id", examineId);
 		if (ex.status <= Examine.STATUS.DISEXAMINE.v()) {
@@ -1603,6 +1727,11 @@ public class ORGUserService {
 		} else {
 			return 0;
 		}
-
 	}
+
+	// 获取用户
+	public int getOrgUser(DruidPooledConnection conn, Long orgId, String idNumber) throws Exception {
+		return orgUserRepository.getOrgUser(conn, orgId, idNumber);
+	}
+
 }

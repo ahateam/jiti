@@ -21,6 +21,7 @@ public class ORGLoginBo {
 	public String wbOpenId;
 	public String roles;
 	public List<ORGPermission> permissions;
+	public String openId;
 
 	// Session信息
 	public Date loginTime;
@@ -40,5 +41,6 @@ public class ORGLoginBo {
 	public Integer weight;
 
 	public JSONArray orgRoles;
+	public JSONArray groups;
 	public JSONObject orgTags;
 }

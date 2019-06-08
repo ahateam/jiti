@@ -93,10 +93,9 @@ public class ORGPermissionService {
 	}
 
 	// 根据角色查看权限列表
-	public List<ORGPermission> getPermissionsByRole(DruidPooledConnection conn, Long orgId, Long roleId)
+	public List<ORGPermission> getPermissionsByRole(DruidPooledConnection conn, Long orgId, String roleId)
 			throws Exception {
-		JSONArray jsonRole = new JSONArray();
-		jsonRole.add(roleId);
+		JSONArray jsonRole = JSONArray.parseArray(roleId);
 		JSONArray json = new JSONArray();
 		List<ORGPermission> list = new ArrayList<ORGPermission>();
 		ORGPermission orp = new ORGPermission();

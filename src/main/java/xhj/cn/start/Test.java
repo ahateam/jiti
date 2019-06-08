@@ -2,21 +2,10 @@ package xhj.cn.start;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
 
-import zyxhj.jiti.domain.AssetImportRecord;
-import zyxhj.jiti.domain.AssetImportTask;
 import zyxhj.jiti.domain.Examine;
+import zyxhj.jiti.domain.Notice;
 import zyxhj.jiti.domain.NoticeTask;
 import zyxhj.jiti.domain.NoticeTaskRecord;
-import zyxhj.jiti.domain.ORG;
-import zyxhj.jiti.domain.ORGDistrict;
-import zyxhj.jiti.domain.ORGExamine;
-import zyxhj.jiti.domain.ORGPermission;
-import zyxhj.jiti.domain.ORGPermissionRel;
-import zyxhj.jiti.domain.ORGUserImportRecord;
-import zyxhj.jiti.domain.ORGUserImportTask;
-import zyxhj.jiti.domain.ORGUserRole;
-import zyxhj.jiti.domain.Superior;
-import zyxhj.movie.Video;
 import zyxhj.utils.data.DataSource;
 import zyxhj.utils.data.DataSourceUtils;
 import zyxhj.utils.data.rds.RDSUtils;
@@ -51,7 +40,7 @@ public class Test {
 
 		//	 RDSUtils.dropTableByEntity(dsRds, ORGPermission.class);
 
-		//	 RDSUtils.createTableByEntity(dsRds, Examine.class); 
+			RDSUtils.createTableByEntity(dsRds, NoticeTaskRecord.class); 
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

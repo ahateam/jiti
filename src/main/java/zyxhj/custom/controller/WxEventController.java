@@ -125,16 +125,16 @@ public class WxEventController extends Controller {
 	@POST(path = "template", //
 			des = "微信通知")
 	public void template(RoutingContext context, HttpServerRequest req, HttpServerResponse resp//
-			//@P(t = "任务id") Long taskId, //
-			//@P(t = "组织编号") Long orgId //
+	// @P(t = "任务id") Long taskId, //
+	// @P(t = "组织编号") Long orgId //
 	) throws WxErrorException {
-		try {
-			Long taskId = 398867896026260L;
-			Long orgId = 397652553337218L;
-			wxFuncService.templateMessageTest(wxDataService.getWxMpService(), taskId, orgId);
-		} catch (WxErrorException e) {
-			e.printStackTrace();
-		}
+//		try {
+//			Long taskId = 398867896026260L;
+//			Long orgId = 397652553337218L;
+//			wxFuncService.templateMessageTest(wxDataService.getWxMpService(), taskId, orgId);
+//		} catch (WxErrorException e) {
+//			e.printStackTrace();
+//		}
 	}
 
 	@POST(path = "messageToMany", //

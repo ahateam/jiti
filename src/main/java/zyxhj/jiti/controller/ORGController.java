@@ -8,6 +8,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 import zyxhj.jiti.domain.Examine;
+import zyxhj.jiti.domain.Notice;
 import zyxhj.jiti.domain.ORG;
 import zyxhj.jiti.domain.ORGExamine;
 import zyxhj.jiti.service.ORGPermissionService;
@@ -69,6 +70,9 @@ public class ORGController extends Controller {
 
 	@ENUM(des = "用户标记")
 	public Examine.TAB[] tab = Examine.TAB.values();
+
+	@ENUM(des = "公告类型")
+	public Notice.TYPE[] type = Notice.TYPE.values();
 
 	/**
 	 * 
@@ -274,14 +278,14 @@ public class ORGController extends Controller {
 			@P(t = "地址") String address, //
 			@P(t = "股权证书编号", r = false) String shareCerNo, //
 			@P(t = "股权证书图片地址") String shareCerImg, //
-			@P(t = "是否持证人") Boolean shareCerHolder, //
-			@P(t = "股份数") Double shareAmount, //
+			@P(t = "是否持证人", r = false) Boolean shareCerHolder, //
+			@P(t = "股份数", r = false) Double shareAmount, //
 			@P(t = "选举权重") Integer weight, //
 			@P(t = "角色（股东，董事长，经理等）") JSONArray roles, //
 			@P(t = "分组") JSONArray groups, //
 			@P(t = "标签，包含groups,tags,以及其它自定义分组标签列表") JSONObject tags, //
-			@P(t = "户序号") Long familyNumber, //
-			@P(t = "户主名") String familyMaster //
+			@P(t = "户序号", r = false) Long familyNumber, //
+			@P(t = "户主名", r = false) String familyMaster //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			return APIResponse.getNewSuccessResp(orgUserService.editORGUser(conn, orgId, userId, address, shareCerNo,
@@ -995,7 +999,7 @@ public class ORGController extends Controller {
 			ret = "返回权限列表")
 	public APIResponse getPermissionsByRole(//
 			@P(t = "组织id") Long orgId, //
-			@P(t = "角色id") Long roleId //
+			@P(t = "角色id") String roleId //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			return APIResponse.getNewSuccessResp(orgPermissionService.getPermissionsByRole(conn, orgId, roleId));
@@ -1532,14 +1536,36 @@ public class ORGController extends Controller {
 	)
 	public APIResponse createNotice(//
 			@P(t = "组织编号") Long orgId, //
-			@P(t = "公告名称") String noticeName, //
+			@P(t = "公告名称") String noticeTitle, //
 			@P(t = "公告内容") String noticeContent, //
 			@P(t = "类型") Byte type, //
 			@P(t = "人群  例:{orgId:[],roles:[],groups:[]}") String crowd //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			return APIResponse
-					.getNewSuccessResp(orgService.createNotice(conn, orgId, noticeName, noticeContent, type, crowd));
+					.getNewSuccessResp(orgService.createNotice(conn, orgId, noticeTitle, noticeContent, type, crowd));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "editNotice", //
+			des = "修改公告", //
+			ret = "返回修改内容"//
+	)
+	public APIResponse editNotice(//
+			@P(t = "组织编号") Long noticeId, //
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "公告名称") String noticeTitle, //
+			@P(t = "公告内容") String noticeContent, //
+			@P(t = "类型") Byte type, //
+			@P(t = "人群  例:{orgId:[],roles:[],groups:[]}") String crowd //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(
+					orgService.editNotice(conn, noticeId, orgId, noticeTitle, noticeContent, type, crowd));
 		}
 	}
 
@@ -1548,18 +1574,139 @@ public class ORGController extends Controller {
 	 */
 	@POSTAPI(//
 			path = "getNotice", //
-			des = "获取公告信息", //
-			ret = "返回公告信息"//
+			des = "查询公告", //
+			ret = "返回查询内容"//
 	)
 	public APIResponse getNotice(//
 			@P(t = "组织编号") Long orgId, //
-			@P(t = "角色编号 [102,103,104]") String roles, //
-			@P(t = "分组编号 [1111111,555555,111]") String groups, //
 			Integer count, //
 			Integer offset //
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.getNotice(conn, orgId, roles, groups, count, offset));
+			return APIResponse.getNewSuccessResp(orgService.getNotice(conn, orgId, count, offset));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "deleteNotice", //
+			des = "删除公告", //
+			ret = ""//
+	)
+	public APIResponse deleteNotice(//
+			@P(t = "组织编号") Long noticeId //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.deleteNotice(conn, noticeId));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getNoticeByRoleGroup", //
+			des = "用户获取公告信息", //
+			ret = "返回公告信息"//
+	)
+	public APIResponse getNoticeByRoleGroup(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "角色编号 [102,103,104]") String roles, //
+			@P(t = "分组编号 [1111111,555555,111]") String groups //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.getNoticeByRoleGroup(conn, orgId, roles, groups));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getOrgUser", //
+			des = "查看当前用户是否已经在此组织下", //
+			ret = "0表示不存在 1表示已存在"//
+	)
+	public APIResponse getOrgUser(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "身份证号码") String idNumber //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgUserService.getOrgUser(conn, orgId, idNumber));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getExamineByPer", //
+			des = "根据权限查询审核列表", //
+			ret = "审核列表"//
+	)
+	public APIResponse getExamineByPer(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "用户编号") Long userId, //
+			@P(t = "用户角色") String permissionIds, //
+			@P(t = "查询的审核类型") Byte type, //
+			@P(t = "审核状态", r = false) Byte status, //
+			Integer count, //
+			Integer offset //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(
+					orgUserService.getExamineByPer(conn, orgId, userId, permissionIds, type, status, count, offset));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "bdUserOpenId", //
+			des = "绑定微信", //
+			ret = ""//
+	)
+	public APIResponse bdUserOpenId(//
+			@P(t = "用户编号") Long userId, //
+			@P(t = "微信id") String openId //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.bdUserOpenId(conn, userId, openId));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "loginByOpenId", //
+			des = "微信登陆", //
+			ret = ""//
+	)
+	public APIResponse loginByOpenId(//
+			@P(t = "微信id") String openId //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.loginByOpenId(conn, openId));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "removeOpenId", //
+			des = "解除绑定", //
+			ret = ""//
+	)
+	public APIResponse removeOpenId(//
+			@P(t = "用户id") Long userId //
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.removeOpenId(conn, userId));
 		}
 	}
 

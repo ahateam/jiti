@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -26,7 +27,6 @@ import zyxhj.utils.ExcelUtils;
 import zyxhj.utils.IDUtils;
 import zyxhj.utils.Singleton;
 import zyxhj.utils.data.DataSource;
-import zyxhj.utils.data.DataSourceUtils;
 
 public class AssetService {
 
@@ -293,10 +293,14 @@ public class AssetService {
 	/**
 	 * 根据年份，资产类型等条件，统计资源原值，产值等
 	 * 
-	 * @param G 分组
-	 * @param R 资源类型
-	 * @param A 资产类型
-	 * @param B 经营方式
+	 * @param G
+	 *            分组
+	 * @param R
+	 *            资源类型
+	 * @param A
+	 *            资产类型
+	 * @param B
+	 *            经营方式
 	 */
 	public JSONArray sumAssetBYGRAB(DruidPooledConnection conn, Long orgId, String buildTime, JSONArray groups,
 			JSONArray resType, JSONArray assetType, JSONArray businessMode) throws Exception {
@@ -522,11 +526,11 @@ public class AssetService {
 		// 异步方法，不会阻塞
 		Vertx.vertx().executeBlocking(future -> {
 			// 下面这行代码可能花费很长时间
-			DataSource dsRds;
+			DruidDataSource dsRds;
 			DruidPooledConnection conn = null;
 			try {
-				dsRds = DataSourceUtils.getDataSource("rdsDefault");
-				conn = (DruidPooledConnection) dsRds.openConnection();
+				dsRds = DataSource.getDruidDataSource("rdsDefault.prop");
+				conn = (DruidPooledConnection) dsRds.getConnection();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -542,7 +546,7 @@ public class AssetService {
 							new String[] { "org_id", "task_id", "status" },
 							new Object[] { orgId, importTaskId, AssetImportRecord.STATUS.UNDETECTED.v() }, 100, 0);
 
-						imp(conn, assRec, orgId, importTaskId);
+					imp(conn, assRec, orgId, importTaskId);
 
 				}
 				ass.status = AssetImportTask.STATUS.END.v();

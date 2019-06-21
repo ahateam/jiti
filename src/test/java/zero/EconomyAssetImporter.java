@@ -12,7 +12,7 @@ import zyxhj.jiti.service.ORGUserGroupService;
 import zyxhj.jiti.service.ORGUserTagService;
 import zyxhj.utils.ExcelUtils;
 import zyxhj.utils.Singleton;
-import zyxhj.utils.data.DataSourceUtils;
+import zyxhj.utils.data.DataSource;
 
 public class EconomyAssetImporter {
 
@@ -24,8 +24,6 @@ public class EconomyAssetImporter {
 	private static ORGUserGroupService orgUserGroupService;
 
 	static {
-		DataSourceUtils.initDataSourceConfig();
-
 		try {
 			assetService = Singleton.ins(AssetService.class);
 
@@ -33,7 +31,7 @@ public class EconomyAssetImporter {
 
 			orgUserGroupService = Singleton.ins(ORGUserGroupService.class);
 
-			conn = (DruidPooledConnection) DataSourceUtils.getDataSource("rdsDefault").openConnection();
+			conn = DataSource.getDruidDataSource("rdsDefault.prop").getConnection();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

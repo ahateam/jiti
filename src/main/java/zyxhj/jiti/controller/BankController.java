@@ -3,6 +3,7 @@ package zyxhj.jiti.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidPooledConnection;
 
 import zyxhj.jiti.service.AssetService;
@@ -14,13 +15,12 @@ import zyxhj.utils.Singleton;
 import zyxhj.utils.api.APIResponse;
 import zyxhj.utils.api.Controller;
 import zyxhj.utils.data.DataSource;
-import zyxhj.utils.data.DataSourceUtils;
 
 public class BankController extends Controller {
 
 	private static Logger log = LoggerFactory.getLogger(BankController.class);
 
-	private DataSource dsRds;
+	private DruidDataSource dds;
 	private AssetService assetService;
 	private BankService bankService;
 	private VoteService voteService;
@@ -29,7 +29,7 @@ public class BankController extends Controller {
 	public BankController(String node) {
 		super(node);
 		try {
-			dsRds = DataSourceUtils.getDataSource("rdsDefault");
+			dds = DataSource.getDruidDataSource("rdsDefault.prop");
 
 			assetService = Singleton.ins(AssetService.class);
 			bankService = Singleton.ins(BankService.class);
@@ -52,7 +52,7 @@ public class BankController extends Controller {
 			Integer count, //
 			Integer offset//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(ServiceUtils.checkNull(bankService.getPro(conn, count, offset)));
 		}
 	}
@@ -71,7 +71,7 @@ public class BankController extends Controller {
 			Integer count, //
 			Integer offset//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(
 					ServiceUtils.checkNull(assetService.getAssetsBySn(conn, orgId, sn, count, offset)));
 		}
@@ -91,7 +91,7 @@ public class BankController extends Controller {
 			Integer count, //
 			Integer offset//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(
 					ServiceUtils.checkNull(assetService.getAssetsByName(conn, orgId, name, count, offset)));
 		}
@@ -111,7 +111,7 @@ public class BankController extends Controller {
 			Integer count, //
 			Integer offset//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(
 					ServiceUtils.checkNull(voteService.getVotes(conn, orgId, status, count, offset)));
 		}
@@ -128,7 +128,7 @@ public class BankController extends Controller {
 	public APIResponse getVoteOptions(//
 			@P(t = "投票编号") Long voteId //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(ServiceUtils.checkNull(voteService.getVoteOptions(conn, voteId)));
 		}
 	}
@@ -146,7 +146,7 @@ public class BankController extends Controller {
 			Integer count, //
 			Integer offset //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse
 					.getNewSuccessResp(ServiceUtils.checkNull(orgService.getORGByName(conn, name, count, offset)));
 		}
@@ -167,7 +167,7 @@ public class BankController extends Controller {
 			@P(t = "银行机构代码") String code //
 
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(
 					ServiceUtils.checkNull(bankService.createBankORG(conn, districtId, name, address, code)));
 		}
@@ -186,7 +186,7 @@ public class BankController extends Controller {
 			@P(t = "银行名称") String name, //
 			@P(t = "银行地址") String address //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse
 					.getNewSuccessResp(ServiceUtils.checkNull(bankService.editBankORG(conn, bankId, name, address)));
 		}
@@ -203,7 +203,7 @@ public class BankController extends Controller {
 	public APIResponse deleteBankORG(//
 			@P(t = "银行机构id") Long bankId //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(ServiceUtils.checkNull(bankService.deleteBankORG(conn, bankId)));
 		}
 	}
@@ -224,7 +224,7 @@ public class BankController extends Controller {
 			@P(t = "银行管理员密码") String pwd, //
 			@P(t = "银行管理员真名") String realName //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			bankService.createBankAdmin(conn, bankId, address, idNumber, mobile, pwd, realName);
 			return APIResponse.getNewSuccessResp();
 		}
@@ -243,7 +243,7 @@ public class BankController extends Controller {
 			Integer count, //
 			Integer offset //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse
 					.getNewSuccessResp(ServiceUtils.checkNull(bankService.getBankAdmin(conn, bankId, count, offset)));
 		}
@@ -261,7 +261,7 @@ public class BankController extends Controller {
 			@P(t = "银行机构id") Long bankId, //
 			@P(t = "用户id") Long userId //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse
 					.getNewSuccessResp(ServiceUtils.checkNull(bankService.deleteBankAdmin(conn, bankId, userId)));
 		}
@@ -281,7 +281,7 @@ public class BankController extends Controller {
 			Integer count, //
 			Integer offset //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(
 					ServiceUtils.checkNull(bankService.getBankList(conn, districtId, name, count, offset)));
 		}
@@ -301,7 +301,7 @@ public class BankController extends Controller {
 			Integer count, //
 			Integer offset //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(
 					ServiceUtils.checkNull(bankService.getORGByBank(conn, bankId, name, count, offset)));
 		}

@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -39,7 +40,6 @@ import zyxhj.utils.Singleton;
 import zyxhj.utils.api.BaseRC;
 import zyxhj.utils.api.ServerException;
 import zyxhj.utils.data.DataSource;
-import zyxhj.utils.data.DataSourceUtils;
 
 public class ORGUserService {
 
@@ -946,11 +946,11 @@ public class ORGUserService {
 		// 异步方法，不会阻塞
 		Vertx.vertx().executeBlocking(future -> {
 			// 下面这行代码可能花费很长时间
-			DataSource dsRds;
+			DruidDataSource dds;
 			DruidPooledConnection conn = null;
 			try {
-				dsRds = DataSourceUtils.getDataSource("rdsDefault");
-				conn = (DruidPooledConnection) dsRds.openConnection();
+				dds = DataSource.getDruidDataSource("rdsDefault.prop");
+				conn = (DruidPooledConnection) dds.getConnection();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

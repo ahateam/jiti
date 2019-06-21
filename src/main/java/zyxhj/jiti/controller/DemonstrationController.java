@@ -3,6 +3,7 @@ package zyxhj.jiti.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidPooledConnection;
 
 import zyxhj.jiti.service.DemonstrationService;
@@ -10,19 +11,18 @@ import zyxhj.utils.Singleton;
 import zyxhj.utils.api.APIResponse;
 import zyxhj.utils.api.Controller;
 import zyxhj.utils.data.DataSource;
-import zyxhj.utils.data.DataSourceUtils;
 
 public class DemonstrationController extends Controller {
 
 	private static Logger log = LoggerFactory.getLogger(DemonstrationController.class);
 
-	private DataSource dsRds;
+	private DruidDataSource dds;
 	private DemonstrationService demonstrationService;
 
 	public DemonstrationController(String node) {
 		super(node);
 		try {
-			dsRds = DataSourceUtils.getDataSource("rdsDefault");
+			dds = DataSource.getDruidDataSource("rdsDefault.prop");
 
 			demonstrationService = Singleton.ins(DemonstrationService.class);
 		} catch (Exception e) {
@@ -30,7 +30,6 @@ public class DemonstrationController extends Controller {
 		}
 	}
 
-	
 	/**
 	 * 
 	 */
@@ -43,11 +42,11 @@ public class DemonstrationController extends Controller {
 			@P(t = "组织编号") Long orgId, //
 			@P(t = "分组编号") String groups //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(demonstrationService.getAsset(conn,orgId, groups));
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse.getNewSuccessResp(demonstrationService.getAsset(conn, orgId, groups));
 		}
 	}
-	
+
 	/**
 	 * 
 	 */
@@ -59,12 +58,11 @@ public class DemonstrationController extends Controller {
 	public APIResponse getGroup(//
 			@P(t = "组织编号") Long orgId //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(demonstrationService.getGroup(conn,orgId));
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse.getNewSuccessResp(demonstrationService.getGroup(conn, orgId));
 		}
 	}
-	
-	
+
 	/**
 	 * 
 	 */
@@ -77,8 +75,8 @@ public class DemonstrationController extends Controller {
 			@P(t = "资产id") Long assetId, //
 			@P(t = "组织编号") Long orgId //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-			return APIResponse.getNewSuccessResp(demonstrationService.getAssetById(conn,assetId,orgId));
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse.getNewSuccessResp(demonstrationService.getAssetById(conn, assetId, orgId));
 		}
 	}
 }

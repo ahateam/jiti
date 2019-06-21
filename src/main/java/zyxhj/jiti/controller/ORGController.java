@@ -3,6 +3,7 @@ package zyxhj.jiti.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -19,13 +20,12 @@ import zyxhj.utils.Singleton;
 import zyxhj.utils.api.APIResponse;
 import zyxhj.utils.api.Controller;
 import zyxhj.utils.data.DataSource;
-import zyxhj.utils.data.DataSourceUtils;
 
 public class ORGController extends Controller {
 
 	private static Logger log = LoggerFactory.getLogger(ORGController.class);
 
-	private DataSource dsRds;
+	private DruidDataSource dds;
 	private ORGService orgService;
 	private ORGUserService orgUserService;
 	private ORGUserGroupService orgUserGroupService;
@@ -35,7 +35,7 @@ public class ORGController extends Controller {
 	public ORGController(String node) {
 		super(node);
 		try {
-			dsRds = DataSourceUtils.getDataSource("rdsDefault");
+			dds = DataSource.getDruidDataSource("rdsDefault.prop");
 
 			orgService = Singleton.ins(ORGService.class);
 			orgUserService = Singleton.ins(ORGUserService.class);
@@ -71,35 +71,37 @@ public class ORGController extends Controller {
 
 			@P(t = "密码") String pwd //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.registeUser(conn, mobile, pwd, realName, idNumber));
 		}
 	}
 
-//	/**
-//	 * 
-//	 */
-//	@POSTAPI(path = "createORG", //
-//			des = "创建组织", //
-//			ret = "所创建的对象"//
-//	)
-//	public APIResponse createORG(//
-//			@P(t = "创建者用户编号") Long userId, //
-//			@P(t = "组织名称") String name, //
-//			@P(t = "组织机构代码") String code, //
-//			@P(t = "省") String province, //
-//			@P(t = "市") String city, //
-//			@P(t = "区") String district, //
-//			@P(t = "街道地址") String address, //
-//			@P(t = "组织机构证书图片地址", r = false) String imgOrg, //
-//			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
-//			@P(t = "总股份数") Integer shareAmount//
-//	) throws Exception {
-//		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
-//			return APIResponse.getNewSuccessResp(orgService.createORG(conn, userId, name, code, province, city,
-//					district, address, imgOrg, imgAuth, shareAmount));
-//		}
-//	}
+	// /**
+	// *
+	// */
+	// @POSTAPI(path = "createORG", //
+	// des = "创建组织", //
+	// ret = "所创建的对象"//
+	// )
+	// public APIResponse createORG(//
+	// @P(t = "创建者用户编号") Long userId, //
+	// @P(t = "组织名称") String name, //
+	// @P(t = "组织机构代码") String code, //
+	// @P(t = "省") String province, //
+	// @P(t = "市") String city, //
+	// @P(t = "区") String district, //
+	// @P(t = "街道地址") String address, //
+	// @P(t = "组织机构证书图片地址", r = false) String imgOrg, //
+	// @P(t = "组织授权证书图片地址", r = false) String imgAuth, //
+	// @P(t = "总股份数") Integer shareAmount//
+	// ) throws Exception {
+	// try (DruidPooledConnection conn = (DruidPooledConnection)
+	// dsRds.openConnection()) {
+	// return APIResponse.getNewSuccessResp(orgService.createORG(conn, userId, name,
+	// code, province, city,
+	// district, address, imgOrg, imgAuth, shareAmount));
+	// }
+	// }
 
 	/**
 	 * 
@@ -118,7 +120,7 @@ public class ORGController extends Controller {
 			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
 			@P(t = "总股份数") Integer shareAmount//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			orgService.editORG(conn, code, orgName, orgId, address, imgOrg, imgAuth, shareAmount);
 			return APIResponse.getNewSuccessResp();
 		}
@@ -144,7 +146,7 @@ public class ORGController extends Controller {
 			@P(t = "对外投资", r = false) Double investment, //
 			@P(t = "估值", r = false) Double valuation//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			orgService.editORGExt(conn, orgId, capital, debt, receivables, income, bonus, budget, financialBudget,
 					investment, valuation);
 			return APIResponse.getNewSuccessResp();
@@ -163,7 +165,7 @@ public class ORGController extends Controller {
 			@P(t = "上级编号") Long superiorId, //
 			Integer count, //
 			Integer offset) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.getORGs(conn, superiorId, count, offset));
 		}
 	}
@@ -179,7 +181,7 @@ public class ORGController extends Controller {
 	public APIResponse getORGById(//
 			@P(t = "组织编号") Long orgId//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(ServiceUtils.checkNull(orgService.getORGById(conn, orgId)));
 		}
 	}
@@ -198,7 +200,7 @@ public class ORGController extends Controller {
 			Integer count, //
 			Integer offset//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(
 					ServiceUtils.checkNull(orgService.getUserORGs(conn, userId, level, count, offset)));
 		}
@@ -228,7 +230,7 @@ public class ORGController extends Controller {
 			@P(t = "户序号") String familyNumber, //
 			@P(t = "户主名") String familyMaster //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			orgUserService.createORGUser(conn, orgId, mobile, realName, idNumber, address, shareCerNo, shareCerImg,
 					shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
 			return APIResponse.getNewSuccessResp();
@@ -249,7 +251,7 @@ public class ORGController extends Controller {
 			@P(t = "真实姓名", r = false) String realName, //
 			@P(t = "密码", r = false) String pwd//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			int ret = orgUserService.editUser(conn, userId, mobile, realName, pwd);
 			return APIResponse.getNewSuccessResp(ret);
 		}
@@ -266,7 +268,7 @@ public class ORGController extends Controller {
 			@P(t = "组织编号") Long orgId, //
 			@P(t = "用户编号") Long userId//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			orgUserService.delORGUser(conn, orgId, userId);
 			return APIResponse.getNewSuccessResp();
 		}
@@ -295,7 +297,7 @@ public class ORGController extends Controller {
 			@P(t = "户序号") String familyNumber, //
 			@P(t = "户主名") String familyMaster //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgUserService.editORGUser(conn, orgId, userId, address, shareCerNo,
 					shareCerImg, shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster));
 		}
@@ -314,7 +316,7 @@ public class ORGController extends Controller {
 			@P(t = "分组信息列表 字符串") Long groups//
 
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			orgUserService.batchEditORGUsersGroups(conn, orgId, userIds, groups);
 			return APIResponse.getNewSuccessResp();
 		}
@@ -331,7 +333,7 @@ public class ORGController extends Controller {
 			@P(t = "组织编号") Long orgId, //
 			@P(t = "用户编号") Long userId//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 
 			return APIResponse.getNewSuccessResp(orgUserService.getORGUserById(conn, orgId, userId));
 		}
@@ -349,7 +351,7 @@ public class ORGController extends Controller {
 			@P(t = "手机号") String mobile, //
 			@P(t = "密码") String pwd//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(ServiceUtils.checkNull(orgService.loginByMobile(conn, mobile, pwd)));
 		}
 	}
@@ -366,7 +368,7 @@ public class ORGController extends Controller {
 			@P(t = "身份证号") String idNumber, //
 			@P(t = "密码") String pwd//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse
 					.getNewSuccessResp(ServiceUtils.checkNull(orgService.loginByIdNumber(conn, idNumber, pwd)));
 		}
@@ -384,7 +386,7 @@ public class ORGController extends Controller {
 			@P(t = "手机号") Long userId, //
 			@P(t = "密码") String pwd//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(ServiceUtils.checkNull(orgService.loginByUserId(conn, userId, pwd)));
 		}
 	}
@@ -401,7 +403,7 @@ public class ORGController extends Controller {
 			@P(t = "用户编号") Long userId, //
 			@P(t = "组织编号") Long orgId//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(ServiceUtils.checkNull(orgService.loginInORG(conn, userId, orgId)));
 		}
 	}
@@ -418,7 +420,7 @@ public class ORGController extends Controller {
 			@P(t = "用户编号") Long userId, //
 			@P(t = "组织编号") Long orgId//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse
 					.getNewSuccessResp(ServiceUtils.checkNull(orgService.adminLoginInORG(conn, userId, orgId)));
 		}
@@ -436,7 +438,7 @@ public class ORGController extends Controller {
 			@P(t = "用户编号") Long userId, //
 			@P(t = "组织编号") Long orgId//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse
 					.getNewSuccessResp(ServiceUtils.checkNull(orgService.areaAdminLoginInORG(conn, userId, orgId)));
 		}
@@ -455,7 +457,7 @@ public class ORGController extends Controller {
 			Integer count, //
 			Integer offset//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgUserService.getORGUsers(conn, orgId, count, offset));
 		}
 	}
@@ -474,7 +476,7 @@ public class ORGController extends Controller {
 			Integer count, //
 			Integer offset//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgUserService.getORGUsersByRoles(conn, orgId, roles, count, offset));
 		}
 	}
@@ -493,7 +495,7 @@ public class ORGController extends Controller {
 			Integer count, //
 			Integer offset//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 
 			return APIResponse
 					.getNewSuccessResp(orgUserService.getORGUsersByGroups(conn, orgId, groups, count, offset));
@@ -514,7 +516,7 @@ public class ORGController extends Controller {
 			Integer count, //
 			Integer offset//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgUserService.getORGUsersByTags(conn, orgId, tags, count, offset));
 		}
 	}
@@ -533,7 +535,7 @@ public class ORGController extends Controller {
 			Integer count, //
 			Integer offset//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse
 					.getNewSuccessResp(orgUserService.getORGUsersLikeIDNumber(conn, orgId, idNumber, count, offset));
 		}
@@ -553,7 +555,7 @@ public class ORGController extends Controller {
 			Integer count, //
 			Integer offset//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse
 					.getNewSuccessResp(orgUserService.getORGUsersLikeRealName(conn, orgId, realName, count, offset));
 		}
@@ -570,7 +572,7 @@ public class ORGController extends Controller {
 			@P(t = "组织编号") Long orgId, //
 			@P(t = "excel文件url") String url//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			orgUserService.importORGUsers(conn, orgId, url);
 			return APIResponse.getNewSuccessResp();
 		}
@@ -589,7 +591,7 @@ public class ORGController extends Controller {
 			Integer count, //
 			Integer offset//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgUserService.getUsersByMobile(conn, mobile, count, offset));
 		}
 	}
@@ -603,7 +605,7 @@ public class ORGController extends Controller {
 			ret = "UserRole列表"//
 	)
 	public APIResponse getSysORGUserRoles() throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(ORGUserRoleService.SYS_ORG_USER_ROLE_LIST);
 		}
 	}
@@ -617,7 +619,7 @@ public class ORGController extends Controller {
 			ret = "UserTagGroup列表"//
 	)
 	public APIResponse getORGUserSysTagGroups() throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(ORGUserGroupService.SYS_ORG_USER_TAG_GROUP_LIST);
 		}
 	}
@@ -636,7 +638,7 @@ public class ORGController extends Controller {
 			@P(t = "分组关键字") String keyword, //
 			String remark //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(
 					orgUserGroupService.createTagGroup(conn, orgId, parentId, parents, keyword, remark));
 		}
@@ -657,7 +659,7 @@ public class ORGController extends Controller {
 			@P(t = "分组关键字") String keyword, //
 			String remark //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(
 					orgUserGroupService.editTagGroup(conn, orgId, groupId, parentId, parents, keyword, remark));
 		}
@@ -674,7 +676,7 @@ public class ORGController extends Controller {
 			@P(t = "组织编号") Long orgId, //
 			@P(t = "分组编号") Long groupId//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgUserGroupService.delTagGroupById(conn, groupId));
 		}
 	}
@@ -690,7 +692,7 @@ public class ORGController extends Controller {
 			@P(t = "组织编号") Long orgId, //
 			@P(t = "分组编号") Long groupId//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgUserGroupService.getTagGroupTree(conn, orgId, groupId));
 		}
 	}
@@ -716,7 +718,7 @@ public class ORGController extends Controller {
 			@P(t = "等级", r = false) Byte level, //
 			@P(t = "上级组织id", r = false) Long superiorId //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.createORGApply(conn, userId, name, code, province, city,
 					district, address, imgOrg, imgAuth, shareAmount, level, superiorId));
 		}
@@ -746,7 +748,7 @@ public class ORGController extends Controller {
 			@P(t = "上级组织id", r = false) Long superiorId, //
 			@P(t = "组织id") Boolean updateDistrict //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse
 					.getNewSuccessResp(orgService.upORGApply(conn, orgExamineId, examine, userId, name, code, province,
 							city, district, address, imgOrg, imgAuth, shareAmount, level, superiorId, updateDistrict));
@@ -777,7 +779,7 @@ public class ORGController extends Controller {
 			@P(t = "组织id", r = false) Long orgId, //
 			@P(t = "是否修改地址") Boolean updateDistrict //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(
 					orgService.upORGApplyAgain(conn, orgExamineId, userId, name, code, province, city, district,
 							address, imgOrg, imgAuth, shareAmount, level, superiorId, orgId, updateDistrict));
@@ -797,7 +799,7 @@ public class ORGController extends Controller {
 			Integer count, //
 			Integer offset//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse
 					.getNewSuccessResp(orgService.getORGExamineByStatus(conn, examine, areaId, count, offset));
 		}
@@ -815,7 +817,7 @@ public class ORGController extends Controller {
 			Integer count, //
 			Integer offset//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.getORGExamineByUser(conn, userId, count, offset));
 		}
 	}
@@ -830,7 +832,7 @@ public class ORGController extends Controller {
 	public APIResponse delORGExamine(//
 			@P(t = "申请编号") Long examineId //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.delORGExamine(conn, examineId));
 		}
 	}
@@ -847,7 +849,7 @@ public class ORGController extends Controller {
 			@P(t = "角色编号  使用JSONArray数组存") JSONArray roles //
 
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.countRole(conn, orgId, roles));
 		}
 	}
@@ -865,7 +867,7 @@ public class ORGController extends Controller {
 			@P(t = "户主名") String familyMaster //
 
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.createFamily(conn, orgId, familyNumber, familyMaster));
 		}
 	}
@@ -882,7 +884,7 @@ public class ORGController extends Controller {
 			@P(t = "户序号") String familyNumber, //
 			@P(t = "户主名") String familyMaster //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.editFamily(conn, orgId, familyNumber, familyMaster));
 		}
 	}
@@ -898,7 +900,7 @@ public class ORGController extends Controller {
 			@P(t = "组织编号", r = false) Long orgId, //
 			@P(t = "查询数", r = false) Integer count, //
 			@P(t = "开始位置", r = false) Integer offset) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.getFamilyAll(conn, orgId, count, offset));
 		}
 	}
@@ -917,7 +919,7 @@ public class ORGController extends Controller {
 			Integer offset
 
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.getProCityDistrict(conn, level, father, count, offset));
 		}
 	}
@@ -934,7 +936,7 @@ public class ORGController extends Controller {
 			@P(t = "需要查询的名称") String orgName //
 
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.getOrgByNameAndLevel(conn, level, orgName));
 		}
 	}
@@ -949,7 +951,7 @@ public class ORGController extends Controller {
 	public APIResponse getORGDistrict(//
 			@P(t = "组织id") Long orgId //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.getORGDistrict(conn, orgId));
 		}
 	}
@@ -964,7 +966,7 @@ public class ORGController extends Controller {
 	public APIResponse getORGDistrictByOrgApplyId(//
 			@P(t = "组织id") Long orgExamineId //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.getORGDistrictByOrgApplyId(conn, orgExamineId));
 		}
 	}
@@ -979,7 +981,7 @@ public class ORGController extends Controller {
 	public APIResponse getSuperior(//
 			@P(t = "组织id") Long orgId //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.getSuperior(conn, orgId));
 		}
 	}
@@ -993,7 +995,7 @@ public class ORGController extends Controller {
 			ret = "返回权限列表")
 	public APIResponse getPermission(//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(ORGPermissionService.SYS_ORG_PERMISSION_LIST);
 		}
 	}
@@ -1009,7 +1011,7 @@ public class ORGController extends Controller {
 			@P(t = "组织id") Long orgId, //
 			@P(t = "权限id") Long permissionId //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgUserRoleService.getRolesByPermission(conn, orgId, permissionId));
 		}
 	}
@@ -1025,7 +1027,7 @@ public class ORGController extends Controller {
 			@P(t = "组织id") Long orgId, //
 			@P(t = "角色id") Long roleId //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgPermissionService.getPermissionsByRole(conn, orgId, roleId));
 		}
 	}
@@ -1043,7 +1045,7 @@ public class ORGController extends Controller {
 			@P(t = "角色id String[] 例[1,2,3,4]") String role //
 
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse
 					.getNewSuccessResp(orgPermissionService.insertPermissionRole(conn, orgId, permissionId, role));
 		}
@@ -1063,7 +1065,7 @@ public class ORGController extends Controller {
 			@P(t = "任务名称") String name //
 
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			orgUserService.createORGUserImportTask(conn, orgId, userId, name);
 			return APIResponse.getNewSuccessResp();
 		}
@@ -1083,7 +1085,7 @@ public class ORGController extends Controller {
 			Integer count, //
 			Integer offset//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse
 					.getNewSuccessResp(orgUserService.getORGUserImportTasks(conn, orgId, userId, count, offset));
 		}
@@ -1102,7 +1104,7 @@ public class ORGController extends Controller {
 			@P(t = "用户id") Long userId, //
 			@P(t = "导入任务id") Long importTaskId//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse
 					.getNewSuccessResp(orgUserService.getORGUserImportTask(conn, importTaskId, orgId, userId));
 		}
@@ -1121,7 +1123,7 @@ public class ORGController extends Controller {
 			@P(t = "excel文件url") String url, //
 			@P(t = "导入任务id") Long importTaskId//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			orgUserService.importORGUserRecord(conn, orgId, userId, url, importTaskId);
 			return APIResponse.getNewSuccessResp();
 		}
@@ -1140,7 +1142,7 @@ public class ORGController extends Controller {
 			Integer count, //
 			Integer offset //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(
 					orgUserService.getORGUserImportRecords(conn, orgId, importTaskId, count, offset));
 		}
@@ -1157,7 +1159,7 @@ public class ORGController extends Controller {
 			@P(t = "组织编号") Long orgId, //
 			@P(t = "导入任务id") Long importTaskId //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			orgUserService.importORGUser(orgId, importTaskId);
 			return APIResponse.getNewSuccessResp();
 		}
@@ -1177,7 +1179,7 @@ public class ORGController extends Controller {
 			Integer count, //
 			Integer offset //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse
 					.getNewSuccessResp(orgUserService.getNotcompletionRecord(conn, orgId, importTaskId, count, offset));
 		}
@@ -1197,7 +1199,7 @@ public class ORGController extends Controller {
 			Integer count, //
 			Integer offset //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.getSubORGUser(conn, orgId, level, count, offset));
 		}
 	}
@@ -1218,7 +1220,7 @@ public class ORGController extends Controller {
 			@P(t = "电话号码") String mobile, //
 			@P(t = "真实姓名") String realName //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			orgUserService.createORGAdmin(conn, orgId, level, idNumber, mobile, realName);
 			return APIResponse.getNewSuccessResp();
 		}
@@ -1236,7 +1238,7 @@ public class ORGController extends Controller {
 			@P(t = "组织编号") Long orgId, //
 			@P(t = "组织编号") Long userId //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgUserService.delORGUserAdmin(conn, orgId, userId));
 		}
 	}
@@ -1256,7 +1258,7 @@ public class ORGController extends Controller {
 			@P(t = "电话号码") String mobile, //
 			@P(t = "真实姓名") String realName //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 
 			return APIResponse
 					.getNewSuccessResp(orgUserService.editORGAdmin(conn, orgId, userId, idNumber, mobile, realName));
@@ -1278,13 +1280,10 @@ public class ORGController extends Controller {
 			@P(t = "通知类容") String remark, //
 			@P(t = "需要发送的人群  [roles:{[xxx,xxx,xx]}]") JSONObject crowd //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse
 					.getNewSuccessResp(orgService.addNoticeTask(conn, orgId, userId, taskName, remark, crowd));
 		}
 	}
-	
-	
-	
 
 }

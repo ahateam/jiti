@@ -1,5 +1,6 @@
 package xhj.cn.start;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidPooledConnection;
 
 import zyxhj.core.domain.Tag;
@@ -12,43 +13,30 @@ import zyxhj.jiti.domain.Vote;
 import zyxhj.jiti.domain.VoteOption;
 import zyxhj.jiti.domain.VoteTicket;
 import zyxhj.utils.data.DataSource;
-import zyxhj.utils.data.DataSourceUtils;
 import zyxhj.utils.data.rds.RDSUtils;
 
 public class JITIInitializer {
 
-	private static DruidPooledConnection conn;
-
-	static {
-		DataSourceUtils.initDataSourceConfig();
-
-		try {
-			conn = (DruidPooledConnection) DataSourceUtils.getDataSource("rdsDefault").openConnection();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	public static void main(String[] args) {
 		System.out.println("Initializer");
 
-		DataSource dsRds = null;
+		DruidDataSource dds = null;
 		DruidPooledConnection conn = null;
 		try {
-			dsRds = DataSourceUtils.getDataSource("rdsDefault");
+			dds = DataSource.getDruidDataSource("rdsDefault.prop");
 
-			conn = (DruidPooledConnection) dsRds.openConnection();
+			conn = dds.getConnection();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return;
 		}
 
-		initDB(dsRds);
+		initDB(dds);
 
 		initData(conn);
 	}
 
-	private static void initDB(DataSource dsRds) {
+	private static void initDB(DruidDataSource dsRds) {
 
 		RDSUtils.createTableByEntity(dsRds, Tag.class);
 		RDSUtils.createTableByEntity(dsRds, TagGroup.class);
@@ -57,7 +45,7 @@ public class JITIInitializer {
 		RDSUtils.createTableByEntity(dsRds, ORG.class);
 		RDSUtils.createTableByEntity(dsRds, ORGUser.class);
 		RDSUtils.createTableByEntity(dsRds, ORGUserRole.class);
-		
+
 		RDSUtils.createTableByEntity(dsRds, Vote.class);
 		RDSUtils.createTableByEntity(dsRds, VoteOption.class);
 		RDSUtils.createTableByEntity(dsRds, VoteTicket.class);

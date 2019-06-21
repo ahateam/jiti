@@ -3,6 +3,7 @@ package zyxhj.movie;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidPooledConnection;
 
 import zyxhj.utils.ServiceUtils;
@@ -10,20 +11,19 @@ import zyxhj.utils.Singleton;
 import zyxhj.utils.api.APIResponse;
 import zyxhj.utils.api.Controller;
 import zyxhj.utils.data.DataSource;
-import zyxhj.utils.data.DataSourceUtils;
 
 public class VideoController extends Controller {
 
 	private static Logger log = LoggerFactory.getLogger(VideoController.class);
 
-	private DataSource dsRds;
+	private DruidDataSource dds;
 
 	private VideoService videoService;
 
 	public VideoController(String node) {
 		super(node);
 		try {
-			dsRds = DataSourceUtils.getDataSource("rdsDefault");
+			dds = DataSource.getDruidDataSource("rdsDefault.prop");
 			videoService = Singleton.ins(VideoService.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
@@ -45,7 +45,7 @@ public class VideoController extends Controller {
 			@P(t = "地址类型") Byte urlType, //
 			@P(t = "视频地址") String videoUrl //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(
 					ServiceUtils.checkNull(videoService.addVideo(conn, title, type, imageUrl, urlType, videoUrl)));
 		}
@@ -67,7 +67,7 @@ public class VideoController extends Controller {
 			@P(t = "地址类型") Byte urlType, //
 			@P(t = "视频地址") String videoUrl //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(ServiceUtils
 					.checkNull(videoService.editVideo(conn, videoId, title, type, imageUrl, urlType, videoUrl)));
 		}
@@ -83,7 +83,7 @@ public class VideoController extends Controller {
 	public APIResponse deleteVideo(//
 			@P(t = "id") Long videoId //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			videoService.deleteVideo(conn, videoId);
 			return APIResponse.getNewSuccessResp();
 		}
@@ -101,7 +101,7 @@ public class VideoController extends Controller {
 			Integer count, //
 			Integer offset //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(videoService.getVideo(conn, count, offset));
 		}
 	}
@@ -117,9 +117,9 @@ public class VideoController extends Controller {
 	public APIResponse getVideById(//
 			@P(t = "id") Long videoId //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 
 			return APIResponse.getNewSuccessResp(videoService.getVideById(conn, videoId));
 		}
-	} 
+	}
 }

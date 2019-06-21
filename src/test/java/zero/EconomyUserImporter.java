@@ -5,7 +5,7 @@ import com.alibaba.druid.pool.DruidPooledConnection;
 import zyxhj.jiti.service.ORGService;
 import zyxhj.jiti.service.ORGUserService;
 import zyxhj.utils.Singleton;
-import zyxhj.utils.data.DataSourceUtils;
+import zyxhj.utils.data.DataSource;
 
 public class EconomyUserImporter {
 
@@ -18,14 +18,12 @@ public class EconomyUserImporter {
 	private static ORGUserService orgUserService;
 
 	static {
-		DataSourceUtils.initDataSourceConfig();
-
 		try {
 
 			orgService = Singleton.ins(ORGService.class);
 			orgUserService = Singleton.ins(ORGUserService.class);
 
-			conn = (DruidPooledConnection) DataSourceUtils.getDataSource("rdsDefault").openConnection();
+			conn = DataSource.getDruidDataSource("rdsDefault.prop").getConnection();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -5,6 +5,7 @@ import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -16,20 +17,19 @@ import zyxhj.utils.Singleton;
 import zyxhj.utils.api.APIResponse;
 import zyxhj.utils.api.Controller;
 import zyxhj.utils.data.DataSource;
-import zyxhj.utils.data.DataSourceUtils;
 
 public class VoteController extends Controller {
 
 	private static Logger log = LoggerFactory.getLogger(VoteController.class);
 
-	private DataSource dsRds;
+	private DruidDataSource dds;
 	private VoteService voteService;
 	private ORGService orgService;
 
 	public VoteController(String node) {
 		super(node);
 		try {
-			dsRds = DataSourceUtils.getDataSource("rdsDefault");
+			dds = DataSource.getDruidDataSource("rdsDefault.prop");
 
 			voteService = Singleton.ins(VoteService.class);
 			orgService = Singleton.ins(ORGService.class);
@@ -76,7 +76,7 @@ public class VoteController extends Controller {
 			@P(t = "权限id") Long permissionId //
 
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			orgService.userAuth(conn, orgId, roles, permissionId);
 			return APIResponse.getNewSuccessResp(voteService.createVote(conn, orgId, template, type, choiceCount, crowd,
 					reeditable, realName, isInternal, isAbstain, effectiveRatio, failureRatio, title, remark, ext,
@@ -110,7 +110,7 @@ public class VoteController extends Controller {
 			@P(t = "开始时间") Date startTime, //
 			@P(t = "终止时间") Date expiryTime//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(voteService.editVote(conn, orgId, voteId, type, choiceCount, crowd,
 					reeditable, realName, isInternal, isAbstain, effectiveRatio, failureRatio, title, remark, ext,
 					startTime, expiryTime));
@@ -129,7 +129,7 @@ public class VoteController extends Controller {
 			@P(t = "投票编号") Long voteId, //
 			@P(t = "启用/禁用") Boolean activation //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(voteService.setVoteActivation(conn, voteId, activation));
 		}
 	}
@@ -146,7 +146,7 @@ public class VoteController extends Controller {
 			@P(t = "投票编号") Long voteId, //
 			@P(t = "人为废除/恢复") Boolean paused //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(voteService.setVotePaused(conn, voteId, paused));
 		}
 	}
@@ -163,7 +163,7 @@ public class VoteController extends Controller {
 			@P(t = "投票编号") Long voteId, //
 			@P(t = "投票选项编号列表（JSONArray）") JSONArray optionIds //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(voteService.setVoteOptionIds(conn, voteId, optionIds));
 		}
 	}
@@ -179,7 +179,7 @@ public class VoteController extends Controller {
 	public APIResponse delVote(//
 			@P(t = "投票编号") Long voteId //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(voteService.delVote(conn, voteId));
 		}
 	}
@@ -198,7 +198,7 @@ public class VoteController extends Controller {
 			Integer count, //
 			Integer offset //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(voteService.getVotes(conn, orgId, status, count, offset));
 		}
 	}
@@ -217,7 +217,7 @@ public class VoteController extends Controller {
 			Integer count, //
 			Integer offset //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(voteService.getUserVotes(conn, orgId, userId, count, offset));
 		}
 	}
@@ -236,7 +236,7 @@ public class VoteController extends Controller {
 			@P(t = "备注") String remark, //
 			@P(t = "扩展（JSON）") String ext//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(voteService.addVoteOption(conn, voteId, false, title, remark, ext));
 		}
 	}
@@ -256,7 +256,7 @@ public class VoteController extends Controller {
 			@P(t = "备注") String remark, //
 			@P(t = "扩展（JSON）") String ext//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			int ret = voteService.editVoteOption(conn, voteId, optionId, title, remark, ext);
 			return APIResponse.getNewSuccessResp(ret);
 		}
@@ -273,7 +273,7 @@ public class VoteController extends Controller {
 			@P(t = "投票编号") Long voteId, //
 			@P(t = "投票选项编号") Long optionId//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(voteService.delVoteOption(conn, voteId, optionId));
 		}
 	}
@@ -289,7 +289,7 @@ public class VoteController extends Controller {
 	public APIResponse getVoteOptions(//
 			@P(t = "投票编号") Long voteId//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(voteService.getVoteOptions(conn, voteId));
 		}
 	}
@@ -310,7 +310,7 @@ public class VoteController extends Controller {
 			@P(t = "用户的选票数") Integer ballotCount, //
 			@P(t = "备注") String remark//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			voteService.vote(conn, orgId, voteId, userId, selections, ballotCount, remark);
 			return APIResponse.getNewSuccessResp();
 		}
@@ -324,7 +324,7 @@ public class VoteController extends Controller {
 	public APIResponse getVoteDetail(//
 			@P(t = "投票编号") Long voteId//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(voteService.getVoteDetail(conn, voteId));
 		}
 	}
@@ -341,7 +341,7 @@ public class VoteController extends Controller {
 			@P(t = "投票编号") Long voteId, //
 			@P(t = "用户编号") Long userId//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(voteService.getVoteTicket(conn, voteId, userId));
 		}
 	}
@@ -360,7 +360,7 @@ public class VoteController extends Controller {
 			Integer count, //
 			Integer offset //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse
 					.getNewSuccessResp(voteService.getUserBySelection(conn, voteId, selection, count, offset));
 		}
@@ -377,7 +377,7 @@ public class VoteController extends Controller {
 	public APIResponse countVoteTurnout(//
 			@P(t = "组织编号") JSONArray orgIds //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(voteService.countVoteTurnout(conn, orgIds));
 		}
 	}
@@ -396,7 +396,7 @@ public class VoteController extends Controller {
 			Integer count, //
 			Integer offset //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(voteService.getVotesByOrgId(conn, orgIds, status, count, offset));
 		}
 	}
@@ -415,7 +415,7 @@ public class VoteController extends Controller {
 			Integer count, //
 			Integer offset //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(voteService.getVoteTicketByUserId(conn, orgId, userId, count, offset));
 		}
 	}
@@ -432,7 +432,7 @@ public class VoteController extends Controller {
 			@P(t = "用户编号") Long userId, //
 			@P(t = "投票编号") Long voteId //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(voteService.getOptionByUserSelection(conn, userId, voteId));
 		}
 	}
@@ -452,7 +452,7 @@ public class VoteController extends Controller {
 			Integer count, //
 			Integer offset //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse
 					.getNewSuccessResp(voteService.getNotVoteByUserRoles(conn, orgId, userId, roles, count, offset));
 		}
@@ -473,7 +473,7 @@ public class VoteController extends Controller {
 			Integer count, //
 			Integer offset //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse
 					.getNewSuccessResp(voteService.getVoteByUserRoles(conn, orgId, userId, roles, count, offset));
 		}

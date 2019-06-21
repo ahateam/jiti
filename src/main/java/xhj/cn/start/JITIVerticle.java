@@ -14,7 +14,6 @@ import zyxhj.jiti.controller.VoteController;
 import zyxhj.movie.VideoController;
 import zyxhj.utils.Singleton;
 import zyxhj.utils.ZeroVerticle;
-import zyxhj.utils.data.DataSourceUtils;
 
 public class JITIVerticle extends ZeroVerticle {
 
@@ -32,8 +31,6 @@ public class JITIVerticle extends ZeroVerticle {
 	}
 
 	protected void init() throws Exception {
-
-		DataSourceUtils.initDataSourceConfig();
 
 		// initCtrl(ctrlMap, Singleton.ins(ServerController.class, "server", this));
 

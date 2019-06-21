@@ -3,6 +3,7 @@ package zyxhj.jiti.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -15,19 +16,18 @@ import zyxhj.utils.Singleton;
 import zyxhj.utils.api.APIResponse;
 import zyxhj.utils.api.Controller;
 import zyxhj.utils.data.DataSource;
-import zyxhj.utils.data.DataSourceUtils;
 
 public class AssetController extends Controller {
 
 	private static Logger log = LoggerFactory.getLogger(AssetController.class);
 
-	private DataSource dsRds;
+	private DruidDataSource dds;
 	private AssetService assetService;
 
 	public AssetController(String node) {
 		super(node);
 		try {
-			dsRds = DataSourceUtils.getDataSource("rdsDefault");
+			dds = DataSource.getDruidDataSource("rdsDefault.prop");
 
 			assetService = Singleton.ins(AssetService.class);
 		} catch (Exception e) {
@@ -93,7 +93,7 @@ public class AssetController extends Controller {
 					"			 * imgBack 背面图片（不动产属性）", r = false) String imgs, //
 			@P(t = "备注", r = false) String remark, //
 			@P(t = "分组信息，JSONArray格式", r = false) JSONArray groups) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(assetService.createAsset(conn, orgId, originId, name, sn, resType,
 					assetType, buildTime, originPrice, location, ownership, keeper, businessMode, businessTime, holder,
 					yearlyIncome, specType, estateType, area, floorArea, boundary, locationStart, locationEnd,
@@ -155,7 +155,7 @@ public class AssetController extends Controller {
 			@P(t = "备注", r = false) String remark, //
 			@P(t = "分组信息，JSONArray格式", r = false) JSONArray groups//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(assetService.editAsset(conn, orgId, assetId, originId, name, sn,
 					resType, assetType, buildTime, originPrice, location, ownership, keeper, businessMode, businessTime,
 					holder, yearlyIncome, specType, estateType, area, floorArea, boundary, locationStart, locationEnd,
@@ -173,7 +173,7 @@ public class AssetController extends Controller {
 	)
 	public APIResponse delAsset(//
 			@P(t = "资产编号") Long assetId) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(assetService.delAsset(conn, assetId));
 		}
 	}
@@ -194,7 +194,7 @@ public class AssetController extends Controller {
 			Integer count, //
 			Integer offset//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse
 					.getNewSuccessResp(assetService.queryAssets(conn, orgId, assetType, groups, tags, count, offset));
 		}
@@ -211,7 +211,7 @@ public class AssetController extends Controller {
 			@P(t = "组织编号") Long orgId, //
 			@P(t = "excel文件url") String url//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			assetService.importAssets(conn, orgId, url);
 			return APIResponse.getNewSuccessResp();
 		}
@@ -231,7 +231,7 @@ public class AssetController extends Controller {
 			Integer count, //
 			Integer offset//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(assetService.getAssetsByGroups(conn, orgId, groups, count, offset));
 		}
 	}
@@ -250,7 +250,7 @@ public class AssetController extends Controller {
 			Integer count, //
 			Integer offset//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(assetService.getAssetsByTags(conn, orgId, tags, count, offset));
 		}
 	}
@@ -268,7 +268,7 @@ public class AssetController extends Controller {
 			@P(t = "角色标签对象,JSONArray格式") JSONArray assetIds, //
 			@P(t = "角色标签对象,JSONArray格式") JSONArray groups//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(assetService.batchEditAssetsGroups(conn, orgId, assetIds, groups));
 		}
 	}
@@ -287,7 +287,7 @@ public class AssetController extends Controller {
 			Integer count, //
 			Integer offset //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(assetService.getAssetsBySn(conn, orgId, assetNum, count, offset));
 		}
 	}
@@ -306,7 +306,7 @@ public class AssetController extends Controller {
 			Integer count, //
 			Integer offset //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(assetService.getAssetsByName(conn, orgId, assetNum, count, offset));
 		}
 	}
@@ -325,7 +325,7 @@ public class AssetController extends Controller {
 			Integer count, //
 			Integer offset //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(assetService.getAssetByYear(conn, orgId, buildTime, count, offset));
 		}
 	}
@@ -346,7 +346,7 @@ public class AssetController extends Controller {
 			@P(t = "资产类型", r = false) JSONArray assetType, //
 			@P(t = "经营方式", r = false) JSONArray businessMode //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(
 					assetService.sumAssetBYGRAB(conn, orgId, buildTime, groups, resType, assetType, businessMode));
 		}
@@ -369,7 +369,7 @@ public class AssetController extends Controller {
 			@P(t = "经营方式", r = false) JSONArray businessModes //
 
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(assetService.districtCountByYear(conn, buildTime, orgId, groups,
 					resTypes, assetTypes, businessModes));
 		}
@@ -392,7 +392,7 @@ public class AssetController extends Controller {
 			@P(t = "经营方式", r = false) JSONArray businessModes //
 
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(assetService.districtCountByYears(conn, buildTimes, orgIds, groups,
 					resTypes, assetTypes, businessModes));
 		}
@@ -408,7 +408,7 @@ public class AssetController extends Controller {
 	)
 	public APIResponse getAssetType(//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(AssetTypeService.ASSET_TYPE_LIST);
 		}
 	}
@@ -423,7 +423,7 @@ public class AssetController extends Controller {
 	)
 	public APIResponse getResType(//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(AssetTypeService.RES_TYPE_LIST);
 		}
 	}
@@ -438,7 +438,7 @@ public class AssetController extends Controller {
 	)
 	public APIResponse getBusinessMode(//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(AssetTypeService.BUSINESS_TYPE_LIST);
 		}
 	}
@@ -459,7 +459,7 @@ public class AssetController extends Controller {
 			@P(t = "资产类型", r = false) JSONArray assetTypes, //
 			@P(t = "经营方式", r = false) JSONArray businessModes, //
 			Integer count, Integer offset) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(assetService.getAssetListByTypes(conn, buildTimes, orgIds, groups,
 					resTypes, assetTypes, businessModes, count, offset));
 		}
@@ -479,7 +479,7 @@ public class AssetController extends Controller {
 			@P(t = "任务名称") String name //
 
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			assetService.createAssetImportTask(conn, orgId, userId, name);
 			return APIResponse.getNewSuccessResp();
 		}
@@ -500,7 +500,7 @@ public class AssetController extends Controller {
 			Integer offset//
 
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 
 			return APIResponse.getNewSuccessResp(assetService.getAssetImportTasks(conn, orgId, userId, count, offset));
 		}
@@ -519,7 +519,7 @@ public class AssetController extends Controller {
 			@P(t = "用户id") Long userId, //
 			@P(t = "导入任务id") Long importTaskId//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(assetService.getAssetImportTask(conn, importTaskId, orgId, userId));
 		}
 	}
@@ -537,7 +537,7 @@ public class AssetController extends Controller {
 			@P(t = "excel文件url") String url, //
 			@P(t = "导入任务id") Long importTaskId//
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			assetService.importAssetsRecord(conn, orgId, userId, url, importTaskId);
 			return APIResponse.getNewSuccessResp();
 		}
@@ -556,7 +556,7 @@ public class AssetController extends Controller {
 			Integer count, //
 			Integer offset //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse
 					.getNewSuccessResp(assetService.getAssetImportRecords(conn, orgId, importTaskId, count, offset));
 		}
@@ -573,7 +573,7 @@ public class AssetController extends Controller {
 			@P(t = "组织编号") Long orgId, //
 			@P(t = "导入任务id") Long importTaskId //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 			assetService.importAsset(orgId, importTaskId);
 			return APIResponse.getNewSuccessResp();
 		}
@@ -592,7 +592,7 @@ public class AssetController extends Controller {
 			Integer count, //
 			Integer offset //
 	) throws Exception {
-		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+		try (DruidPooledConnection conn = dds.getConnection()) {
 
 			return APIResponse
 					.getNewSuccessResp(assetService.getNotcompletionRecord(conn, orgId, importTaskId, count, offset));

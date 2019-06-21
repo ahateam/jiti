@@ -52,7 +52,7 @@ public class NoticeTaskRecordRepository extends RDSRepository<NoticeTaskRecord> 
 		}
 	}
 
-	public void addNoticeTaskRecord(DruidPooledConnection conn, Long orgId, Long noId, JSONObject crowd)
+	public Integer addNoticeTaskRecord(DruidPooledConnection conn, Long orgId, Long taskId, JSONObject crowd)
 			throws Exception {
 		// 通过ROGUser的roles，groups和tags来判定人数
 		// 人群是重叠的，所以查询比较难写
@@ -74,13 +74,13 @@ public class NoticeTaskRecordRepository extends RDSRepository<NoticeTaskRecord> 
 
 			if (roles != null && roles.size() > 0) {
 				for (int i = 0; i < roles.size(); i++) {
-					sqlEx.OR(StringUtils.join("JSON_CONTAINS(roles, '", roles.getString(i), "', '$') "));
+					sqlEx.OR(StringUtils.join("JSON_CONTAINS(orguser.roles, '", roles.getString(i), "', '$') "));
 				}
 			}
 
 			if (groups != null && groups.size() > 0) {
 				for (int i = 0; i < groups.size(); i++) {
-					sqlEx.OR(StringUtils.join("JSON_CONTAINS(group, '", groups.getString(i), "', '$') "));
+					sqlEx.OR(StringUtils.join("JSON_CONTAINS(orguser.group, '", groups.getString(i), "', '$') "));
 				}
 			}
 
@@ -95,7 +95,7 @@ public class NoticeTaskRecordRepository extends RDSRepository<NoticeTaskRecord> 
 						for (int i = 0; i < arr.size(); i++) {
 							// JSON_CONTAINS(tags, '"tag1"', '$.groups')
 							// JSON_CONTAINS(tags, '"tag3"', '$.tags')
-							sqlEx.OR(StringUtils.join("JSON_CONTAINS(tags, '\"", arr.getString(i), "\"', '$.", key,
+							sqlEx.OR(StringUtils.join("JSON_CONTAINS(orguser.tags, '\"", arr.getString(i), "\"', '$.", key,
 									"') "));
 						}
 					}
@@ -111,8 +111,9 @@ public class NoticeTaskRecordRepository extends RDSRepository<NoticeTaskRecord> 
 		List<User> us = sqlGetOtherList(conn, Singleton.ins(UserRepository.class), s.toString(),
 				new Object[] { orgId });
 
+		Integer sum = 0;
 		NoticeTaskRecord noti = new NoticeTaskRecord();
-		noti.taskId = noId;
+		noti.taskId = taskId;
 		noti.orgId = orgId;
 		noti.status = NoticeTaskRecord.STATUS.UNDETECTED.v();
 		// 向消息任务表内添加openID
@@ -121,7 +122,10 @@ public class NoticeTaskRecordRepository extends RDSRepository<NoticeTaskRecord> 
 			noti.openId = user.wxOpenId;
 			noti.mobile = user.mobile;
 			this.insert(conn, noti);
+			sum++;
 		}
+		
+		return sum;
 
 	}
 

@@ -1,5 +1,6 @@
 package zyxhj.jiti.service;
 
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -9,20 +10,32 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.aliyuncs.CommonRequest;
+import com.aliyuncs.CommonResponse;
+import com.aliyuncs.DefaultAcsClient;
+import com.aliyuncs.IAcsClient;
+import com.aliyuncs.http.MethodType;
+import com.aliyuncs.profile.DefaultProfile;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
+import io.vertx.core.Vertx;
 import zyxhj.core.domain.LoginBo;
 import zyxhj.core.domain.User;
 import zyxhj.core.domain.UserSession;
 import zyxhj.core.repository.UserRepository;
+import zyxhj.custom.service.WxDataService;
+import zyxhj.custom.service.WxFuncService;
 import zyxhj.jiti.domain.District;
 import zyxhj.jiti.domain.Family;
+import zyxhj.jiti.domain.Notice;
 import zyxhj.jiti.domain.NoticeTask;
+import zyxhj.jiti.domain.NoticeTaskRecord;
 import zyxhj.jiti.domain.ORG;
 import zyxhj.jiti.domain.ORGDistrict;
 import zyxhj.jiti.domain.ORGExamine;
@@ -33,6 +46,7 @@ import zyxhj.jiti.domain.ORGUserRole;
 import zyxhj.jiti.domain.Superior;
 import zyxhj.jiti.repository.DistrictRepository;
 import zyxhj.jiti.repository.FamilyRepository;
+import zyxhj.jiti.repository.NoticeRepository;
 import zyxhj.jiti.repository.NoticeTaskRecordRepository;
 import zyxhj.jiti.repository.NoticeTaskRepository;
 import zyxhj.jiti.repository.ORGDistrictRepository;
@@ -47,6 +61,7 @@ import zyxhj.utils.ServiceUtils;
 import zyxhj.utils.Singleton;
 import zyxhj.utils.api.BaseRC;
 import zyxhj.utils.api.ServerException;
+import zyxhj.utils.data.DataSource;
 
 public class ORGService {
 
@@ -64,6 +79,9 @@ public class ORGService {
 	private ORGPermissionService orgPermissionService;
 	private NoticeTaskRepository noticeTaskRepository;
 	private NoticeTaskRecordRepository noticeTaskRecordRepository;
+	private NoticeRepository noticeRepository;
+	private WxDataService wxDataService;
+	private WxFuncService wxFuncService;
 
 	public ORGService() {
 		try {
@@ -79,6 +97,9 @@ public class ORGService {
 			orgPermissionService = Singleton.ins(ORGPermissionService.class);
 			noticeTaskRepository = Singleton.ins(NoticeTaskRepository.class);
 			noticeTaskRecordRepository = Singleton.ins(NoticeTaskRecordRepository.class);
+			noticeRepository = Singleton.ins(NoticeRepository.class);
+			wxDataService = Singleton.ins(WxDataService.class);
+			wxFuncService = Singleton.ins(WxFuncService.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -142,6 +163,7 @@ public class ORGService {
 		ret.mobile = user.mobile;
 
 		ret.roles = user.roles;
+		ret.openId = user.wxOpenId;
 
 		ret.loginTime = userSession.loginTime;
 		ret.loginToken = userSession.loginToken;
@@ -156,6 +178,7 @@ public class ORGService {
 		ret.weight = orgUser.weight;
 
 		ret.orgRoles = JSON.parseArray(orgUser.roles);
+		ret.groups = JSON.parseArray(orgUser.groups);
 		ret.permissions = orgPermissionService.getPermissionsByRoles(conn, orgUser.orgId, ret.orgRoles);
 		ret.orgTags = JSON.parseObject(orgUser.tags);
 
@@ -292,7 +315,7 @@ public class ORGService {
 	 */
 	public List<ORG> getORGs(DruidPooledConnection conn, Long superiorId, int count, int offset) throws Exception {
 		JSONArray json = new JSONArray();
-		List<Superior> superior = superiorRepository.getListByKey(conn, "superior_id", superiorId, null, null);
+		List<Superior> superior = superiorRepository.getListByKey(conn, "superior_id", superiorId, 512, 0);
 		for (Superior sup : superior) {
 			json.add(sup.orgId);
 		}
@@ -317,8 +340,10 @@ public class ORGService {
 	/**
 	 * 成员登录
 	 * 
-	 * @param mobile 电话号码
-	 * @param pwd    密码
+	 * @param mobile
+	 *            电话号码
+	 * @param pwd
+	 *            密码
 	 * @param 登录业务对象
 	 */
 	public LoginBo loginByMobile(DruidPooledConnection conn, String mobile, String pwd) throws Exception {
@@ -341,8 +366,10 @@ public class ORGService {
 
 	/**
 	 * 
-	 * @param idNumber 身份证号码
-	 * @param pwd      密码
+	 * @param idNumber
+	 *            身份证号码
+	 * @param pwd
+	 *            密码
 	 */
 	public LoginBo loginByIdNumber(DruidPooledConnection conn, String idNumber, String pwd) throws Exception {
 		User existUser = userRepository.getByKey(conn, "id_number", idNumber);
@@ -554,7 +581,6 @@ public class ORGService {
 
 			superiorRepository.insert(conn, sup);
 		}
-
 	}
 
 	// 再次提交组织申请
@@ -627,7 +653,7 @@ public class ORGService {
 	}
 
 	// 添加分户
-	public Family createFamily(DruidPooledConnection conn, Long orgId, String familyNumber, String familyMaster)
+	public Family createFamily(DruidPooledConnection conn, Long orgId, Long familyNumber, String familyMaster)
 			throws Exception {
 		Family fa = new Family();
 		fa.id = IDUtils.getSimpleId();
@@ -652,7 +678,7 @@ public class ORGService {
 	}
 
 	// 修改分户 TODO 未完善
-	public int editFamily(DruidPooledConnection conn, Long orgId, String familyNumber, String familyMaster)
+	public int editFamily(DruidPooledConnection conn, Long orgId, Long familyNumber, String familyMaster)
 			throws Exception {
 		Family fa = new Family();
 		fa.orgId = orgId;
@@ -662,12 +688,6 @@ public class ORGService {
 		// Family fn = familyRepository.getByKey(conn, "family_number", familyNumber);
 
 		return familyRepository.updateByKey(conn, "org_id", orgId, fa, true);
-	}
-
-	// 所有户列表
-	public List<Family> getFamilyAll(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)
-			throws Exception {
-		return familyRepository.getListByKey(conn, "org_id", orgId, count, offset);
 	}
 
 	/**
@@ -775,29 +795,189 @@ public class ORGService {
 	}
 
 	// 创建通知任务
-	public NoticeTask addNoticeTask(DruidPooledConnection conn, Long orgId, Long userId, String taskName, String remark,
+	public NoticeTask addNoticeTask(DruidPooledConnection conn, Long orgId, Long userId, String title, String content,
 			JSONObject crowd) throws Exception {
 		// 添加任务信息
 		NoticeTask no = new NoticeTask();
 		no.id = IDUtils.getSimpleId();
 		no.orgId = orgId;
 		no.userId = userId;
-		no.name = taskName;
+		no.title = title;
 		no.createTime = new Date();
-		no.remark = remark;
+		no.content = content;
 		no.crowd = crowd.toJSONString();
 		noticeTaskRepository.insert(conn, no);
 
 		// 根据crowd查询出用户的openid 再把openid放入通知任务表中
 
-		noticeTaskRecordRepository.addNoticeTaskRecord(conn, orgId, no.id, crowd);
-
+		Integer s = noticeTaskRecordRepository.addNoticeTaskRecord(conn, orgId, no.id, crowd);
+		no.sum = s;
+		noticeTaskRepository.updateByKey(conn, "id", no.id, no, true);
 		return no;
 	}
-	
-	
-	
-	
-	
+
+	// 发布通知 微信或者短信
+	public void sendingNotice(Long orgId, Long taskId, Byte type) {
+
+		// 异步方法，不会阻塞
+		Vertx.vertx().executeBlocking(future -> {
+			// 下面这行代码可能花费很长时间
+			DruidDataSource dsRds;
+			DruidPooledConnection conn = null;
+			try {
+				dsRds = DataSource.getDruidDataSource("rdsDefault.prop");
+				conn = (DruidPooledConnection) dsRds.getConnection();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			try {
+				NoticeTask notice = noticeTaskRepository.getByKey(conn, "id", taskId);
+				for (int i = 0; i < (notice.sum / 100) + 1; i++) {
+					List<NoticeTaskRecord> noticeRe = noticeTaskRecordRepository.getListByANDKeys(conn,
+							new String[] { "task_id", "org_id", "status" },
+							new Object[] { taskId, orgId, NoticeTaskRecord.STATUS.UNDETECTED.v() }, 100, 0);
+					for (NoticeTaskRecord noticeTaskRecord : noticeRe) {
+						if (notice.mode == NoticeTask.MODE.WX.v()) {
+							// 执行微信发送
+							wxFuncService.templateMessage(wxDataService.getWxMpService(), noticeTaskRecord.openId,
+									notice.title, notice.content, notice.createTime);
+						} else if (notice.mode == NoticeTask.MODE.PHONENUMBER.v()) {
+							// 执行短信发送
+							SendSms(noticeTaskRecord.mobile, notice.content);
+						} else if (notice.mode == NoticeTask.MODE.WXANDPHONE.v()) {
+							// 微信和短信都发送
+							wxFuncService.templateMessage(wxDataService.getWxMpService(), noticeTaskRecord.openId,
+									notice.title, notice.content, notice.createTime);
+							SendSms(noticeTaskRecord.mobile, notice.content);
+						}
+					}
+				}
+
+			} catch (Exception eee) {
+				eee.printStackTrace();
+			} finally {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+			future.complete("ok");
+		}, res -> {
+			System.out.println("The result is: " + res.result());
+		});
+
+	}
+
+	// 创建公告
+	public Notice createNotice(DruidPooledConnection conn, Long orgId, String title, String noticeContent, Byte type,
+			String crowd) throws Exception {
+		Notice no = new Notice();
+		no.id = IDUtils.getSimpleId();
+		no.orgId = orgId;
+		no.title = title;
+		no.content = noticeContent;
+		no.type = type;
+		no.crowd = crowd;
+		no.createTime = new Date();
+		no.endTime = new Date();
+		noticeRepository.insert(conn, no);
+		return no;
+	}
+
+	// 获取公告
+	public List<Notice> getNotice(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)
+			throws Exception {
+		return noticeRepository.getNotice(conn, orgId, count, offset);
+	}
+
+	// 修改公告
+	public Notice editNotice(DruidPooledConnection conn, Long noticeId, Long orgId, String title, String noticeContent,
+			Byte type, String crowd) throws Exception {
+		Notice no = new Notice();
+		no.title = title;
+		no.content = noticeContent;
+		no.type = type;
+		no.crowd = crowd;
+		no.createTime = new Date();
+		noticeRepository.updateByANDKeys(conn, new String[] { "id", "org_id" }, new Object[] { noticeId, orgId }, no,
+				true);
+		return no;
+	}
+
+	// 删除公告
+	public int deleteNotice(DruidPooledConnection conn, Long noticeId) throws Exception {
+		return noticeRepository.deleteByKey(conn, "id", noticeId);
+	}
+
+	// 用户查看公告
+	public List<Notice> getNoticeByRoleGroup(DruidPooledConnection conn, Long orgId, String roles, String groups)
+			throws Exception {
+		return noticeRepository.getNoticeByRoleGroup(conn, orgId, roles, groups);
+	}
+
+	// 绑定微信openid
+	public User bdUserOpenId(DruidPooledConnection conn, Long userId, String openId) throws Exception {
+		// 将openid存入User表中
+		User user = new User();
+		user.wxOpenId = openId;
+		userRepository.updateByKey(conn, "id", userId, user, true);
+		return user;
+	}
+
+	// 通过用户openId进行登陆
+	public User loginByOpenId(DruidPooledConnection conn, String openId) throws Exception {
+		// 通过openId去数据库里匹配 如果有 则正常登陆 如果没有 则表示需要绑定
+		User wxlogin = userRepository.getByKey(conn, "wx_open_id", openId);
+		if (wxlogin == null) {
+			return null;
+		} else {
+			return wxlogin;
+		}
+	}
+
+	// 解除绑定
+	public int removeOpenId(DruidPooledConnection conn, Long userId) throws Exception {
+
+		User us = userRepository.getByKey(conn, "id", userId);
+		// userRepository.deleteByKey(conn, "id", userId);
+
+		// User user = new User();
+		us.wxOpenId = null;
+		// user.id = userId;
+		// user.wxOpenId = "";
+
+		// userRepository.insert(conn, us);
+		return userRepository.updateByKey(conn, "id", userId, us, false);
+	}
+
+	// 短信群发
+	public CommonResponse SendSms(String phone, String content) {
+		// accessKeyId
+		DefaultProfile profile = DefaultProfile.getProfile("cn-hangzhou", "LTAIJ9mYIjuW54Cj",
+				"89EMlXLsP13H8mWKIvdr4iM1OvdVxs"); // 这里需要添加主账号的accessKeyId和accessSecret
+		IAcsClient client = new DefaultAcsClient(profile);
+		CommonRequest request = new CommonRequest();
+		// request.setProtocol(ProtocolType.HTTPS);
+		request.setMethod(MethodType.POST); // 提交方式
+		request.setDomain("dysmsapi.aliyuncs.com");
+		request.setVersion("2017-05-25");
+		request.setAction("SendSms"); // 短信发送接口
+		request.putQueryParameter("RegionId", "cn-hangzhou");
+		request.putQueryParameter("PhoneNumbers", phone); // 电话号码 如果要发送给多人 则使用逗号分隔 上限为1000个号码
+		request.putQueryParameter("SignName", "遵义小红椒"); // 短信标签名称 需要创建审核标签
+		request.putQueryParameter("TemplateCode", "SMS_165341503"); // 短信模板id
+		request.putQueryParameter("TemplateParam", StringUtils.join("{\"content\":\"", content, "\"}")); // 短信模板变量值
+
+		try {
+			CommonResponse response = client.getCommonResponse(request);
+			System.out.println(response.getData());
+			return response;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+
+	}
 
 }

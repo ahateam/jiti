@@ -204,9 +204,9 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 			throws ServerException {
 
 		// SET groups="[123,456,345]"
-	//	StringBuffer sbset = new StringBuffer(" SET ");
-	//	ArrayList<Object> pset = new ArrayList<>();
-	//	SQL sqlset = new SQL();
+		// StringBuffer sbset = new StringBuffer(" SET ");
+		// ArrayList<Object> pset = new ArrayList<>();
+		// SQL sqlset = new SQL();
 
 		// 不能为空，为空需要填写默认分组
 //		sbset.append("SET groups=?");
@@ -285,6 +285,129 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		sql.AND(sqlAnd);
 		sql.fillSQL(sb);
 		System.out.println(sb.toString());
+		return sqlGetJSONArray(conn, sb.toString(), sql.getParams(), count, offset);
+	}
+
+	public JSONArray getFamilyUserBYFamilyId(DruidPooledConnection conn, Long orgId, Long familyNumber)
+			throws Exception {
+		// SELECT * FROM tb_ecm_org_user oru LEFT JOIN tb_user user ON oru.user_id =
+		// user.id WHERE
+		// oru.org_id = 398977803603065 AND oru.family_number = 1475
+		StringBuffer sb = new StringBuffer(
+				"SELECT * FROM tb_user user  RIGHT JOIN tb_ecm_org_user oru ON oru.user_id = user.id WHERE ");
+		SQL sql = new SQL();
+		sql.addEx("oru.org_id = ? ", orgId);
+		sql.AND("oru.family_number = ? ", familyNumber);
+		sql.fillSQL(sb);
+		return sqlGetJSONArray(conn, sb.toString(), sql.getParams(), 512, 0);
+	}
+
+	public List<ORGUser> getFamilyByFamilyMaster(DruidPooledConnection conn, Long orgId, String master, Integer count,
+			Integer offset) throws Exception {
+		StringBuffer sb = new StringBuffer("WHERE ");
+		SQL sql = new SQL();
+		sql.addEx("org_id = ? ", orgId);
+		sql.AND(StringUtils.join("family_master LIKE '%", master, "%'"));
+		sql.addEx("GROUP BY family_number");
+		sql.fillSQL(sb);
+		System.out.println(sb.toString());
+		return getList(conn, sb.toString(), sql.getParams(), count, offset);
+	}
+
+	public List<ORGUser> getFamilyByshare(DruidPooledConnection conn, Long orgId, String share, Integer count,
+			Integer offset) throws Exception {
+		StringBuffer sb = new StringBuffer("WHERE ");
+		SQL sql = new SQL();
+		sql.addEx("org_id = ? ", orgId);
+		sql.AND(StringUtils.join("share_cer_no LIKE '%", share, "%'"));
+		sql.addEx("GROUP BY family_number");
+		sql.fillSQL(sb);
+		return getList(conn, sb.toString(), sql.getParams(), count, offset);
+	}
+
+	public List<ORGUser> getFamilyByFamilyNumber(DruidPooledConnection conn, Long orgId, Long number, Integer count,
+			Integer offset) throws Exception {
+		StringBuffer sb = new StringBuffer("WHERE ");
+		SQL sql = new SQL();
+		sql.addEx("org_id = ? ", orgId);
+		sql.AND("family_number = ? ", number);
+		sql.addEx("GROUP BY family_number");
+		sql.fillSQL(sb);
+		return getList(conn, sb.toString(), sql.getParams(), count, offset);
+	}
+
+	public ORGUser maxFamilyNumber(DruidPooledConnection conn, Long orgId) throws Exception {
+		StringBuffer sb = new StringBuffer(
+				"WHERE family_number = (SELECT MAX(family_number) FROM tb_ecm_org_user WHERE org_id = ?)");
+		return get(conn, sb.toString(), new Object[] { orgId });
+	}
+
+	public int getOrgUser(DruidPooledConnection conn, Long orgId, String idNumber) throws Exception {
+		// SELECT * FROM tb_user user RIGHT JOIN tb_ecm_org_user oru ON user.id =
+		// oru.user_id
+		// WHERE user.id_number = '522121196610244546' AND oru.org_id = 397652553337218
+
+		StringBuffer sb = new StringBuffer(
+				"SELECT * FROM tb_user user RIGHT JOIN tb_ecm_org_user oru ON user.id = oru.user_id WHERE ");
+		SQL sql = new SQL();
+		sql.addEx("oru.org_id = ? ", orgId);
+		sql.AND("user.id_number = ? ", idNumber);
+		sql.fillSQL(sb);
+		System.out.println(sb.toString());
+		JSONObject oru = sqlGetJSONObject(conn, sb.toString(), sql.getParams());
+		if (oru == null) {
+			return 0;
+		} else {
+			return 1;
+		}
+	}
+
+	public JSONArray getUserByRoles(DruidPooledConnection conn, Long orgId, JSONArray json) throws Exception {
+		// SELECT * FROM tb_ecm_org_user oru LEFT JOIN tb_user user ON oru.user_id =
+		// user.id WHERE
+		// oru.org_id = 397652553337218 AND JSON_CONTAINS(oru.roles, '104')
+		StringBuffer sb = new StringBuffer(
+				"SELECT * FROM tb_ecm_org_user oru LEFT JOIN tb_user user ON oru.user_id = user.id WHERE ");
+		SQL sql = new SQL();
+		sql.addEx("oru.org_id = ? ", orgId);
+		SQL sqlEx = new SQL();
+		for (int i = 0; i < json.size(); i++) {
+			sqlEx.OR(StringUtils.join("JSON_CONTAINS(oru.roles, '", json.getLong(i), "','$')"));
+		}
+		sql.AND(sqlEx);
+		sql.fillSQL(sb);
+
+		return sqlGetJSONArray(conn, sb.toString(), sql.getParams(), 512, 0);
+	}
+
+	public JSONArray getORGUsersByRole(DruidPooledConnection conn, Long orgId, JSONArray json, Integer count,
+			Integer offset) throws Exception {
+		// SELECT user.wx_open_id FROM tb_user user RIGHT JOIN tb_ecm_org_user oru ON
+		// user.id = oru.user_id
+		// WHERE JSON_CONTAINS(oru.roles, '104','$') AND user.wx_open_id IS NOT NULL
+		StringBuffer sb = new StringBuffer(
+				"SELECT user.* FROM tb_ecm_org_user oru LEFT JOIN tb_user user ON oru.user_id = user.id WHERE ");
+		SQL sql = new SQL();
+		sql.addEx("oru.org_id = ? ", orgId);
+		sql.AND(" user.wx_open_id IS NOT NULL ");
+		SQL sqlEx = new SQL();
+		for (int i = 0; i < json.size(); i++) {
+			sqlEx.OR(StringUtils.join("JSON_CONTAINS(oru.roles, '", json.getLong(i), "','$')"));
+		}
+		sql.AND(sqlEx);
+		sql.fillSQL(sb);
+
+		return sqlGetJSONArray(conn, sb.toString(), sql.getParams(), count, offset);
+	}
+
+	public JSONArray getFamilyAll(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)
+			throws Exception {
+		StringBuffer sb = new StringBuffer("SELECT * FROM tb_ecm_org_user  WHERE ");
+		SQL sql = new SQL();
+		sql.addEx("org_id = ? ", orgId);
+		sql.AND(" family_number IS NOT NULL ");
+		sql.addEx("GROUP BY family_master");
+		sql.fillSQL(sb);
 		return sqlGetJSONArray(conn, sb.toString(), sql.getParams(), count, offset);
 	}
 

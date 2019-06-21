@@ -2,7 +2,9 @@ package zyxhj.custom.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -26,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
-import io.vertx.core.impl.TaskQueue;
 import me.chanjar.weixin.common.api.WxConsts;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.mp.api.WxMpService;
@@ -40,18 +41,13 @@ import me.chanjar.weixin.mp.bean.result.WxMpUser;
 import me.chanjar.weixin.mp.bean.result.WxMpUserList;
 import me.chanjar.weixin.mp.bean.template.WxMpTemplateData;
 import me.chanjar.weixin.mp.bean.template.WxMpTemplateMessage;
-import zyxhj.jiti.repository.NoticeTaskRecordRepository;
-import zyxhj.utils.Singleton;
 
 public class WxFuncService {
 
 	private static Logger log = LoggerFactory.getLogger(WxFuncService.class);
 
-	private NoticeTaskRecordRepository noticeTaskRecordRepository;
-
 	public WxFuncService() {
 		try {
-			noticeTaskRecordRepository = Singleton.ins(NoticeTaskRecordRepository.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -63,23 +59,6 @@ public class WxFuncService {
 	public WxMpUserList getTest(WxMpService wxMpService) throws Exception {
 		WxMpUserList wxUserList = wxMpService.getUserService().userList(null);
 		return wxUserList;
-	}
-
-	/*
-	 * 获取卡券列表
-	 */
-	public Map<String, Object> getTest2(WxMpService wxMpService) throws Exception {
-		Map<String, Object> map = new HashMap<String, Object>();
-		List<String> list = new ArrayList<String>();
-		list.add("CARD_STATUS_VERIFY_OK");
-		map.put("offset", 0);
-		map.put("count", 10);
-		map.put("status_list", list);
-		String json = JSONObject.toJSONString(map);
-		String reJson = post("https://api.weixin.qq.com/card/batchget?access_token=" + wxMpService.getAccessToken(),
-				json);
-		Map<String, Object> json2Map = parseJSON2Map(reJson);
-		return json2Map;
 	}
 
 	/*
@@ -140,15 +119,63 @@ public class WxFuncService {
 	}
 
 	/*
-	 * 模板消息测试
+	 * 模板消息
 	 */
-	public void templateMessageTest(WxMpService wxMpService) throws WxErrorException {
-		WxMpTemplateMessage templateMessage = WxMpTemplateMessage.builder().toUser("") //oppenid
+	public void templateMessage(WxMpService wxMpService, String openId, String title, String content, Date createDate)
+			throws WxErrorException {
+		WxMpTemplateMessage templateMessage = WxMpTemplateMessage.builder().toUser(openId) // oppenid
 				.templateId("nQ0-qyYKcvcwLeBN2_cwkj6yJjC2xgGA0lQr_4odvZE")
-				.url("http://aha-element.oss-cn-hangzhou.aliyuncs.com/index.html").build();
-		// // 非必填
-		templateMessage.addData(new WxMpTemplateData("test", "Let us test this!!", "blue"));
+				.url("http://jiti.online.3ch.org.cn/wap/index.html").build();
+
+		templateMessage.addData(new WxMpTemplateData("first", title, "blue"));
+		templateMessage.addData(new WxMpTemplateData("keynote1", content, "blue"));
+		templateMessage.addData(new WxMpTemplateData("keynote2", createDate.toString(), "blue"));
+
 		wxMpService.getTemplateMsgService().sendTemplateMsg(templateMessage);
+
+	}
+
+	/*
+	 * 投票模板消息
+	 */
+	public void voteMessage(WxMpService wxMpService, String openId, String title, String options, Date startTime,
+			Date expiryTime) throws WxErrorException {
+		WxMpTemplateMessage templateMessage = WxMpTemplateMessage.builder().toUser(openId) // oppenid
+				.templateId("jOSl7ivdeibf2_axLpr5w8Jdo3Jq-OPjSiqsqyKKhfI")
+				.url("http://jiti.online.3ch.org.cn/wap/index.html").build();
+
+		templateMessage.addData(new WxMpTemplateData("first", "您有一条新的投票"));
+		templateMessage.addData(new WxMpTemplateData("keyword1", title));
+		templateMessage.addData(new WxMpTemplateData("keyword2", options));
+		templateMessage.addData(new WxMpTemplateData("keyword3", startTime.toString()));
+		templateMessage.addData(new WxMpTemplateData("keyword4", expiryTime.toString()));
+		templateMessage.addData(new WxMpTemplateData("remark", "请及时查看并投出您宝贵的一票"));
+
+		wxMpService.getTemplateMsgService().sendTemplateMsg(templateMessage);
+
+	}
+
+	/*
+	 * 审核通知模板消息
+	 */
+	public void examineMessage(WxMpService wxMpService, String openId, String orgName, String familyMaster, String type,
+			Date createTime) throws WxErrorException {
+		WxMpTemplateMessage templateMessage = WxMpTemplateMessage.builder().toUser(openId) // oppenid
+				.templateId("TdZQ3y4_2mXVzJFFgqbnAMwnNShEXHGrFJFZbt67V-U")
+				.url("http://jiti.online.3ch.org.cn/wap/index.html").build();
+
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MM月dd日 hh:mm:ss");
+		String date2 = sdf.format(createTime);
+
+		templateMessage.addData(new WxMpTemplateData("first", "您有一条新的审核"));
+		templateMessage.addData(new WxMpTemplateData("keyword1", orgName));
+		templateMessage.addData(new WxMpTemplateData("keyword2", familyMaster));
+		templateMessage.addData(new WxMpTemplateData("keyword3", type));
+		templateMessage.addData(new WxMpTemplateData("keyword4", date2));
+		templateMessage.addData(new WxMpTemplateData("remark", "请及时处理"));
+
+		wxMpService.getTemplateMsgService().sendTemplateMsg(templateMessage);
+
 	}
 
 	/*
@@ -212,39 +239,6 @@ public class WxFuncService {
 
 		return returnVal;
 
-	}
-
-	/**
-	 * @描述 json串转换map
-	 * @param bizData
-	 * @return
-	 */
-	public static Map<String, Object> parseJSON2Map(String bizData) {
-		Map<String, Object> ret = new HashMap<String, Object>();
-		try {
-			JSONObject bizDataJson = JSONObject.parseObject(bizData);
-			// 获取json对象值
-			for (Object key : bizDataJson.keySet()) {
-				Object value = bizDataJson.get(key);
-				// 判断值是否为json数组类型
-				if (value instanceof JSONArray) {
-					// 如果为json数组类型迭代循环取值
-					List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-					Iterator<Object> it = ((JSONArray) value).iterator();
-
-					while (it.hasNext()) {
-						JSONObject json2 = (JSONObject) it.next();
-						list.add(parseJSON2Map(json2.toString()));
-					}
-					ret.put(String.valueOf(key), list);
-				} else {
-					ret.put(String.valueOf(key), String.valueOf(value));
-				}
-			}
-		} catch (Exception e) {
-			// log.info();
-		}
-		return ret;
 	}
 
 	/**

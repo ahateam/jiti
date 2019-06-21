@@ -14,7 +14,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
-import zyxhj.jiti.domain.ORGPermission;
 import zyxhj.jiti.domain.ORGPermissionRel;
 import zyxhj.jiti.domain.ORGUserRole;
 import zyxhj.jiti.repository.ORGPermissionRelaRepository;

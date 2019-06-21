@@ -25,7 +25,7 @@ public class ORGPermission {
 	public static final ORGPermission per_asset_management = buildSysPermission(temp++, "资产管理", "管理资产权限");
 	public static final ORGPermission per_role_management = buildSysPermission(temp++, "职务管理", "管理职务权限");
 	public static final ORGPermission per_examine = buildSysPermission(temp++, "审核", "上级审核权限");
-	public static final ORGPermission per_feparate_family = buildSysPermission(temp++, "分户", "上级审核分户权限");
+	public static final ORGPermission per_feparate_family = buildSysPermission(temp++, "户审核", "上级审核分户权限");
 	public static final ORGPermission per_share_change = buildSysPermission(temp++, "股权变更", "上级审核股权变更权限");
 
 	/**

@@ -83,7 +83,7 @@ public class WxOAuth2Controller extends Controller {
 	)
 	public void templateMessage(HttpServerRequest req, HttpServerResponse resp, RoutingContext context)
 			throws Exception {
-		wxFuncService.templateMessageTest(wxDataService.getWxMpService());
+		// wxFuncService.templateMessageTest(wxDataService.getWxMpService());
 	}
 
 	// 回复编码
@@ -97,17 +97,18 @@ public class WxOAuth2Controller extends Controller {
 	/*
 	 * 根据用户反馈授权获取对应token
 	 */
-	@GET(path = "getAccessToken", //
+	@POSTAPI(path = "getAccessToken", //
 			des = "根据用户反馈授权，获取token"//
 	)
-	public void getAccessToken(HttpServerRequest req, HttpServerResponse resp, RoutingContext context)
-			throws Exception {
-		System.err.println("test：    get assesstoken");
-		String code = req.getParam("code");
-		System.err.println("code：    " + code);
+	public APIResponse getAccessToken(//
+			@P(t = "code") String code //
+	) throws Exception {
 		WxMpOAuth2AccessToken wxMpOAuth2AccessToken = wxDataService.getWxMpService().oauth2getAccessToken(code);
-		WxMpUser wxMpUser = wxDataService.getWxMpService().oauth2getUserInfo(wxMpOAuth2AccessToken, null);
-		System.err.println(wxMpUser.getOpenId());
+		// WxMpUser wxMpUser =
+		// wxDataService.getWxMpService().oauth2getUserInfo(wxMpOAuth2AccessToken,
+		// null);
+		// System.err.println(wxMpUser.getOpenId());
+		return APIResponse.getNewSuccessResp(wxMpOAuth2AccessToken);
 	}
 
 	/*

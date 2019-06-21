@@ -3,16 +3,11 @@ package zyxhj.jiti.service;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-
 import zyxhj.jiti.domain.AssetType;
-import zyxhj.jiti.domain.ORGUserRole;
 
 /**
  * 第三方用户自定义角色service
@@ -22,10 +17,10 @@ public class AssetTypeService {
 
 	private static Logger log = LoggerFactory.getLogger(AssetTypeService.class);
 
-	private static Cache<Long, ORGUserRole> ASSET_TYPE_ALL = CacheBuilder.newBuilder()//
-			.expireAfterAccess(5, TimeUnit.MINUTES)//
-			.maximumSize(1000)//
-			.build();
+//	private static Cache<Long, ORGUserRole> ASSET_TYPE_ALL = CacheBuilder.newBuilder()//
+//			.expireAfterAccess(5, TimeUnit.MINUTES)//
+//			.maximumSize(1000)//
+//			.build();
 
 	/**
 	 * 系统级第三方权限，会被

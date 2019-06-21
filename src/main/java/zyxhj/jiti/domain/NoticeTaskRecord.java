@@ -66,7 +66,7 @@ public class NoticeTaskRecord {
 	/**
 	 * openId
 	 */
-	@RDSAnnField(column = "VARCHAR(128")
+	@RDSAnnField(column = "VARCHAR(128)")
 	public String openId;
 	
 	/**

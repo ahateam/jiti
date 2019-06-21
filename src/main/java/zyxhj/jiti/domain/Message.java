@@ -8,16 +8,14 @@ import zyxhj.utils.data.rds.RDSAnnField;
 import zyxhj.utils.data.rds.RDSAnnID;
 
 /**
- * 任务
- *
+ * 消息
  */
-@RDSAnnEntity(alias = "tb_ecm_notice_task")
-public class NoticeTask {
+@RDSAnnEntity(alias = "tb_ecm_message")
+public class Message {
 
 	public static enum TYPE implements ENUMVALUE {
-		ORG((byte) 0, "会议公告"), //
-		FAMILY((byte) 1, "投票公告"), //
-		OTHER((byte) 2, "其他公告"),//
+		EXAMINE((byte) 0, "审核"), //
+		VOTE((byte) 1, "投票"), //
 		;
 
 		private byte v;
@@ -39,16 +37,15 @@ public class NoticeTask {
 		}
 	}
 
-	public static enum MODE implements ENUMVALUE {
-		WX((byte) 0, "微信通知"), //
-		PHONENUMBER((byte) 1, "短信通知"), //
-		WXANDPHONE((byte) 2, "微信+短信通知"),//
+	public static enum STATUS implements ENUMVALUE {
+		UNREAD((byte) 0, "未读"), //
+		READ((byte) 1, "已读"), //
 		;
 
 		private byte v;
 		private String txt;
 
-		private MODE(Byte v, String txt) {
+		private STATUS(Byte v, String txt) {
 			this.v = v;
 			this.txt = txt;
 		}
@@ -69,29 +66,27 @@ public class NoticeTask {
 	public Long id;
 
 	/**
-	 * 组织编号
+	 * 组织id
 	 */
-	@RDSAnnID
 	@RDSAnnField(column = RDSAnnField.ID)
 	public Long orgId;
 
 	/**
-	 * 用户编号
+	 * 用户id
 	 */
-	@RDSAnnID
 	@RDSAnnField(column = RDSAnnField.ID)
 	public Long userId;
 
 	/**
-	 * 任务名称
+	 * 标题
 	 */
 	@RDSAnnField(column = RDSAnnField.TEXT_TITLE)
 	public String title;
 
 	/**
-	 * 任务内容 1024汉字 怕不够
+	 * 内容
 	 */
-	@RDSAnnField(column = RDSAnnField.SHORT_TEXT)
+	@RDSAnnField(column = RDSAnnField.JSON)
 	public String content;
 
 	/**
@@ -99,29 +94,23 @@ public class NoticeTask {
 	 */
 	@RDSAnnField(column = RDSAnnField.TIME)
 	public Date createTime;
-	
-	/**
-	 * 需要通知的人群
-	 */
-	@RDSAnnField(column = RDSAnnField.SHORT_TEXT)
-	public String crowd;
 
 	/**
-	 * 通知类型
+	 * 消息类型
 	 */
 	@RDSAnnField(column = RDSAnnField.BYTE)
 	public Byte type;
 
 	/**
-	 * 通知方式
+	 * 审核状态
 	 */
 	@RDSAnnField(column = RDSAnnField.BYTE)
-	public Byte mode;
+	public Byte examineStatus;
 
 	/**
-	 * 需要发送的人数
+	 * 阅读状态 已读/未读
 	 */
-	@RDSAnnField(column = RDSAnnField.INTEGER)
-	public Integer sum;
+	@RDSAnnField(column = RDSAnnField.BYTE)
+	public Byte status;
 
 }

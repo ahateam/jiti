@@ -11,6 +11,7 @@ import zyxhj.jiti.domain.Examine;
 import zyxhj.jiti.domain.Notice;
 import zyxhj.jiti.domain.ORG;
 import zyxhj.jiti.domain.ORGExamine;
+import zyxhj.jiti.service.MessageService;
 import zyxhj.jiti.service.ORGPermissionService;
 import zyxhj.jiti.service.ORGService;
 import zyxhj.jiti.service.ORGUserGroupService;
@@ -33,6 +34,7 @@ public class ORGController extends Controller {
 	private ORGUserGroupService orgUserGroupService;
 	private ORGPermissionService orgPermissionService;
 	private ORGUserRoleService orgUserRoleService;
+	private MessageService messageService;
 
 	public ORGController(String node) {
 		super(node);
@@ -45,6 +47,7 @@ public class ORGController extends Controller {
 			orgUserGroupService = Singleton.ins(ORGUserGroupService.class);
 			orgPermissionService = Singleton.ins(ORGPermissionService.class);
 			orgUserRoleService = Singleton.ins(ORGUserRoleService.class);
+			messageService = Singleton.ins(MessageService.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -1707,6 +1710,64 @@ public class ORGController extends Controller {
 	) throws Exception {
 		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.removeOpenId(conn, userId));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "getMessageByUserId", //
+			des = "获取用户的消息", //
+			ret = ""//
+	)
+	public APIResponse getMessageByUserId(//
+			@P(t = "组织id") Long orgId, //
+			@P(t = "用户id") Long userId, //
+			Integer count, //
+			Integer offset//
+
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(messageService.getMessageByUserId(conn, orgId, userId, count, offset));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "countMessageByUserId", //
+			des = "统计用户有多少条消息未读", //
+			ret = ""//
+	)
+	public APIResponse countMessageByUserId(//
+			@P(t = "组织id") Long orgId, //
+			@P(t = "用户id") Long userId, //
+			Integer count, //
+			Integer offset//
+
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			return APIResponse.getNewSuccessResp(messageService.countMessageByUserId(conn, orgId, userId));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "editMessageStatus", //
+			des = "修改消息状态为已读", //
+			ret = ""//
+	)
+	public APIResponse editMessageStatus(//
+			@P(t = "消息id") Long messageId //
+
+	) throws Exception {
+		try (DruidPooledConnection conn = (DruidPooledConnection) dsRds.openConnection()) {
+			messageService.editMessageStatus(conn, messageId);
+			return APIResponse.getNewSuccessResp();
 		}
 	}
 

@@ -386,7 +386,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		// user.id = oru.user_id
 		// WHERE JSON_CONTAINS(oru.roles, '104','$') AND user.wx_open_id IS NOT NULL
 		StringBuffer sb = new StringBuffer(
-				"SELECT user.wx_open_id FROM tb_ecm_org_user oru LEFT JOIN tb_user user ON oru.user_id = user.id WHERE ");
+				"SELECT user.* FROM tb_ecm_org_user oru LEFT JOIN tb_user user ON oru.user_id = user.id WHERE ");
 		SQL sql = new SQL();
 		sql.addEx("oru.org_id = ? ", orgId);
 		sql.AND(" user.wx_open_id IS NOT NULL ");

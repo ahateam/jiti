@@ -10,6 +10,8 @@ import zyxhj.custom.controller.WxOAuth2Controller;
 import zyxhj.jiti.controller.AssetController;
 import zyxhj.jiti.controller.BankController;
 import zyxhj.jiti.controller.DemonstrationController;
+import zyxhj.jiti.controller.ExternalController;
+import zyxhj.jiti.controller.ImportController;
 import zyxhj.jiti.controller.ORGController;
 import zyxhj.jiti.controller.VoteController;
 import zyxhj.movie.VideoController;
@@ -61,6 +63,10 @@ public class JITIVerticle extends ZeroVerticle {
 		initCtrl(ctrlMap, Singleton.ins(BankController.class, "bank"));
 
 		initCtrl(ctrlMap, Singleton.ins(VideoController.class, "video"));
+
+		initCtrl(ctrlMap, Singleton.ins(ExternalController.class, "ext"));
+
+		initCtrl(ctrlMap, Singleton.ins(ImportController.class, "imp"));
 
 	}
 

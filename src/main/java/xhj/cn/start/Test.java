@@ -3,9 +3,11 @@ package xhj.cn.start;
 import com.alibaba.druid.pool.DruidPooledConnection;
 
 import zyxhj.jiti.domain.Examine;
+import zyxhj.jiti.domain.Message;
 import zyxhj.jiti.domain.Notice;
 import zyxhj.jiti.domain.NoticeTask;
 import zyxhj.jiti.domain.NoticeTaskRecord;
+import zyxhj.jiti.domain.PrintingTemplate;
 import zyxhj.utils.data.DataSource;
 import zyxhj.utils.data.DataSourceUtils;
 import zyxhj.utils.data.rds.RDSUtils;
@@ -40,7 +42,7 @@ public class Test {
 
 		//	 RDSUtils.dropTableByEntity(dsRds, ORGPermission.class);
 
-			RDSUtils.createTableByEntity(dsRds, NoticeTaskRecord.class); 
+			RDSUtils.createTableByEntity(dsRds, PrintingTemplate.class); 
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

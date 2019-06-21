@@ -17,7 +17,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
-import zyxhj.core.repository.UserRepository;
 import zyxhj.custom.service.WxDataService;
 import zyxhj.custom.service.WxFuncService;
 import zyxhj.jiti.domain.ORGUser;
@@ -43,6 +42,7 @@ public class VoteService {
 	private ORGUserRepository orgUserRepository;
 	private WxDataService wxDataService;
 	private WxFuncService wxFuncService;
+	private MessageService messageService;
 
 	public VoteService() {
 		try {
@@ -52,6 +52,7 @@ public class VoteService {
 			orgUserRepository = Singleton.ins(ORGUserRepository.class);
 			wxDataService = Singleton.ins(WxDataService.class);
 			wxFuncService = Singleton.ins(WxFuncService.class);
+			messageService = Singleton.ins(MessageService.class);
 
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
@@ -162,8 +163,8 @@ public class VoteService {
 		JSONArray json = crowd.getJSONArray("roles");
 		Integer offset = 0;
 		for (int i = 0; i < vote.quorum / 100 + 1; i++) {
-			// 获取openId 
-			
+			// 获取openId
+
 			JSONArray openIds = orgUserRepository.getORGUsersByRole(conn, orgId, json, 100, offset);
 			for (int j = 0; j < openIds.size(); j++) {
 				JSONObject jo = openIds.getJSONObject(j);
@@ -171,6 +172,12 @@ public class VoteService {
 				wxFuncService.voteMessage(wxDataService.getWxMpService(), jo.getString("wxOpenId"), vote.title,
 						options.toJSONString(), vote.startTime, vote.expiryTime);
 			}
+			JSONObject data = new JSONObject();
+			data.put("vote", vote);
+			data.put("options", options);
+			// 发送消息通知
+			messageService.createVoteMessage(conn, orgId, openIds, vote.title, data.toJSONString());
+
 			offset = offset + 100;
 		}
 	}
@@ -631,7 +638,6 @@ public class VoteService {
 		// Map<String, Integer> ma = new HashMap<String, Integer>();
 		// Integer a = 0, b = 0;
 		// for (int i = 0; i < orgIds.size(); i++) {
-		//
 		//
 		// List<Vote> getVote = voteRepository.getListByKey(conn, "org_id",
 		// orgIds.getString(i), null, null);

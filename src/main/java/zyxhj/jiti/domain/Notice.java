@@ -63,7 +63,7 @@ public class Notice {
 	@RDSAnnField(column = RDSAnnField.BYTE)
 	public Byte type;
 
-	/**
+	/** 
 	 * 创建时间
 	 */
 	@RDSAnnField(column = RDSAnnField.TIME)

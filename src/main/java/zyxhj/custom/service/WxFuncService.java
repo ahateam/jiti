@@ -62,23 +62,6 @@ public class WxFuncService {
 	}
 
 	/*
-	 * 获取卡券列表
-	 */
-	public Map<String, Object> getTest2(WxMpService wxMpService) throws Exception {
-		Map<String, Object> map = new HashMap<String, Object>();
-		List<String> list = new ArrayList<String>();
-		list.add("CARD_STATUS_VERIFY_OK");
-		map.put("offset", 0);
-		map.put("count", 10);
-		map.put("status_list", list);
-		String json = JSONObject.toJSONString(map);
-		String reJson = post("https://api.weixin.qq.com/card/batchget?access_token=" + wxMpService.getAccessToken(),
-				json);
-		Map<String, Object> json2Map = parseJSON2Map(reJson);
-		return json2Map;
-	}
-
-	/*
 	 * 获取卡卷二维码
 	 * 
 	 * cardId 卡卷ID outerStr 场景值 expiresIn 失效时间，单位秒，不填默认365天
@@ -256,39 +239,6 @@ public class WxFuncService {
 
 		return returnVal;
 
-	}
-
-	/**
-	 * @描述 json串转换map
-	 * @param bizData
-	 * @return
-	 */
-	public static Map<String, Object> parseJSON2Map(String bizData) {
-		Map<String, Object> ret = new HashMap<String, Object>();
-		try {
-			JSONObject bizDataJson = JSONObject.parseObject(bizData);
-			// 获取json对象值
-			for (Object key : bizDataJson.keySet()) {
-				Object value = bizDataJson.get(key);
-				// 判断值是否为json数组类型
-				if (value instanceof JSONArray) {
-					// 如果为json数组类型迭代循环取值
-					List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-					Iterator<Object> it = ((JSONArray) value).iterator();
-
-					while (it.hasNext()) {
-						JSONObject json2 = (JSONObject) it.next();
-						list.add(parseJSON2Map(json2.toString()));
-					}
-					ret.put(String.valueOf(key), list);
-				} else {
-					ret.put(String.valueOf(key), String.valueOf(value));
-				}
-			}
-		} catch (Exception e) {
-			// log.info();
-		}
-		return ret;
 	}
 
 	/**

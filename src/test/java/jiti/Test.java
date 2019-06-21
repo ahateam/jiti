@@ -22,13 +22,20 @@ public class Test {
 	private static ORGService or = new ORGService();
 
 	public static void main(String[] args) throws Exception {
-
-			String phone = "[17353166886,18651813050]";
-		JSONArray json = new JSONArray();
-		json.add("18651813050");
-		json.add("17353166886");
-	//	or.SendSms(phone);
+//
+//			String phone = "[17353166886,18651813050]";
+//		JSONArray json = new JSONArray();
+//		json.add("18651813050");
+//		json.add("17353166886");
+//	//	or.SendSms(phone);
 		
+		
+		Integer j = 3508;
+		//System.out.println((i/100)+1);
+		
+		for(int i = 0 ; i < (j/100)+1 ; i++) {
+			System.out.println(i);
+		}
 	}
 
 }

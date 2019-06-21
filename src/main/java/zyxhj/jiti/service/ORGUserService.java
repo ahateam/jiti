@@ -34,7 +34,6 @@ import zyxhj.jiti.domain.ORGUserImportTask;
 import zyxhj.jiti.domain.ORGUserRole;
 import zyxhj.jiti.domain.ORGUserTagGroup;
 import zyxhj.jiti.repository.ExamineRepository;
-import zyxhj.jiti.repository.FamilyRepository;
 import zyxhj.jiti.repository.ORGPermissionRelaRepository;
 import zyxhj.jiti.repository.ORGUserImportRecordRepository;
 import zyxhj.jiti.repository.ORGUserImportTaskRepository;
@@ -54,7 +53,6 @@ public class ORGUserService {
 
 	private ORGUserRepository orgUserRepository;
 	private UserRepository userRepository;
-	private FamilyRepository familyRepository;
 	private ORGUserImportTaskRepository orgUserImportTaskRepository;
 	private ORGUserImportRecordRepository orgUserImportRecordRepository;
 	private ExamineRepository examineRepository;
@@ -62,13 +60,13 @@ public class ORGUserService {
 	private ORGPermissionRelaRepository orgPermissionRelaRepository;
 	private WxDataService wxDataService;
 	private WxFuncService wxFuncService;
+	private MessageService messageService;
 
 	public ORGUserService() {
 		try {
 			orgUserRepository = Singleton.ins(ORGUserRepository.class);
 			userRepository = Singleton.ins(UserRepository.class);
 
-			familyRepository = Singleton.ins(FamilyRepository.class);
 			orgUserImportTaskRepository = Singleton.ins(ORGUserImportTaskRepository.class);
 			orgUserImportRecordRepository = Singleton.ins(ORGUserImportRecordRepository.class);
 			examineRepository = Singleton.ins(ExamineRepository.class);
@@ -76,6 +74,7 @@ public class ORGUserService {
 			orgPermissionRelaRepository = Singleton.ins(ORGPermissionRelaRepository.class);
 			wxDataService = Singleton.ins(WxDataService.class);
 			wxFuncService = Singleton.ins(WxFuncService.class);
+			messageService = Singleton.ins(MessageService.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -192,7 +191,7 @@ public class ORGUserService {
 			String shareCerImg, Boolean shareCerHolder, Double shareAmount, Integer weight, JSONArray roles,
 			JSONArray groups, JSONObject tags, Long familyNumber, String familyMaster) throws Exception {
 		ORGUser or = new ORGUser();
-		Family fa = new Family();
+		// Family fa = new Family();
 		or.orgId = orgId;
 		or.userId = userId;
 
@@ -720,6 +719,7 @@ public class ORGUserService {
 	public void importORGUserRecord(DruidPooledConnection conn, Long orgId, Long userId, String url, Long importTaskId)
 			throws Exception {
 		Integer sum = 0;
+		Integer err = 0;
 		JSONArray json = JSONArray.parseArray(url);
 		for (int o = 0; o < json.size(); o++) {
 			List<ORGUserImportRecord> list = new ArrayList<ORGUserImportRecord>();
@@ -897,7 +897,7 @@ public class ORGUserService {
 					sum++;
 					list.add(orgUserImportRecord);
 
-					if (list.size() % 10 == 0) {
+					if (list.size() == 10) {
 						orgUserImportRecordRepository.insertList(conn, list);
 						list = new ArrayList<ORGUserImportRecord>();
 					}
@@ -906,12 +906,13 @@ public class ORGUserService {
 					}
 					Thread.sleep(5L);
 				} catch (Exception e) {
+					err++;
 					log.error(e.getMessage());
 				}
 			}
 		}
 		// 添加总数到任务表中
-		orgUserImportTaskRepository.countImportTaskSum(conn, importTaskId, sum);
+		orgUserImportTaskRepository.countImportTaskSum(conn, importTaskId, sum - err);
 	}
 
 	// 组织用户回调页面
@@ -1138,17 +1139,30 @@ public class ORGUserService {
 					new Object[] { orgId, ORGPermission.per_feparate_family.id });
 			if (orgPer != null) {
 				examine.status = Examine.STATUS.NOEXAMINE.v();
+				// 给审核人员发送通知
+				examineMessage(conn, orgId, examine, ORGPermission.per_feparate_family.id);
+
+				// 平台内消息通知
+				message(conn, data, ORGPermission.per_feparate_family.name, examine.status);
+
 			} else {
 				examine.status = Examine.STATUS.ORGEXAMINE.v();
+				message(conn, data, ORGPermission.per_feparate_family.name, examine.status);
 			}
+
 		} else if (type == Examine.TYPE.SHARE.v()) {
 			ORGPermissionRel orgPer = orgPermissionRelaRepository.getByANDKeys(conn,
 					new String[] { "org_id", "permission_id" },
 					new Object[] { orgId, ORGPermission.per_share_change.id });
 			if (orgPer != null) {
 				examine.status = Examine.STATUS.NOEXAMINE.v();
+				// 给审核人员发送通知
+				examineMessage(conn, orgId, examine, ORGPermission.per_share_change.id);
+
+				shareMessage(conn, data, ORGPermission.per_share_change.name, examine.status);
 			} else {
 				examine.status = Examine.STATUS.ORGEXAMINE.v();
+				shareMessage(conn, data, ORGPermission.per_share_change.name, examine.status);
 			}
 		} else if (type == Examine.TYPE.ORG.v()) {
 			examine.status = Examine.STATUS.NOEXAMINE.v();
@@ -1156,13 +1170,38 @@ public class ORGUserService {
 		examine.remark = remark;
 		examineRepository.insert(conn, examine);
 
-		// 给审核人员发送通知
-		if (examine.type == Examine.TYPE.FAMILY.v()) {
-			examineMessage(conn, orgId, examine, ORGPermission.per_feparate_family.id);
-		} else if (examine.type == Examine.TYPE.SHARE.v()) {
-			examineMessage(conn, orgId, examine, ORGPermission.per_share_change.id);
-		}
 		return examine;
+
+	}
+
+	private void shareMessage(DruidPooledConnection conn, String data, String perName, Byte examineStatus)
+			throws Exception {
+		JSONObject jo = JSONObject.parseObject(data);
+		JSONArray oldDatas = jo.getJSONArray("oldData");
+		for (int i = 0; i < oldDatas.size(); i++) {
+			JSONObject userInfo = oldDatas.getJSONObject(i);
+			JSONObject user = userInfo.getJSONObject("user");
+			Long userId = user.getLong("id");
+			JSONObject orgUser = userInfo.getJSONObject("orgUser");
+			Long orgId = orgUser.getLong("orgId");
+			messageService.createExamineMessage(conn, orgId, userId, perName, data, examineStatus);
+		}
+	}
+
+	private void message(DruidPooledConnection conn, String data, String perName, Byte examineStatus) throws Exception {
+
+		JSONObject jo = JSONObject.parseObject(data);
+		JSONObject ext = jo.getJSONObject("ext");
+		Byte familyOperate = ext.getByte("familyOperate");
+		JSONArray oldDatas = jo.getJSONArray("oldData");
+		if (familyOperate == Examine.OPERATE.MOVEFAMILYUSER.v()) {
+			for (int i = 0; i < oldDatas.size(); i++) {
+				JSONArray oldData = oldDatas.getJSONArray(i);
+				messageService.createExamineMessages(conn, oldData, perName, data, examineStatus);
+			}
+		} else {
+			messageService.createExamineMessages(conn, oldDatas, perName, data, examineStatus);
+		}
 
 	}
 
@@ -1181,6 +1220,7 @@ public class ORGUserService {
 			for (ORGPermissionRel orgPermissionRel : orgPermission) {
 				json.add(orgPermissionRel.roleId);
 			}
+
 			JSONArray user = orgUserRepository.getUserByRoles(conn, orgId, json);
 			for (int i = 0; i < user.size(); i++) {
 				JSONObject userInfo = user.getJSONObject(i);
@@ -1188,9 +1228,9 @@ public class ORGUserService {
 				if (openId == null) {
 					continue;
 				}
-				JSONObject ext = jo.getJSONObject("ext");
-				Byte familyOperate = ext.getByte("familyOperate");
 				if (permissionId == ORGPermission.per_feparate_family.id) {
+					JSONObject ext = jo.getJSONObject("ext");
+					Byte familyOperate = ext.getByte("familyOperate");
 					if (familyOperate == Examine.OPERATE.ADDFAMILY.v()) {
 						type = Examine.OPERATE.ADDFAMILY.txt();
 						JSONArray newDatas = jo.getJSONArray("newData");
@@ -1215,19 +1255,21 @@ public class ORGUserService {
 					} else if (familyOperate == Examine.OPERATE.MOVEFAMILYUSER.v()) {
 						type = Examine.OPERATE.MOVEFAMILYUSER.txt();
 						JSONArray data = jo.getJSONArray("oldData");
-						JSONObject familyInfo = data.getJSONObject(i);
+						JSONObject familyInfo = (data.getJSONArray(0)).getJSONObject(i);
+
 						familyMaster = familyInfo.getString("familyMaster");
 					}
 				} else if (permissionId == ORGPermission.per_share_change.id) {
 					type = Examine.OPERATE.UPSHARE.txt();
 					JSONArray newDatas = jo.getJSONArray("newData");
-					JSONArray newData = JSONArray.parseArray(newDatas.getString(0));
-					JSONObject familyInfo = newData.getJSONObject(0);
-					familyMaster = familyInfo.getString("familyMaster");
+					JSONObject newData = newDatas.getJSONObject(0);
+					JSONObject orgUserInfo = newData.getJSONObject("user");
+					familyMaster = orgUserInfo.getString("realName");
 				}
 				wxFuncService.examineMessage(wxDataService.getWxMpService(), openId, or.name, familyMaster, type,
 						examine.createDate);
 			}
+			messageService.createExamineMessages(conn, user, type, examine.data, examine.status);
 		}
 
 	}
@@ -1272,6 +1314,7 @@ public class ORGUserService {
 
 	// 修改审核
 	public Examine editExamine(DruidPooledConnection conn, Long examineId, Long orgId, Byte status) throws Exception {
+		Examine examine = examineRepository.getByKey(conn, "id", examineId);
 		Examine ex = new Examine();
 		if (status == Examine.STATUS.ORGEXAMINE.v()) {
 			// 组织审核
@@ -1279,6 +1322,7 @@ public class ORGUserService {
 			ex.status = Examine.STATUS.ORGEXAMINE.v();
 			examineRepository.updateByANDKeys(conn, new String[] { "id", "org_id" }, new Object[] { examineId, orgId },
 					ex, true);
+			message(conn, examine.data, ORGPermission.per_feparate_family.name, ex.status);
 			return ex;
 		} else if (status == Examine.STATUS.DISEXAMINE.v() || status == Examine.STATUS.WAITEC.v()) {
 
@@ -1292,6 +1336,7 @@ public class ORGUserService {
 			ex.status = status;
 			examineRepository.updateByANDKeys(conn, new String[] { "id", "org_id" }, new Object[] { examineId, orgId },
 					ex, true);
+			message(conn, examine.data, ORGPermission.per_feparate_family.name, ex.status);
 			return ex;
 		} else {
 			// 审核失败
@@ -1299,6 +1344,7 @@ public class ORGUserService {
 			ex.status = Examine.STATUS.FAIL.v();
 			examineRepository.updateByANDKeys(conn, new String[] { "id", "org_id" }, new Object[] { examineId, orgId },
 					ex, true);
+			message(conn, examine.data, ORGPermission.per_feparate_family.name, ex.status);
 			return ex;
 		}
 	}
@@ -1655,6 +1701,15 @@ public class ORGUserService {
 		Examine ex = new Examine();
 		ex.status = status;
 		examineRepository.updateByKey(conn, "id", examineId, ex, true);
+
+		Examine examine = examineRepository.getByKey(conn, "id", examineId);
+		if (examine.type == Examine.TYPE.FAMILY.v()) {
+			message(conn, examine.data, ORGPermission.per_feparate_family.name, status);
+		} else if (examine.type == Examine.TYPE.SHARE.v()) {
+			shareMessage(conn, examine.data, ORGPermission.per_share_change.name, status);
+		} else {
+			message(conn, examine.data, ORGPermission.per_examine.name, status);
+		}
 	}
 
 	// 查询股权证号是否已经存在 0 表示不存在 1 表示已经存在
@@ -1683,6 +1738,7 @@ public class ORGUserService {
 			ex.status = Examine.STATUS.ORGEXAMINE.v();
 			examineRepository.updateByANDKeys(conn, new String[] { "id", "org_id" }, new Object[] { examineId, orgId },
 					ex, true);
+			shareMessage(conn, exa.data, ORGPermission.per_share_change.name, ex.status);
 			return ex;
 		} else if (status == Examine.STATUS.DISEXAMINE.v()) {
 			// 拿到数据
@@ -1707,6 +1763,7 @@ public class ORGUserService {
 			ex.status = Examine.STATUS.DISEXAMINE.v();
 			examineRepository.updateByANDKeys(conn, new String[] { "id", "org_id" }, new Object[] { examineId, orgId },
 					ex, true);
+			shareMessage(conn, exa.data, ORGPermission.per_share_change.name, ex.status);
 			return ex;
 
 		} else {
@@ -1715,6 +1772,7 @@ public class ORGUserService {
 			ex.status = Examine.STATUS.FAIL.v();
 			examineRepository.updateByANDKeys(conn, new String[] { "id", "org_id" }, new Object[] { examineId, orgId },
 					ex, true);
+			shareMessage(conn, exa.data, ORGPermission.per_share_change.name, ex.status);
 			return ex;
 		}
 	}

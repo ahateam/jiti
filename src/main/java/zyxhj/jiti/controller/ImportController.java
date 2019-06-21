@@ -24,7 +24,7 @@ public class ImportController extends Controller {
 	public ImportController(String node) {
 		super(node);
 		try {
-			dds = DataSource.getDruidDataSource("rdsDefault");
+			dds = DataSource.getDruidDataSource("rdsDefault.prop");
 			client = DataSource.getTableStoreSyncClient("tsDefault.prop");
 
 			importTaskService = Singleton.ins(ImportTaskService.class);

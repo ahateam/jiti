@@ -37,8 +37,8 @@ import zyxhj.utils.data.ts.ColumnBuilder;
 import zyxhj.utils.data.ts.PrimaryKeyBuilder;
 import zyxhj.utils.data.ts.RowChangeBuilder;
 import zyxhj.utils.data.ts.TSQL;
-import zyxhj.utils.data.ts.TSRepository;
 import zyxhj.utils.data.ts.TSQL.OP;
+import zyxhj.utils.data.ts.TSRepository;
 
 public class ImportTaskService {
 
@@ -95,9 +95,12 @@ public class ImportTaskService {
 	/**
 	 * 导入到临时表
 	 * 
-	 * @param importTaskId 导入id
-	 * @param skipRowCount 第几行开始
-	 * @param colCount     总列数
+	 * @param importTaskId
+	 *            导入id
+	 * @param skipRowCount
+	 *            第几行开始
+	 * @param colCount
+	 *            总列数
 	 */
 	public void importRecord(SyncClient client, DruidPooledConnection conn, Long orgId, Long userId, String url,
 			Long importTaskId, Integer skipRowCount, Integer colCount) throws Exception {
@@ -588,7 +591,7 @@ public class ImportTaskService {
 	public JSONObject getFailImportRecord(SyncClient client, Long importTaskId, Integer count, Integer offset)
 			throws Exception {
 		TSQL ts = new TSQL();
-		ts.setFirstTerm("status", (long) ImportTempRecord.STATUS.FAILURE.v()).linkTerm(OP.AND, "taskId", importTaskId);
+		ts.Term(OP.AND, "status", (long) ImportTempRecord.STATUS.FAILURE.v()).Term(OP.AND, "taskId", importTaskId);
 		ts.setLimit(count);
 		ts.setOffset(offset);
 		ts.setGetTotalCount(true);

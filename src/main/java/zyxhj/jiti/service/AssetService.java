@@ -372,7 +372,7 @@ public class AssetService {
 
 			List<AssetImportRecord> list = new ArrayList<AssetImportRecord>();
 			// 2行表头，38列，文件格式写死的
-			List<List<Object>> table = ExcelUtils.readExcelOnline(json.getString(o), 2, 39, 0);
+			List<List<Object>> table = ExcelUtils.readExcelOnline(json.getString(o), 2, 38, 0);
 			for (List<Object> row : table) {
 				AssetImportRecord asr = new AssetImportRecord();
 				asr.id = IDUtils.getSimpleId();

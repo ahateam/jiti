@@ -95,12 +95,9 @@ public class ImportTaskService {
 	/**
 	 * 导入到临时表
 	 * 
-	 * @param importTaskId
-	 *            导入id
-	 * @param skipRowCount
-	 *            第几行开始
-	 * @param colCount
-	 *            总列数
+	 * @param importTaskId 导入id
+	 * @param skipRowCount 第几行开始
+	 * @param colCount     总列数
 	 */
 	public void importRecord(SyncClient client, DruidPooledConnection conn, Long orgId, Long userId, String url,
 			Long importTaskId, Integer skipRowCount, Integer colCount) throws Exception {

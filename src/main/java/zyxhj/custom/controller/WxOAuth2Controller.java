@@ -13,7 +13,6 @@ import io.vertx.ext.web.RoutingContext;
 import me.chanjar.weixin.common.bean.menu.WxMenu;
 import me.chanjar.weixin.common.bean.menu.WxMenuButton;
 import me.chanjar.weixin.mp.bean.result.WxMpOAuth2AccessToken;
-import me.chanjar.weixin.mp.bean.result.WxMpUser;
 import me.chanjar.weixin.mp.bean.result.WxMpUserList;
 import zyxhj.custom.service.WxDataService;
 import zyxhj.custom.service.WxFuncService;
@@ -43,31 +42,22 @@ public class WxOAuth2Controller extends Controller {
 	/*
 	 * 添加子菜单test
 	 */
-	@GET(path = "addMenu", //
+	@POSTAPI(path = "addMenu", //
 			des = "添加子菜单"//
 	)
-	public void getTest(HttpServerRequest req, HttpServerResponse resp, RoutingContext context) throws Exception {
+	public APIResponse addMenu(//
+			@P(t = "地址") String url //
+	) throws Exception {
 		// WxMpUserList wxUserList = wxMpService.getUserService().userList(null);
 		// ret(resp, wxUserList.toString());
-		String url = "http://3ch.org.cn/start/oauth/getAccessToken";
-		String url2 = wxFuncService.getUrl(wxDataService.getWxMpService(), url);
-		WxMenu wxMenu = new WxMenu();
-		WxMenuButton button = new WxMenuButton();
-		button.setType("view");
-		button.setName("test1");
-		button.setUrl(url2);
-		List<WxMenuButton> list = new ArrayList<WxMenuButton>();
-		list.add(button);
-		wxMenu.setButtons(list);
-		// 设置菜单
-		wxDataService.getWxMpService().getMenuService().menuCreate(wxMenu);
-
+		wxFuncService.addMenu(wxDataService.getWxMpService(), url);
+		return APIResponse.getNewSuccessResp();
 	}
 
 	/*
 	 * 消息群发
 	 */
-	@GET(path = "messageToMany", //
+	@POSTAPI(path = "messageToMany", //
 			des = "消息群发"//
 	)
 	public void messageToMany(HttpServerRequest req, HttpServerResponse resp, RoutingContext context) throws Exception {

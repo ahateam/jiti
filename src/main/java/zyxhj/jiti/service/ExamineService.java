@@ -219,7 +219,7 @@ public class ExamineService {
 			cb.add("examineDate", new Date());
 			cb.add("status", (long) status);
 			List<Column> columns = cb.build();
-			TSRepository.nativeUpdate(client, examineRepository.getTableName(), pk, columns);
+			TSRepository.nativeUpdate(client, examineRepository.getTableName(), pk, true, columns);
 			message(conn, da.toJSONString(), ORGPermission.per_feparate_family.name, status);
 			return data;
 		} else if (status == Examine.STATUS.DISEXAMINE.v() || status == Examine.STATUS.WAITEC.v()) {
@@ -233,7 +233,7 @@ public class ExamineService {
 			cb.add("examineDate", new Date());
 			cb.add("status", (long) status);
 			List<Column> columns = cb.build();
-			TSRepository.nativeUpdate(client, examineRepository.getTableName(), pk, columns);
+			TSRepository.nativeUpdate(client, examineRepository.getTableName(), pk, true, columns);
 			message(conn, da.toJSONString(), ORGPermission.per_feparate_family.name, status);
 			return data;
 		} else {
@@ -241,7 +241,7 @@ public class ExamineService {
 			cb.add("examineDate", new Date());
 			cb.add("status", (long) Examine.STATUS.FAIL.v());
 			List<Column> columns = cb.build();
-			TSRepository.nativeUpdate(client, examineRepository.getTableName(), pk, columns);
+			TSRepository.nativeUpdate(client, examineRepository.getTableName(), pk, true, columns);
 			message(conn, da.toJSONString(), ORGPermission.per_feparate_family.name, Examine.STATUS.FAIL.v());
 			return data;
 		}
@@ -481,7 +481,7 @@ public class ExamineService {
 		ColumnBuilder cb = new ColumnBuilder();
 		cb.add("data", jsonObj.toJSONString());
 		List<Column> columns = cb.build();
-		TSRepository.nativeUpdate(client, examineRepository.getTableName(), pk, columns);
+		TSRepository.nativeUpdate(client, examineRepository.getTableName(), pk, true, columns);
 
 		// editHouseholder修改户主不为空 则表示需要修改户主
 		if (StringUtils.isNotBlank(editHouseholder)) {
@@ -541,7 +541,7 @@ public class ExamineService {
 		ColumnBuilder cb = new ColumnBuilder();
 		cb.add("data", jsonObj.toJSONString());
 		List<Column> columns = cb.build();
-		TSRepository.nativeUpdate(client, examineRepository.getTableName(), pk, columns);
+		TSRepository.nativeUpdate(client, examineRepository.getTableName(), pk, true, columns);
 
 		return addNewData;
 	}

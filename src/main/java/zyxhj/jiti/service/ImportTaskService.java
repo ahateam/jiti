@@ -365,7 +365,7 @@ public class ImportTaskService {
 							ColumnBuilder cb = new ColumnBuilder();
 							cb.add("status", (long) ImportTempRecord.STATUS.SUCCESS.v());
 							List<Column> columns = cb.build();
-							TSRepository.nativeUpdate(client, tempRecordRepository.getTableName(), pk, columns);
+							TSRepository.nativeUpdate(client, tempRecordRepository.getTableName(), pk, true, columns);
 
 							taskRepository.countORGUserImportCompletionTask(conn, importTaskId);
 						} catch (Exception e) {
@@ -375,7 +375,7 @@ public class ImportTaskService {
 							cb.add("status", (long) ImportTempRecord.STATUS.SUCCESS.v());
 							cb.add("result", e.getLocalizedMessage());
 							List<Column> columns = cb.build();
-							TSRepository.nativeUpdate(client, tempRecordRepository.getTableName(), pk, columns);
+							TSRepository.nativeUpdate(client, tempRecordRepository.getTableName(), pk, true, columns);
 							taskRepository.countORGUserImportNotCompletionTask(conn, importTaskId);
 						}
 					}
@@ -533,7 +533,7 @@ public class ImportTaskService {
 							ColumnBuilder cb = new ColumnBuilder();
 							cb.add("status", (int) ImportTempRecord.STATUS.SUCCESS.v());
 							List<Column> columns = cb.build();
-							TSRepository.nativeUpdate(client, tempRecordRepository.getTableName(), pk, columns);
+							TSRepository.nativeUpdate(client, tempRecordRepository.getTableName(), pk, true, columns);
 							taskRepository.countORGUserImportCompletionTask(conn, importTaskId);
 						} catch (Exception e) {
 							PrimaryKey pk = new PrimaryKeyBuilder().add("taskId", importTaskId)
@@ -542,7 +542,7 @@ public class ImportTaskService {
 							cb.add("status", ImportTempRecord.STATUS.SUCCESS.v());
 							cb.add("result", e.getLocalizedMessage());
 							List<Column> columns = cb.build();
-							TSRepository.nativeUpdate(client, tempRecordRepository.getTableName(), pk, columns);
+							TSRepository.nativeUpdate(client, tempRecordRepository.getTableName(), pk, true, columns);
 							taskRepository.countORGUserImportNotCompletionTask(conn, importTaskId);
 						}
 					}

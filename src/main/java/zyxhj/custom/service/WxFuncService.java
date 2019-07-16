@@ -29,6 +29,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 import me.chanjar.weixin.common.api.WxConsts;
+import me.chanjar.weixin.common.bean.menu.WxMenu;
+import me.chanjar.weixin.common.bean.menu.WxMenuButton;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.bean.WxMpMassOpenIdsMessage;
@@ -189,7 +191,7 @@ public class WxFuncService {
 	}
 
 	/*
-	 * 获取二维码
+	 * 获取二维码 
 	 */
 	public File getTicket(WxMpService wxMpService, String scene) throws WxErrorException {
 		WxMpQrCodeTicket ticket = wxMpService.getQrcodeService().qrCodeCreateLastTicket(scene);
@@ -283,5 +285,19 @@ public class WxFuncService {
 			}
 		}
 		return null;
+	}
+
+	public void addMenu(WxMpService wxMpService, String url) throws Exception {
+		String url2 = this.getUrl(wxMpService, url);
+		WxMenu wxMenu = new WxMenu();
+		WxMenuButton button = new WxMenuButton();
+		button.setType("view");
+		button.setName("App下载2");
+		button.setUrl(url2);
+		List<WxMenuButton> list = new ArrayList<WxMenuButton>();
+		list.add(button);
+		wxMenu.setButtons(list);
+		// 设置菜单
+		wxMpService.getMenuService().menuCreate(wxMenu);
 	}
 }

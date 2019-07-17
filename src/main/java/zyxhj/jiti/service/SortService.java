@@ -129,7 +129,7 @@ public class SortService {
 		cb.add("tags", tags);
 		cb.add("status", (long) Car.STATUS.NOTFIND.v());
 		List<Column> columns = cb.build();
-		TSRepository.nativeUpdate(client, carRepository.getTableName(), pk, columns);
+		TSRepository.nativeUpdate(client, carRepository.getTableName(), pk, true, columns);
 	}
 
 	// 获取打车信息 根据条件获取

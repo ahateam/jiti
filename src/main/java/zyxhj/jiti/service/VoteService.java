@@ -152,7 +152,7 @@ public class VoteService {
 	public void sendVoteMessage(DruidPooledConnection conn, Long orgId, Long voteId) throws Exception {
 		Vote vote = voteRepository.getByANDKeys(conn, new String[] { "id", "org_id" }, new Object[] { voteId, orgId });
 		JSONObject crowd = JSONObject.parseObject(vote.crowd);
-		// 发送微信通知 解析crowd 获取roles 通过roles获取到用户 然后通过用户得wxopenId去发送模板消息 TODO 应该得开新线程处理
+		// 发送微信通知 解析crowd 获取roles 通过roles获取到用户 然后通过用户得wxopenId去发送模板消息		 TODO 应该得开新线程处理
 		// 查询可投票选项
 		JSONArray options = new JSONArray();
 		List<VoteOption> option = optionRepository.getOptionByVoteId(conn, voteId);

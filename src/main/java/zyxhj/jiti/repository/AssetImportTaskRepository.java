@@ -6,7 +6,6 @@ import com.alibaba.druid.pool.DruidPooledConnection;
 
 import zyxhj.jiti.domain.AssetImportTask;
 import zyxhj.utils.data.rds.RDSRepository;
-import zyxhj.utils.data.rds.SQL;
 
 public class AssetImportTaskRepository extends RDSRepository<AssetImportTask> {
 
@@ -15,26 +14,25 @@ public class AssetImportTaskRepository extends RDSRepository<AssetImportTask> {
 	}
 
 	public void countImportTaskSum(DruidPooledConnection conn, Long importTaskId, Integer sum) throws Exception {
-		this.update(conn, StringUtils.join("SET sum = ", sum), null, " WHERE id = ? ",
-				new Object[] { importTaskId });
+		this.update(conn, StringUtils.join("SET sum = ", sum), null, " WHERE id = ? ", new Object[] { importTaskId });
 	}
 
 	public void countAssetImportCompletionTask(DruidPooledConnection conn, Long importTaskId) throws Exception {
-		StringBuffer sb = new StringBuffer("WHERE ");
-		SQL sql = new SQL();
-		sql.addEx("id = ? ", importTaskId);
-		sql.fillSQL(sb);
-		this.update(conn, StringUtils.join("SET success = success+1,completion = completion + 1"), null, sb.toString(),
-				sql.getParams());
+		// StringBuffer sb = new StringBuffer("WHERE ");
+		// SQL sql = new SQL();
+		// sql.addEx("id = ? ", importTaskId);
+		// sql.fillSQL(sb);
+		this.update(conn, StringUtils.join("SET success = success+1,completion = completion + 1"), null, "WHERE id=?",
+				new Object[] { importTaskId });
 	}
 
 	public void countAssetImportNotCompletionTask(DruidPooledConnection conn, Long importTaskId) throws Exception {
-		StringBuffer sb = new StringBuffer("WHERE ");
-		SQL sql = new SQL();
-		sql.addEx("id = ? ", importTaskId);
-		sql.fillSQL(sb);
+		// StringBuffer sb = new StringBuffer("WHERE ");
+		// SQL sql = new SQL();
+		// sql.addEx("id = ? ", importTaskId);
+		// sql.fillSQL(sb);
 		this.update(conn, StringUtils.join("SET success = success+1,not_completion = not_completion + 1"), null,
-				sb.toString(), sql.getParams());
+				"WHERE id=?", new Object[] { importTaskId });
 	}
 
 }

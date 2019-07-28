@@ -2,7 +2,6 @@ package xhj.cn.start;
 
 import io.vertx.core.Vertx;
 import zyxhj.cms.controller.ContentController;
-import zyxhj.core.controller.TagController;
 import zyxhj.core.controller.TestController;
 import zyxhj.core.controller.UserController;
 import zyxhj.custom.controller.WxEventController;
@@ -47,7 +46,7 @@ public class JITIVerticle extends ZeroVerticle {
 
 		initCtrl(ctrlMap, Singleton.ins(UserController.class, "user"));
 
-		initCtrl(ctrlMap, Singleton.ins(TagController.class, "tag"));
+		// initCtrl(ctrlMap, Singleton.ins(TagController.class, "tag"));
 
 		initCtrl(ctrlMap, Singleton.ins(WxEventController.class, "wx"));
 
@@ -64,7 +63,6 @@ public class JITIVerticle extends ZeroVerticle {
 		initCtrl(ctrlMap, Singleton.ins(ExternalController.class, "ext"));
 
 		initCtrl(ctrlMap, Singleton.ins(ImportController.class, "imp"));
-
 
 	}
 

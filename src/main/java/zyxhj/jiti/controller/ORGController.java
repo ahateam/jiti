@@ -1,5 +1,7 @@
 package zyxhj.jiti.controller;
 
+import java.util.ArrayList;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,6 +14,7 @@ import zyxhj.jiti.domain.Examine;
 import zyxhj.jiti.domain.Notice;
 import zyxhj.jiti.domain.ORG;
 import zyxhj.jiti.domain.ORGExamine;
+import zyxhj.jiti.domain.ORGUserRole;
 import zyxhj.jiti.service.MessageService;
 import zyxhj.jiti.service.ORGPermissionService;
 import zyxhj.jiti.service.ORGService;
@@ -626,7 +629,7 @@ public class ORGController extends Controller {
 	)
 	public APIResponse getSysORGUserRoles() throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(ORGUserRoleService.SYS_ORG_USER_ROLE_LIST);
+			return APIResponse.getNewSuccessResp(new ArrayList<>(ORGUserRole.SYS_ORG_USER_ROLE_MAP.values()));
 		}
 	}
 

@@ -1,5 +1,7 @@
 package zyxhj.jiti.domain;
 
+import java.util.TreeMap;
+
 import zyxhj.utils.data.rds.RDSAnnEntity;
 import zyxhj.utils.data.rds.RDSAnnField;
 import zyxhj.utils.data.rds.RDSAnnID;
@@ -10,6 +12,33 @@ import zyxhj.utils.data.rds.RDSAnnID;
  */
 @RDSAnnEntity(alias = "tb_ecm_org_user_role")
 public class ORGUserRole {
+
+	/**
+	 * 组织编号
+	 */
+	@RDSAnnID
+	@RDSAnnField(column = RDSAnnField.ID)
+	public Long orgId;
+
+	/**
+	 * 角色编号
+	 */
+	@RDSAnnID
+	@RDSAnnField(column = RDSAnnField.ID)
+	public Long roleId;
+
+	/**
+	 * 角色名称
+	 */
+	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
+	public String name;
+
+	@RDSAnnField(column = RDSAnnField.SHORT_TEXT)
+	public String remark;
+
+	/////////////////////////////////////
+	/////////////////////////////////////
+	/////////////////////////////////////
 
 	private static ORGUserRole buildSysRole(Long roleId, String name, String remark) {
 		ORGUserRole ret = new ORGUserRole();
@@ -40,26 +69,31 @@ public class ORGUserRole {
 
 	public static final ORGUserRole role_Administractive_admin = buildSysRole(temp++, "行政机构管理员", null);
 	public static final ORGUserRole role_bank_admin = buildSysRole(temp++, "银行管理员", null);
-	/**
-	 * 组织编号
-	 */
-	@RDSAnnID
-	@RDSAnnField(column = RDSAnnField.ID)
-	public Long orgId;
 
 	/**
-	 * 角色编号
+	 * 系统级第三方权限，会被
 	 */
-	@RDSAnnID
-	@RDSAnnField(column = RDSAnnField.ID)
-	public Long roleId;
+	public static TreeMap<Long, ORGUserRole> SYS_ORG_USER_ROLE_MAP = new TreeMap<>();
 
-	/**
-	 * 角色名称
-	 */
-	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
-	public String name;
+	static {
+		// 添加admin，member，股东，董事，监事等角色到系统中
+		SYS_ORG_USER_ROLE_MAP.put(role_outuser.roleId, role_outuser);
+		SYS_ORG_USER_ROLE_MAP.put(role_user.roleId, role_user);
+		SYS_ORG_USER_ROLE_MAP.put(role_admin.roleId, role_admin);
+		SYS_ORG_USER_ROLE_MAP.put(role_shareHolder.roleId, role_shareHolder);
+		SYS_ORG_USER_ROLE_MAP.put(role_shareDeputy.roleId, role_shareDeputy);
+		SYS_ORG_USER_ROLE_MAP.put(role_shareFamily.roleId, role_shareFamily);
 
-	@RDSAnnField(column = RDSAnnField.SHORT_TEXT)
-	public String remark;
+		SYS_ORG_USER_ROLE_MAP.put(role_director.roleId, role_director);
+		SYS_ORG_USER_ROLE_MAP.put(role_dirChief.roleId, role_dirChief);
+		SYS_ORG_USER_ROLE_MAP.put(role_dirVice.roleId, role_dirVice);
+
+		SYS_ORG_USER_ROLE_MAP.put(role_supervisor.roleId, role_supervisor);
+		SYS_ORG_USER_ROLE_MAP.put(role_supChief.roleId, role_supChief);
+		SYS_ORG_USER_ROLE_MAP.put(role_supVice.roleId, role_supVice);
+
+		SYS_ORG_USER_ROLE_MAP.put(role_Administractive_admin.roleId, role_Administractive_admin);
+		SYS_ORG_USER_ROLE_MAP.put(role_bank_admin.roleId, role_bank_admin);
+	}
+
 }

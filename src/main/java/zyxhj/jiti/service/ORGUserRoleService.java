@@ -1,8 +1,6 @@
 package zyxhj.jiti.service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -33,36 +31,6 @@ public class ORGUserRoleService {
 			.expireAfterAccess(5, TimeUnit.MINUTES)//
 			.maximumSize(1000)//
 			.build();
-
-	/**
-	 * 系统级第三方权限，会被
-	 */
-	private static HashMap<Long, ORGUserRole> SYS_ORG_USER_ROLE_MAP = new HashMap<>();
-
-	public static ArrayList<ORGUserRole> SYS_ORG_USER_ROLE_LIST = new ArrayList<>();
-
-	static {
-		// 添加admin，member，股东，董事，监事等角色到系统中
-		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_outuser.roleId, ORGUserRole.role_outuser);
-		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_user.roleId, ORGUserRole.role_user);
-		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_admin.roleId, ORGUserRole.role_admin);
-		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_shareHolder.roleId, ORGUserRole.role_shareHolder);
-		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_shareDeputy.roleId, ORGUserRole.role_shareDeputy);
-		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_shareFamily.roleId, ORGUserRole.role_shareFamily);
-
-		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_director.roleId, ORGUserRole.role_director);
-		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_dirChief.roleId, ORGUserRole.role_dirChief);
-		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_dirVice.roleId, ORGUserRole.role_dirVice);
-
-		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_supervisor.roleId, ORGUserRole.role_supervisor);
-		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_supChief.roleId, ORGUserRole.role_supChief);
-		SYS_ORG_USER_ROLE_MAP.put(ORGUserRole.role_supVice.roleId, ORGUserRole.role_supVice);
-
-		Iterator<ORGUserRole> it = SYS_ORG_USER_ROLE_MAP.values().iterator();
-		while (it.hasNext()) {
-			SYS_ORG_USER_ROLE_LIST.add(it.next());
-		}
-	}
 
 	private ORGUserRoleRepository orgUserRoleRepository;
 	private ORGPermissionRelaRepository oreOrgPermissionRelaRepository;
@@ -107,7 +75,7 @@ public class ORGUserRoleService {
 
 	public ORGUserRole getORGUserRoleById(DruidPooledConnection conn, Long orgId, Long roleId) throws Exception {
 		// 先从系统缓存里取，再从缓存去，最后再查
-		ORGUserRole role = SYS_ORG_USER_ROLE_MAP.get(roleId);
+		ORGUserRole role = ORGUserRole.SYS_ORG_USER_ROLE_MAP.get(roleId);
 		if (role == null) {
 			role = ORG_USER_ROLE_CACHE.getIfPresent(roleId);
 			if (role == null) {
@@ -145,7 +113,7 @@ public class ORGUserRoleService {
 
 		// 从MAP中查找
 		for (ORGPermissionRel or : li) {
-			orp = SYS_ORG_USER_ROLE_MAP.get(or.roleId);
+			orp = ORGUserRole.SYS_ORG_USER_ROLE_MAP.get(or.roleId);
 			if (orp != null) {
 				list.add(orp);
 			} else {
@@ -153,7 +121,7 @@ public class ORGUserRoleService {
 				json.add(or.permissionId);
 			}
 		}
-		
+
 		if (json != null && json.size() > 0) {
 			List<ORGUserRole> op = orgUserRoleRepository.getListByKeyInValues(conn, "role_id", json.toArray());
 			for (ORGUserRole orgPermission : op) {

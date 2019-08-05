@@ -46,7 +46,7 @@ public class JITIVerticle extends ZeroVerticle {
 
 		initCtrl(ctrlMap, Singleton.ins(UserController.class, "user"));
 
-		initCtrl(ctrlMap, Singleton.ins(TagController.class, "tag"));
+		// initCtrl(ctrlMap, Singleton.ins(TagController.class, "tag"));
 
 		initCtrl(ctrlMap, Singleton.ins(WxEventController.class, "wx"));
 

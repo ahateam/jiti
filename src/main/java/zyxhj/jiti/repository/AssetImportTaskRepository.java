@@ -16,8 +16,7 @@ public class AssetImportTaskRepository extends RDSRepository<AssetImportTask> {
 	}
 
 	public void countImportTaskSum(DruidPooledConnection conn, Long importTaskId, Integer sum) throws Exception {
-		this.update(conn, StringUtils.join("SET sum = ", sum), null, " WHERE id = ? ",
-				Arrays.asList(importTaskId));
+		this.update(conn, StringUtils.join("SET sum = ", sum), null, " WHERE id = ? ", Arrays.asList(importTaskId));
 	}
 
 	public void countAssetImportCompletionTask(DruidPooledConnection conn, Long importTaskId) throws Exception {
@@ -26,7 +25,7 @@ public class AssetImportTaskRepository extends RDSRepository<AssetImportTask> {
 		// sql.addEx("id = ? ", importTaskId);
 		// sql.fillSQL(sb);
 		this.update(conn, StringUtils.join("SET success = success+1,completion = completion + 1"), null, "WHERE id=?",
-				new Object[] { importTaskId });
+				Arrays.asList(importTaskId));
 	}
 
 	public void countAssetImportNotCompletionTask(DruidPooledConnection conn, Long importTaskId) throws Exception {
@@ -35,7 +34,7 @@ public class AssetImportTaskRepository extends RDSRepository<AssetImportTask> {
 		// sql.addEx("id = ? ", importTaskId);
 		// sql.fillSQL(sb);
 		this.update(conn, StringUtils.join("SET success = success+1,not_completion = not_completion + 1"), null,
-				"WHERE id=?", new Object[] { importTaskId });
+				"WHERE id=?", Arrays.asList(importTaskId));
 	}
 
 }

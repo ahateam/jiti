@@ -30,9 +30,9 @@ public class NoticeRepository extends RDSRepository<Notice> {
 		JSONArray role = JSONArray.parseArray(roles);
 		JSONArray group = JSONArray.parseArray(groups);
 		// 先从缓存里面取
-			// 缓存为空 需要从数据库中获取
-			List<Notice> notice = getNoticeByRG(conn, orgId, role, group);
-			return notice;
+		// 缓存为空 需要从数据库中获取
+		List<Notice> notice = getNoticeByRG(conn, orgId, role, group);
+		return notice;
 
 	}
 
@@ -56,7 +56,7 @@ public class NoticeRepository extends RDSRepository<Notice> {
 			sql.AND(groupEx);
 		}
 		sql.fillSQL(sb);
-		return getList(conn, sb.toString(), new Object[] {}, 512, 0);
+		return getList(conn, sb.toString(), null, 512, 0);
 	}
 
 	public List<Notice> getNotice(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)

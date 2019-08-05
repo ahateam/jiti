@@ -1,5 +1,6 @@
 package zyxhj.jiti.repository;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -17,7 +18,7 @@ public class ORGUserImportTaskRepository extends RDSRepository<ORGUserImportTask
 	}
 
 	public void countImportTaskSum(DruidPooledConnection conn, Long importTaskId, Integer sum) throws Exception {
-		this.update(conn, StringUtils.join("SET sum = ", sum), null, " WHERE id = ? ", new Object[] { importTaskId });
+		this.update(conn, StringUtils.join("SET sum = ", sum), null, " WHERE id = ? ",Arrays.asList(importTaskId));
 	}
 
 	public void countORGUserImportCompletionTask(DruidPooledConnection conn, Long importTaskId) throws Exception {

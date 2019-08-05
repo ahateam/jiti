@@ -468,6 +468,7 @@ public class VoteController extends Controller {
 	)
 	public APIResponse getVoteByUserRoles(//
 			@P(t = "组织编号") Long orgId, //
+			
 			@P(t = "用户编号") Long userId, //
 			@P(t = "角色") String roles, //
 			Integer count, //

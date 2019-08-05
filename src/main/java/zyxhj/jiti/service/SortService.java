@@ -11,6 +11,7 @@ import zyxhj.jiti.domain.Advert;
 import zyxhj.jiti.repository.AdvertRepository;
 import zyxhj.utils.IDUtils;
 import zyxhj.utils.Singleton;
+import zyxhj.utils.data.EXP;
 
 public class SortService {
 
@@ -46,18 +47,19 @@ public class SortService {
 		ad.title = title;
 		ad.data = data;
 		ad.tags = tags;
-		advertRepository.updateByKey(conn, "id", advertId, ad, true);
+		advertRepository.update(conn,EXP.ins().key("id",advertId), ad, true);
+		
 		return ad;
 	}
 
 	// 删除广告
 	public void delAdvert(DruidPooledConnection conn, Long advertId) throws Exception {
-		advertRepository.deleteByKey(conn, "id", advertId);
+		advertRepository.delete(conn, EXP.ins().key("id", advertId));
 	}
 
 	// 广告查询
 	public List<Advert> getAdverts(DruidPooledConnection conn, Integer count, Integer offset) throws Exception {
-		return advertRepository.getList(conn, count, offset);
+		return advertRepository.getList(conn, null, count, offset);
 	}
 
 }

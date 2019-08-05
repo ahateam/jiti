@@ -1,6 +1,7 @@
 package zyxhj.jiti.service;
 
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +63,7 @@ import zyxhj.utils.Singleton;
 import zyxhj.utils.api.BaseRC;
 import zyxhj.utils.api.ServerException;
 import zyxhj.utils.data.DataSource;
+import zyxhj.utils.data.EXP;
 
 public class ORGService {
 
@@ -191,7 +193,8 @@ public class ORGService {
 	public LoginBo registeUser(DruidPooledConnection conn, String mobile, String pwd, String realName, String idNumber)
 			throws Exception {
 		// 判断用户是否存在
-		User existUser = userRepository.getByKey(conn, "mobile", mobile);
+		User existUser = userRepository.get(conn, EXP.ins().key( "mobile", mobile));
+		  
 		if (null == existUser) {
 			// 用户不存在
 			User newUser = new User();
@@ -219,7 +222,7 @@ public class ORGService {
 	 */
 	public JSONObject createORG(DruidPooledConnection conn, Long orgExamineId, Long userId, String name, String code,
 			String address, String imgOrg, String imgAuth, Byte level, Integer shareAmount) throws Exception {
-		ORG existORG = orgRepository.getByKey(conn, "code", code);
+		ORG existORG = orgRepository.get(conn, EXP.ins().key( "code", code));
 		if (null == existORG) {
 			// 组织不存在
 			ORG newORG = new ORG();
@@ -286,7 +289,8 @@ public class ORGService {
 		renew.imgOrg = imgOrg;
 		renew.imgAuth = imgAuth;
 		renew.shareAmount = shareAmount;
-		orgRepository.updateByKey(conn, "id", orgId, renew, true);
+		orgRepository.update(conn,EXP.ins().key("id", orgId), renew, true);
+		
 	}
 
 	/**
@@ -307,7 +311,7 @@ public class ORGService {
 		renew.investment = investment;
 		renew.valuation = valuation;
 
-		orgRepository.updateByKey(conn, "id", orgId, renew, true);
+		orgRepository.update(conn,EXP.ins().key("id", orgId), renew, true);
 	}
 
 	/**
@@ -315,7 +319,8 @@ public class ORGService {
 	 */
 	public List<ORG> getORGs(DruidPooledConnection conn, Long superiorId, int count, int offset) throws Exception {
 		JSONArray json = new JSONArray();
-		List<Superior> superior = superiorRepository.getListByKey(conn, "superior_id", superiorId, 512, 0);
+		List<Superior> superior = superiorRepository.getList(conn,EXP.ins().key( "superior_id", superiorId), 512, 0);
+		
 		for (Superior sup : superior) {
 			json.add(sup.orgId);
 		}
@@ -326,7 +331,7 @@ public class ORGService {
 	 * 获取组织
 	 */
 	public ORG getORGById(DruidPooledConnection conn, Long orgId) throws Exception {
-		return orgRepository.getByKey(conn, "id", orgId);
+		return orgRepository.get(conn, EXP.ins().key( "id", orgId));
 	}
 
 	/**
@@ -347,7 +352,7 @@ public class ORGService {
 	 * @param 登录业务对象
 	 */
 	public LoginBo loginByMobile(DruidPooledConnection conn, String mobile, String pwd) throws Exception {
-		User existUser = userRepository.getByKey(conn, "mobile", mobile);
+		User existUser = userRepository.get(conn, EXP.ins().key( "mobile", mobile));
 		if (null == existUser) {
 			// 用户不存在
 			throw new ServerException(BaseRC.USER_NOT_EXIST);
@@ -372,7 +377,7 @@ public class ORGService {
 	 *            密码
 	 */
 	public LoginBo loginByIdNumber(DruidPooledConnection conn, String idNumber, String pwd) throws Exception {
-		User existUser = userRepository.getByKey(conn, "id_number", idNumber);
+		User existUser = userRepository.get(conn, EXP.ins().key( "id_number", idNumber));
 		if (null == existUser) {
 			// 用户不存在
 			throw new ServerException(BaseRC.USER_NOT_EXIST);
@@ -390,7 +395,7 @@ public class ORGService {
 	}
 
 	public LoginBo loginByUserId(DruidPooledConnection conn, Long userId, String pwd) throws Exception {
-		User existUser = userRepository.getByKey(conn, "id", userId);
+		User existUser = userRepository.get(conn, EXP.ins().key( "id", userId));
 		if (null == existUser) {
 			// 用户不存在
 			throw new ServerException(BaseRC.USER_NOT_EXIST);
@@ -411,11 +416,10 @@ public class ORGService {
 	 * 不够严谨的组织登录，暂时没有更好的办法
 	 */
 	public ORGLoginBo loginInORG(DruidPooledConnection conn, Long userId, Long orgId) throws Exception {
-		ORGUser orgUser = orgUserRepository.getByANDKeys(conn, new String[] { "org_id", "user_id" },
-				new Object[] { orgId, userId });
+		ORGUser orgUser = orgUserRepository.get(conn,EXP.ins().key("org_id", orgId).andKey("user_id", userId));
 		ServiceUtils.checkNull(orgUser);
 
-		User user = userRepository.getByKey(conn, "id", userId);
+		User user = userRepository.get(conn, EXP.ins().key( "id", userId));
 		ServiceUtils.checkNull(user);
 
 		return loginORG(conn, user, orgUser);
@@ -426,7 +430,7 @@ public class ORGService {
 		ORGUser orgUser = orgUserRepository.checkORGUserRoles(conn, orgId, userId,
 				new ORGUserRole[] { ORGUserRole.role_admin });
 
-		User user = userRepository.getByKey(conn, "id", userId);
+		User user = userRepository.get(conn, EXP.ins().key( "id", userId));
 		ServiceUtils.checkNull(user);
 
 		return loginORG(conn, user, orgUser);
@@ -436,7 +440,7 @@ public class ORGService {
 	public ORGLoginBo areaAdminLoginInORG(DruidPooledConnection conn, Long userId, Long orgId) throws Exception {
 		ORGUser orgUser = orgUserRepository.checkORGUserRoles(conn, orgId, userId,
 				new ORGUserRole[] { ORGUserRole.role_Administractive_admin }); // 检查权限
-		User user = userRepository.getByKey(conn, "id", userId); // 获取用户信息
+		User user = userRepository.get(conn, EXP.ins().key( "id", userId)); // 获取用户信息
 		ServiceUtils.checkNull(user); // 用户信息是否为空
 		return loginORG(conn, user, orgUser); // 用户登录
 	}
@@ -447,7 +451,7 @@ public class ORGService {
 	public ORGExamine createORGApply(DruidPooledConnection conn, Long userId, String name, String code, Long province,
 			Long city, Long district, String address, String imgOrg, String imgAuth, Integer shareAmount, Byte level,
 			Long superiorId) throws Exception {
-		ORG existORG = orgRepository.getByKey(conn, "code", code);
+		ORG existORG = orgRepository.get(conn, EXP.ins().key( "code", code));
 		if (null == existORG) {
 			// 组织不存在
 			ORGExamine newORG = new ORGExamine();
@@ -492,15 +496,15 @@ public class ORGService {
 
 		ORGExamine ex = new ORGExamine();
 		// 是否有org
-		ORG org = orgRepository.getByKey(conn, "id", orgExamineId);
+		ORG org = orgRepository.get(conn, EXP.ins().key( "id", orgExamineId));
 		// 如果org不为空 则表示是修改提交审核
 		if (org != null) {
 			ex.orgId = org.id;
 			// 判断是否要修改地址 如果要修改地址 则为ture 需要去表里删除对应的地址 然后再添加
 			if (updateDistrict) {
 				// 要修改 则需要删除以前的归属 加入新的归属
-				orgDistrictRepository.deleteByKey(conn, "org_id", ex.orgId);
-
+				orgDistrictRepository.delete(conn, EXP.ins().key("org_id", ex.orgId));
+				
 				// 创建组织归属
 				createORGDistrict(conn, orgExamineId, province, city, district);
 			}
@@ -511,12 +515,13 @@ public class ORGService {
 
 				// 将修改申请表改为通过
 				ex.examine = ORGExamine.STATUS.WAITING.v();
-				orgExamineRepository.updateByKey(conn, "id", orgExamineId, ex, true);
+				orgExamineRepository.update(conn,EXP.ins().key("id", orgExamineId), ex, true);
+				
 
 			} else if (examine == ORGExamine.STATUS.INVALID.v()) {// 上级组织修改申请为失败
 
 				ex.examine = ORGExamine.STATUS.INVALID.v();
-				orgExamineRepository.updateByKey(conn, "id", orgExamineId, ex, true);
+				orgExamineRepository.update(conn,EXP.ins().key("id", orgExamineId), ex, true);
 			}
 
 		} else {// 如果为空 则表示为新的提交
@@ -534,12 +539,12 @@ public class ORGService {
 
 				// 将修改申请表改为通过
 				ex.examine = ORGExamine.STATUS.WAITING.v();
-				orgExamineRepository.updateByKey(conn, "id", orgExamineId, ex, true);
+				orgExamineRepository.update(conn,EXP.ins().key("id", orgExamineId), ex, true);
 
 			} else if (examine == ORGExamine.STATUS.INVALID.v()) {// 上级组织修改申请为失败
 
 				ex.examine = ORGExamine.STATUS.INVALID.v();
-				orgExamineRepository.updateByKey(conn, "id", orgExamineId, ex, true);
+				orgExamineRepository.update(conn,EXP.ins().key("id", orgExamineId), ex, true);
 
 			}
 
@@ -559,11 +564,12 @@ public class ORGService {
 		ord.cityId = city;
 		ord.disId = district;
 
-		ORGDistrict or = orgDistrictRepository.getByKey(conn, "org_id", orgExamineId);
+		ORGDistrict or = orgDistrictRepository.get(conn, EXP.ins().key( "org_id", orgExamineId));
 		if (or == null) {
 			orgDistrictRepository.insert(conn, ord);
 		} else {
-			orgDistrictRepository.updateByKey(conn, "org_id", orgExamineId, ord, true);
+			orgDistrictRepository.update(conn,EXP.ins().key("org_id", orgExamineId), ord, true);
+			
 		}
 	}
 
@@ -571,9 +577,9 @@ public class ORGService {
 	private void addSupAndSub(DruidPooledConnection conn, Long superiorId, Long orgExamineId, Byte level)
 			throws Exception {
 		// 先查询是否存在 org 如果存在 直接删除 不存在 插入
-		Superior su = superiorRepository.getByKey(conn, "org_id", orgExamineId);
+		Superior su = superiorRepository.get(conn, EXP.ins().key( "org_id", orgExamineId));
 		if (su != null) {
-			superiorRepository.deleteByKey(conn, "org_id", orgExamineId);
+			superiorRepository.delete(conn, EXP.ins().key("org_id", orgExamineId));
 		} else {
 			Superior sup = new Superior();
 			sup.superiorId = superiorId;
@@ -613,11 +619,11 @@ public class ORGService {
 		if (superiorId == 1) {
 			newORG.type = ORGExamine.TYPE.INDEPENDENT.v();
 			newORG.superiorId = superiorId;
-			return orgExamineRepository.updateByKey(conn, "id", orgExamineId, newORG, true);
+			return orgExamineRepository.update(conn,EXP.ins().key("id", orgExamineId), newORG, true);
 		} else {
 			newORG.type = ORGExamine.TYPE.NOTINDEPENDENT.v();
 			newORG.superiorId = superiorId;
-			return orgExamineRepository.updateByKey(conn, "id", orgExamineId, newORG, true);
+			return orgExamineRepository.update(conn,EXP.ins().key("id", orgExamineId), newORG, true);
 		}
 	}
 
@@ -625,25 +631,26 @@ public class ORGService {
 	public List<ORGExamine> getORGExamineByStatus(DruidPooledConnection conn, Byte status, Long superiorId,
 			Integer count, Integer offset) throws Exception {
 
-		return orgExamineRepository.getListByANDKeys(conn, new String[] { "superior_id", "examine" },
-				new Object[] { superiorId, status }, count, offset);
+		return orgExamineRepository.getList(conn, EXP.ins().key("superior_id", superiorId).andKey("examine", status), count, offset);
+		
 	}
 
 	// 查询自己提交的申请
 	public List<ORGExamine> getORGExamineByUser(DruidPooledConnection conn, Long userId, Integer count, Integer offset)
 			throws Exception {
-		return orgExamineRepository.getListByKey(conn, "user_id", userId, count, offset);
+		return orgExamineRepository.getList(conn,EXP.ins().key( "user_id", userId), count, offset);
 	}
 
 	// 删除申请
 	public int delORGExamine(DruidPooledConnection conn, Long examineId) throws Exception {
-		ORG getOrg = orgRepository.getByKey(conn, "id", examineId);
+		ORG getOrg = orgRepository.get(conn, EXP.ins().key( "id", examineId));
 		if (getOrg != null) {
 			ORGExamine or = new ORGExamine();
 			or.examine = ORGExamine.STATUS.WAITING.v();
-			return orgExamineRepository.updateByKey(conn, "id", examineId, or, true);
+			return orgExamineRepository.update(conn,EXP.ins().key("id", examineId), or, true);
+			
 		} else {
-			return orgExamineRepository.deleteByKey(conn, "id", examineId);
+			return orgExamineRepository.delete(conn, EXP.ins().key("id", examineId));
 		}
 	}
 
@@ -664,10 +671,9 @@ public class ORGService {
 
 		// TODO orgId 希望做一个familyRepositroy的createFamily方法，然后ORGService和ORGUserService都用
 
-		Family fn = familyRepository.getByKey(conn, "family_number", familyNumber);
+		Family fn = familyRepository.get(conn, EXP.ins().key( "family_number", familyNumber));
 
-		familyRepository.getByANDKeys(conn, new String[] { "org_id", "family_number" },
-				new Object[] { orgId, familyNumber });
+		familyRepository.get(conn,EXP.ins().key("org_id", orgId).andKey("family_number", familyNumber));
 		if (fn == null) {
 			familyRepository.insert(conn, fa);
 			return fa;
@@ -685,9 +691,10 @@ public class ORGService {
 		fa.familyNumber = familyNumber;
 		fa.familyMaster = familyMaster;
 		// 检查户序号是否已经存在
-		// Family fn = familyRepository.getByKey(conn, "family_number", familyNumber);
+		// Family fn = familyRepository.get(conn, EXP.ins().key( "family_number", familyNumber));
 
-		return familyRepository.updateByKey(conn, "org_id", orgId, fa, true);
+		return familyRepository.update(conn,EXP.ins().key("org_id", orgId), fa, true);
+		
 	}
 
 	/**
@@ -696,10 +703,9 @@ public class ORGService {
 	public List<District> getProCityDistrict(DruidPooledConnection conn, Byte level, Long father, Integer count,
 			Integer offset) throws Exception {
 		if (father != null) {
-			return districtRepository.getListByANDKeys(conn, new String[] { "level", "father" },
-					new Object[] { level, father }, count, offset);
+			return districtRepository.getList(conn, EXP.ins().key("level", level).andKey("father", father), count, offset);
 		} else {
-			return districtRepository.getListByKey(conn, "level", level, count, offset);
+			return districtRepository.getList(conn,EXP.ins().key( "level", level), count, offset);
 		}
 	}
 
@@ -710,32 +716,32 @@ public class ORGService {
 
 	// 查询组织地址
 	public JSONObject getORGDistrict(DruidPooledConnection conn, Long orgId) throws Exception {
-		ORGDistrict od = orgDistrictRepository.getByKey(conn, "org_id", orgId);
+		ORGDistrict od = orgDistrictRepository.get(conn, EXP.ins().key( "org_id", orgId));
 		JSONObject json = new JSONObject();
 		if (od.proId != null) {
-			json.put("province", districtRepository.getByKey(conn, "id", od.proId));
+			json.put("province", districtRepository.get(conn, EXP.ins().key( "id", od.proId)));
 		}
 		if (od.cityId != null) {
-			json.put("city", districtRepository.getByKey(conn, "id", od.cityId));
+			json.put("city", districtRepository.get(conn, EXP.ins().key( "id", od.cityId)));
 		}
 		if (od.disId != null) {
-			json.put("district", districtRepository.getByKey(conn, "id", od.disId));
+			json.put("district", districtRepository.get(conn, EXP.ins().key( "id", od.disId)));
 		}
 		return json;
 	}
 
 	// 查询地址
 	public JSONObject getORGDistrictByOrgApplyId(DruidPooledConnection conn, Long orgExamineId) throws Exception {
-		ORGExamine ex = orgExamineRepository.getByKey(conn, "id", orgExamineId);
+		ORGExamine ex = orgExamineRepository.get(conn, EXP.ins().key( "id", orgExamineId));
 		JSONObject json = new JSONObject();
 		if (ex.province != null) {
-			json.put("province", districtRepository.getByKey(conn, "id", ex.province));
+			json.put("province", districtRepository.get(conn, EXP.ins().key( "id", ex.province)));
 		}
 		if (ex.city != null) {
-			json.put("city", districtRepository.getByKey(conn, "id", ex.city));
+			json.put("city", districtRepository.get(conn, EXP.ins().key( "id", ex.city)));
 		}
 		if (ex.district != null) {
-			json.put("district", districtRepository.getByKey(conn, "id", ex.district));
+			json.put("district", districtRepository.get(conn, EXP.ins().key( "id", ex.district)));
 		}
 		return json;
 	}
@@ -746,7 +752,7 @@ public class ORGService {
 	}
 
 	public Superior getSuperior(DruidPooledConnection conn, Long orgId) throws Exception {
-		return superiorRepository.getByKey(conn, "org_id", orgId);
+		return superiorRepository.get(conn, EXP.ins().key( "org_id", orgId));
 	}
 
 	private static Cache<String, ORGPermissionRel> AUTH_PERMISSION_CACHE = CacheBuilder.newBuilder()//
@@ -771,9 +777,7 @@ public class ORGService {
 				ORGPermissionRel role = AUTH_PERMISSION_CACHE.getIfPresent(ex);
 				if (role == null) {
 					// 缓存中没有 从数据库中查找
-					ORGPermissionRel or = orgPermissionRelaRepository.getByANDKeys(conn,
-							new String[] { "org_id", "role_id", "permission_id" },
-							new Object[] { orgId, json.getLong(i), permissionId });
+					ORGPermissionRel or = orgPermissionRelaRepository.get(conn,EXP.ins().key("org_id", orgId).andKey("role_id", json.getLong(i)).andKey("permission_id", permissionId));
 					if (or != null) {
 						ro = true;
 						AUTH_PERMISSION_CACHE.put(ex, or);
@@ -812,7 +816,8 @@ public class ORGService {
 
 		Integer s = noticeTaskRecordRepository.addNoticeTaskRecord(conn, orgId, no.id, crowd);
 		no.sum = s;
-		noticeTaskRepository.updateByKey(conn, "id", no.id, no, true);
+		noticeTaskRepository.update(conn,EXP.ins().key("id", no.id), no, true);
+		
 		return no;
 	}
 
@@ -831,11 +836,9 @@ public class ORGService {
 				e.printStackTrace();
 			}
 			try {
-				NoticeTask notice = noticeTaskRepository.getByKey(conn, "id", taskId);
+				NoticeTask notice = noticeTaskRepository.get(conn, EXP.ins().key( "id", taskId));
 				for (int i = 0; i < (notice.sum / 100) + 1; i++) {
-					List<NoticeTaskRecord> noticeRe = noticeTaskRecordRepository.getListByANDKeys(conn,
-							new String[] { "task_id", "org_id", "status" },
-							new Object[] { taskId, orgId, NoticeTaskRecord.STATUS.UNDETECTED.v() }, 100, 0);
+					List<NoticeTaskRecord> noticeRe = noticeTaskRecordRepository.getList(conn, EXP.ins().key("task_id", taskId).andKey("org_id", orgId).andKey("status",  NoticeTaskRecord.STATUS.UNDETECTED.v()),100, 0);
 					for (NoticeTaskRecord noticeTaskRecord : noticeRe) {
 						if (notice.mode == NoticeTask.MODE.WX.v()) {
 							// 执行微信发送
@@ -900,14 +903,14 @@ public class ORGService {
 		no.type = type;
 		no.crowd = crowd;
 		no.createTime = new Date();
-		noticeRepository.updateByANDKeys(conn, new String[] { "id", "org_id" }, new Object[] { noticeId, orgId }, no,
-				true);
+		noticeRepository.update(conn,EXP.ins().key("id", noticeId).andKey("org_id", orgId), no, true);
+		
 		return no;
 	}
 
 	// 删除公告
 	public int deleteNotice(DruidPooledConnection conn, Long noticeId) throws Exception {
-		return noticeRepository.deleteByKey(conn, "id", noticeId);
+		return noticeRepository.delete(conn, EXP.ins().key("id", noticeId));
 	}
 
 	// 用户查看公告
@@ -921,14 +924,15 @@ public class ORGService {
 		// 将openid存入User表中
 		User user = new User();
 		user.wxOpenId = openId;
-		userRepository.updateByKey(conn, "id", userId, user, true);
+		userRepository.update(conn,EXP.ins().key("id", userId), user, true);
+		
 		return user;
 	}
 
 	// 通过用户openId进行登陆
 	public User loginByOpenId(DruidPooledConnection conn, String openId) throws Exception {
 		// 通过openId去数据库里匹配 如果有 则正常登陆 如果没有 则表示需要绑定
-		User wxlogin = userRepository.getByKey(conn, "wx_open_id", openId);
+		User wxlogin = userRepository.get(conn, EXP.ins().key( "wx_open_id", openId));
 		if (wxlogin == null) {
 			return null;
 		} else {
@@ -939,8 +943,8 @@ public class ORGService {
 	// 解除绑定
 	public int removeOpenId(DruidPooledConnection conn, Long userId) throws Exception {
 
-		User us = userRepository.getByKey(conn, "id", userId);
-		// userRepository.deleteByKey(conn, "id", userId);
+		User us = userRepository.get(conn, EXP.ins().key( "id", userId));
+		// userRepository.delete(conn, EXP.ins().key("id", userId));
 
 		// User user = new User();
 		us.wxOpenId = null;
@@ -948,7 +952,7 @@ public class ORGService {
 		// user.wxOpenId = "";
 
 		// userRepository.insert(conn, us);
-		return userRepository.updateByKey(conn, "id", userId, us, false);
+		return userRepository.update(conn,EXP.ins().key("id", userId), us, false);
 	}
 
 	// 短信群发

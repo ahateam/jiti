@@ -12,6 +12,7 @@ import zyxhj.jiti.domain.ORGUserTagGroup;
 import zyxhj.jiti.repository.DemonstrationRepository;
 import zyxhj.jiti.repository.ORGUserTagGroupRepository;
 import zyxhj.utils.Singleton;
+import zyxhj.utils.data.EXP;
 
 public class DemonstrationService {
 
@@ -34,12 +35,11 @@ public class DemonstrationService {
 	}
 
 	public List<ORGUserTagGroup> getGroup(DruidPooledConnection conn, Long orgId) throws Exception {
-		return orgUserTagGroupRepository.getListByKey(conn, "org_id", orgId, null, null);
+		return orgUserTagGroupRepository.getList(conn,EXP.ins().key("org_id", orgId), null, null);
 	}
 
 	public Asset getAssetById(DruidPooledConnection conn, Long assetId, Long orgId) throws Exception {
-		return demonstrationRepository.getByANDKeys(conn, new String[] { "id", "org_id" },
-				new Object[] { assetId, orgId });
+		return demonstrationRepository.get(conn, EXP.ins().key("id", assetId).andKey("org_id", orgId));
 	}
 
 }

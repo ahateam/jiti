@@ -1,5 +1,6 @@
 package zyxhj.jiti.service;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -25,6 +26,7 @@ import zyxhj.jiti.domain.ORGUser;
 import zyxhj.jiti.repository.ORGPermissionRelaRepository;
 import zyxhj.jiti.repository.ORGUserRepository;
 import zyxhj.utils.Singleton;
+import zyxhj.utils.data.EXP;
 import zyxhj.utils.data.ts.ColumnBuilder;
 import zyxhj.utils.data.ts.PrimaryKeyBuilder;
 import zyxhj.utils.data.ts.TSRepository;
@@ -67,9 +69,10 @@ public class ExamineService {
 		cb.add("type", (long) type);
 
 		if (type == Examine.TYPE.FAMILY.v()) {
-			ORGPermissionRel orgPer = orgPermissionRelaRepository.getByANDKeys(conn,
-					new String[] { "org_id", "permission_id" },
-					new Object[] { orgId, ORGPermission.per_feparate_family.id });
+//			ORGPermissionRel orgPer = orgPermissionRelaRepository.getByANDKeys(conn,
+//					new String[] { "org_id", "permission_id" },
+//					new Object[] { orgId, ORGPermission.per_feparate_family.id });
+			ORGPermissionRel orgPer = orgPermissionRelaRepository.get(conn, EXP.ins().key("org_id", orgId).andKey("permission_id", ORGPermission.per_feparate_family.id ));
 			if (orgPer != null) {
 				cb.add("status", (long) Examine.STATUS.NOEXAMINE.v());
 				// 给审核人员发送通知
@@ -84,9 +87,10 @@ public class ExamineService {
 			}
 
 		} else if (type == Examine.TYPE.SHARE.v()) {
-			ORGPermissionRel orgPer = orgPermissionRelaRepository.getByANDKeys(conn,
-					new String[] { "org_id", "permission_id" },
-					new Object[] { orgId, ORGPermission.per_share_change.id });
+//			ORGPermissionRel orgPer = orgPermissionRelaRepository.getByANDKeys(conn,
+//					new String[] { "org_id", "permission_id" },
+//					new Object[] { orgId, ORGPermission.per_share_change.id });
+			ORGPermissionRel orgPer = orgPermissionRelaRepository.get(conn, EXP.ins().key("org_id", orgId).andKey("permission_id", ORGPermission.per_share_change.id));
 			if (orgPer != null) {
 				cb.add("status", (long) Examine.STATUS.NOEXAMINE.v());
 				// 给审核人员发送通知
@@ -117,9 +121,11 @@ public class ExamineService {
 		// 获取org信息
 		ORG or = orgService.getORGById(conn, orgId);
 		if (status == Examine.STATUS.NOEXAMINE.v()) {
-			List<ORGPermissionRel> orgPermission = orgPermissionRelaRepository.getListByANDKeys(conn,
-					new String[] { "org_id", "permission_id" }, new Object[] { orgId, permissionId }, 64, 0);
+//			List<ORGPermissionRel> orgPermission = orgPermissionRelaRepository.getListByANDKeys(conn,
+//					new String[] { "org_id", "permission_id" }, new Object[] { orgId, permissionId }, 64, 0);
+			List<ORGPermissionRel> orgPermission = orgPermissionRelaRepository.getList(conn, EXP.ins().key("org_id", orgId).andKey("permission_id", permissionId), 64, 0);
 			for (ORGPermissionRel orgPermissionRel : orgPermission) {
+				
 				json.add(orgPermissionRel.roleId);
 			}
 
@@ -296,8 +302,7 @@ public class ExamineService {
 					// 移除户成员
 					Long or = jo.getLong("orgId");
 					Long userId = jo.getLong("userId");
-					orgUserRepository.deleteByANDKeys(conn, new String[] { "org_id", "user_id" },
-							new Object[] { or, userId });
+					orgUserRepository.delete(conn,EXP.ins().key("org_id", or).andKey("user_id", userId));
 				} else {
 					continue;
 				}
@@ -347,8 +352,8 @@ public class ExamineService {
 				String familyMaster = jo.getString("familyMaster");
 				ORGUser orgUser = new ORGUser();
 				orgUser.familyMaster = familyMaster;
-				orgUserRepository.updateByANDKeys(conn, new String[] { "org_id", "family_number" },
-						new Object[] { or, familyNumber }, orgUser, true);
+				orgUserRepository.update(conn,EXP.ins().key("org_id", or).andKey("family_number", familyNumber), orgUser, true);
+				
 			}
 		}
 
@@ -387,8 +392,9 @@ public class ExamineService {
 					// 移除户成员
 					Long or = json.getLong("orgId");
 					Long userId = json.getLong("userId");
-					orgUserRepository.deleteByANDKeys(conn, new String[] { "org_id", "user_id" },
-							new Object[] { or, userId });
+//					orgUserRepository.deleteByANDKeys(conn, new String[] { "org_id", "user_id" },
+//							new Object[] { or, userId });
+					orgUserRepository.delete(conn,EXP.ins().key("org_id", or).andKey("user_id", userId));
 				} else {
 					continue;
 				}
@@ -404,8 +410,8 @@ public class ExamineService {
 			String familyMaster = jo.getString("familyMaster");
 			ORGUser orgUser = new ORGUser();
 			orgUser.familyMaster = familyMaster;
-			orgUserRepository.updateByANDKeys(conn, new String[] { "org_id", "family_number" },
-					new Object[] { or, familyNumber }, orgUser, true);
+			orgUserRepository.update(conn,EXP.ins().key("org_id", or).andKey("family_number", familyNumber), orgUser, true);
+			
 		}
 
 	}
@@ -465,8 +471,9 @@ public class ExamineService {
 					// 移除户成员
 					Long or = jo.getLong("orgId");
 					Long userId = jo.getLong("userId");
-					orgUserRepository.deleteByANDKeys(conn, new String[] { "org_id", "user_id" },
-							new Object[] { or, userId });
+//					orgUserRepository.deleteByANDKeys(conn, new String[] { "org_id", "user_id" },
+//							new Object[] { or, userId });
+					orgUserRepository.delete(conn,EXP.ins().key("org_id", or).andKey("user_id", userId));
 					js.add(jo);
 				} else {
 					js.add(jo);
@@ -493,8 +500,8 @@ public class ExamineService {
 			String familyMaster = jo.getString("familyMaster");
 			ORGUser orgUser = new ORGUser();
 			orgUser.familyMaster = familyMaster;
-			orgUserRepository.updateByANDKeys(conn, new String[] { "org_id", "family_number" },
-					new Object[] { or, familyNumber }, orgUser, true);
+			orgUserRepository.update(conn,EXP.ins().key("org_id", or).andKey("family_number", familyNumber), orgUser, true);
+			
 		}
 		return editData;
 

@@ -17,6 +17,7 @@ import zyxhj.jiti.repository.ORGPermissionRelaRepository;
 import zyxhj.jiti.repository.ORGPermissionRepository;
 import zyxhj.utils.IDUtils;
 import zyxhj.utils.Singleton;
+import zyxhj.utils.data.EXP;
 
 /**
  * 第三方用户自定义角色service
@@ -73,7 +74,7 @@ public class ORGPermissionService {
 	 */
 	public List<ORGPermission> getPermissions(DruidPooledConnection conn, Integer count, Integer offset)
 			throws Exception {
-		return orgPermissionRepository.getList(conn, count, offset);
+		return orgPermissionRepository.getList(conn,null, count, offset);
 	}
 
 	/**
@@ -110,7 +111,9 @@ public class ORGPermissionService {
 			}
 		}
 		if (json != null && json.size() > 0) {
-			List<ORGPermission> op = orgPermissionRepository.getListByKeyInValues(conn, "id", json.toArray());
+//			List<ORGPermission> op = orgPermissionRepository.getListByKeyInValues(conn, "id", json.toArray());
+			
+			List<ORGPermission> op = orgPermissionRepository.getList(conn, EXP.ins().in("id", json.toArray()), null, null);
 			for (ORGPermission orgPermission : op) {
 				list.add(orgPermission);
 			}
@@ -123,8 +126,7 @@ public class ORGPermissionService {
 	public int insertPermissionRole(DruidPooledConnection conn, Long orgId, Long permissionId, String role)
 			throws Exception {
 
-		orgPermissionRelRepository.deleteByANDKeys(conn, new String[] { "org_id", "permission_id" },
-				new Object[] { orgId, permissionId });
+		orgPermissionRelRepository.delete(conn, EXP.ins().key("org_id", orgId).andKey("permission_id", permissionId));
 
 		JSONArray json = JSONArray.parseArray(role);
 		if (json.size() > 0 && json != null) {
@@ -163,7 +165,8 @@ public class ORGPermissionService {
 			}
 		}
 		if (json != null && json.size() > 0) {
-			List<ORGPermission> op = orgPermissionRepository.getListByKeyInValues(conn, "id", json.toArray());
+//			List<ORGPermission> op = orgPermissionRepository.getListByKeyInValues(conn, "id", json.toArray());
+			List<ORGPermission> op = orgPermissionRepository.getList(conn, EXP.ins().in("id", json.toArray()), null, null);
 			for (ORGPermission orgPermission : op) {
 				list.add(orgPermission);
 			}

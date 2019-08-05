@@ -1,5 +1,6 @@
 package zyxhj.jiti.repository;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -25,7 +26,7 @@ public class DemonstrationRepository extends RDSRepository<Asset> {
 
 		// }
 		return getList(conn, StringUtils.join("WHERE org_id = ? AND JSON_CONTAINS(groups, '", groups, "','$')"),
-				new Object[] { orgId }, count, offset);
+				Arrays.asList(orgId), count, offset);
 	}
 
 }

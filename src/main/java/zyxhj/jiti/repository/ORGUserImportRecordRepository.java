@@ -1,5 +1,7 @@
 package zyxhj.jiti.repository;
 
+import java.util.Arrays;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
@@ -14,6 +16,6 @@ public class ORGUserImportRecordRepository extends RDSRepository<ORGUserImportRe
 	}
 
 	public void updateStatus(DruidPooledConnection conn, Long id, Byte status) throws Exception {
-		this.update(conn, StringUtils.join("SET status = ", status), null, "WHERE id = ? ", new Object[] { id });
+		this.update(conn, StringUtils.join("SET status = ", status), null, "WHERE id = ? ", Arrays.asList(id));
 	}
 }

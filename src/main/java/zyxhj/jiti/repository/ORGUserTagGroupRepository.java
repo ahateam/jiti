@@ -1,5 +1,6 @@
 package zyxhj.jiti.repository;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +47,7 @@ public class ORGUserTagGroupRepository extends RDSRepository<ORGUserTagGroup> {
 		// 找出groupId对应的所有子节点
 		List<ORGUserTagGroup> groups = this.getList(conn,
 				StringUtils.join("WHERE org_id=? AND JSON_CONTAINS(parents, '", groupId, "', '$')"),
-				new Object[] { orgId }, 512, 0);
+				Arrays.asList(orgId ), 512, 0);
 
 		JSONArray ret = new JSONArray();
 		if (groups != null && groups.size() > 0) {

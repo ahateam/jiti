@@ -1,5 +1,6 @@
 package zyxhj.jiti.service;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -11,6 +12,7 @@ import zyxhj.jiti.domain.PrintingTemplate;
 import zyxhj.jiti.repository.PrintingTemplateRepository;
 import zyxhj.utils.IDUtils;
 import zyxhj.utils.Singleton;
+import zyxhj.utils.data.EXP;
 
 public class PrintingTemplateService {
 
@@ -47,33 +49,32 @@ public class PrintingTemplateService {
 		printingTemplate.data = data;
 		printingTemplate.type = type;
 		printingTemplate.page = page;
-		printingTemplateRepository.updateByANDKeys(conn, new String[] { "id", "org_id" },
-				new Object[] { prTeId, orgId }, printingTemplate, true);
+		printingTemplateRepository.update(conn,EXP.ins().key("id",prTeId).andKey("org_id", orgId), printingTemplate, true);
+		
 		return printingTemplate;
 	}
 
 	// 获取单个模板
 	public PrintingTemplate getPrintingTemplate(DruidPooledConnection conn, Long prTeId, Long orgId) throws Exception {
-		return printingTemplateRepository.getByANDKeys(conn, new String[] { "id", "org_id" },
-				new Object[] { prTeId, orgId });
+		return printingTemplateRepository.get(conn, EXP.ins().key("id", prTeId).andKey("org_id",orgId ));
+		
 	}
 
 	// 获取模板列表
 	public List<PrintingTemplate> getPrintingTemplates(DruidPooledConnection conn, Long orgId, Integer count,
 			Integer offset) throws Exception {
-		return printingTemplateRepository.getListByKey(conn, "org_id", orgId, count, offset);
+		return printingTemplateRepository.getList(conn,EXP.ins().key( "org_id", orgId), count, offset);
 	}
 
 	// 删除模板
 	public int delPrintingTemplate(DruidPooledConnection conn, Long prTeId) throws Exception {
-		return printingTemplateRepository.deleteByKey(conn, "id", prTeId);
+		return printingTemplateRepository.delete(conn,EXP.ins().key("id", prTeId));
 	}
 
 	// 根据类型获取打印模板
 	public PrintingTemplate getPrintingTemplateByType(DruidPooledConnection conn, Long orgId, Byte type, Byte page)
 			throws Exception {
-		return printingTemplateRepository.getByANDKeys(conn, new String[] { "org_id", "type", "page" },
-				new Object[] { orgId, type, page });
+		return printingTemplateRepository.get(conn, EXP.ins().key("org_id", orgId).andKey("type", type).andKey("page", page));
 	}
 
 }

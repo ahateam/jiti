@@ -27,6 +27,7 @@ import zyxhj.utils.ExcelUtils;
 import zyxhj.utils.IDUtils;
 import zyxhj.utils.Singleton;
 import zyxhj.utils.data.DataSource;
+import zyxhj.utils.data.EXP;
 
 public class AssetService {
 
@@ -145,11 +146,13 @@ public class AssetService {
 
 		a.groups = ORGUserService.array2JsonString(ORGUserService.checkGroups(conn, orgId, groups));
 
-		return assetRepository.updateByKey(conn, "id", assetId, a, true);
+		return assetRepository.update(conn,EXP.ins().key("id", assetId), a, true);
+		
 	}
 
 	public int delAsset(DruidPooledConnection conn, Long assetId) throws Exception {
-		return assetRepository.deleteByKey(conn, "id", assetId);
+//		return assetRepository.deleteByKey(conn, "id", assetId);
+		return assetRepository.delete(conn, EXP.ins().key("id", assetId));
 	}
 
 	public List<Asset> queryAssets(DruidPooledConnection conn, Long orgId, String assetType, JSONArray groups,
@@ -352,15 +355,13 @@ public class AssetService {
 	// 查询资产导入任务
 	public List<AssetImportTask> getAssetImportTasks(DruidPooledConnection conn, Long orgId, Long userId, Integer count,
 			Integer offset) throws Exception {
-		return assetImportTaskRepository.getListByANDKeys(conn, new String[] { "org_id", "user_id" },
-				new Object[] { orgId, userId }, count, offset);
+		return assetImportTaskRepository.getList(conn, EXP.ins().key("org_id", orgId).andKey("user_id", userId), count, offset);
 	}
 
 	// 查询资产导入任务信息
 	public AssetImportTask getAssetImportTask(DruidPooledConnection conn, Long importTaskId, Long orgId, Long userId)
 			throws Exception {
-		return assetImportTaskRepository.getByANDKeys(conn, new String[] { "id", "org_id", "user_id" },
-				new Object[] { importTaskId, orgId, userId });
+		return assetImportTaskRepository.get(conn, EXP.ins().key("id", importTaskId).andKey("org_id", orgId).andKey("user_id", userId));
 	}
 
 	// 导入任务数据
@@ -462,8 +463,9 @@ public class AssetService {
 	// 资产表回调页面（数据总数-数据列表-数据分页）
 	public List<AssetImportRecord> getAssetImportRecords(DruidPooledConnection conn, Long orgId, Long importTaskId,
 			Integer count, Integer offset) throws Exception {
-		return assetImportRecordRepository.getListByANDKeys(conn, new String[] { "org_id", "task_id" },
-				new Object[] { orgId, importTaskId }, count, offset);
+//		return assetImportRecordRepository.getListByANDKeys(conn, new String[] { "org_id", "task_id" },
+//				new Object[] { orgId, importTaskId }, count, offset);
+		return assetImportRecordRepository.getList(conn, EXP.ins().key("org_id", orgId).andKey("task_id", importTaskId), count, offset);
 	}
 
 	private void imp(DruidPooledConnection conn, List<AssetImportRecord> assRec, Long orgId, Long importTaskId)
@@ -538,19 +540,25 @@ public class AssetService {
 				// 修改导入任务状态为正在导入
 				AssetImportTask ass = new AssetImportTask();
 				ass.status = AssetImportTask.STATUS.START.v();
-				assetImportTaskRepository.updateByKey(conn, "id", importTaskId, ass, true);
+				assetImportTaskRepository.update(conn,EXP.ins().key("id", importTaskId), ass, true);
+				
 				// 把数据取出进行处理
-				AssetImportTask assTa = assetImportTaskRepository.getByKey(conn, "id", importTaskId);
+//				AssetImportTask assTa = assetImportTaskRepository.getByKey(conn, "id", importTaskId);
+				AssetImportTask assTa = assetImportTaskRepository.get(conn, EXP.ins().key("id", importTaskId));
 				for (int i = 0; i < (assTa.sum / 100) + 1; i++) {
-					List<AssetImportRecord> assRec = assetImportRecordRepository.getListByANDKeys(conn,
-							new String[] { "org_id", "task_id", "status" },
-							new Object[] { orgId, importTaskId, AssetImportRecord.STATUS.UNDETECTED.v() }, 100, 0);
+//					List<AssetImportRecord> assRec = assetImportRecordRepository.getListByANDKeys(conn,
+//							new String[] { "org_id", "task_id", "status" },
+//							new Object[] { orgId, importTaskId, AssetImportRecord.STATUS.UNDETECTED.v() }, 100, 0);
+					
+					List<AssetImportRecord> assRec = assetImportRecordRepository.getList(conn, EXP.ins().key("org_id", orgId).andKey("task_id", importTaskId).andKey("status", AssetImportRecord.STATUS.UNDETECTED.v()), 100, 0);
+					
 
 					imp(conn, assRec, orgId, importTaskId);
 
 				}
 				ass.status = AssetImportTask.STATUS.END.v();
-				assetImportTaskRepository.updateByKey(conn, "id", importTaskId, ass, true);
+				assetImportTaskRepository.update(conn,EXP.ins().key("id", importTaskId), ass, true);
+				
 
 			} catch (Exception eee) {
 				eee.printStackTrace();
@@ -570,8 +578,9 @@ public class AssetService {
 
 	public List<AssetImportRecord> getNotcompletionRecord(DruidPooledConnection conn, Long orgId, Long importTaskId,
 			Integer count, Integer offset) throws Exception {
-		return assetImportRecordRepository.getListByANDKeys(conn, new String[] { "org_id", "task_id", "status" },
-				new Object[] { orgId, importTaskId, AssetImportRecord.STATUS.NOTCOMPLETION.v() }, count, offset);
+//		return assetImportRecordRepository.getListByANDKeys(conn, new String[] { "org_id", "task_id", "status" },
+//				new Object[] { orgId, importTaskId, AssetImportRecord.STATUS.NOTCOMPLETION.v() }, count, offset);
+		return assetImportRecordRepository.getList(conn, EXP.ins().key("org_id", orgId).andKey("task_id", importTaskId).andKey("status", AssetImportRecord.STATUS.NOTCOMPLETION.v()), count, offset);
 	}
 
 }

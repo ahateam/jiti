@@ -1,6 +1,7 @@
 package zyxhj.jiti.repository;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -69,13 +70,12 @@ public class AssetRepository extends RDSRepository<Asset> {
 
 	public List<Asset> getAssetsByGroups(DruidPooledConnection conn, Long orgId, String[] groups, Integer count,
 			Integer offset) throws ServerException {
-		return getListByTagsJSONArray(conn, "groups", "", groups, "WHERE org_id=? ", new Object[] { orgId }, count,
-				offset);
+		return getListByTagsJSONArray(conn, "groups", "", groups, "org_id=? ", Arrays.asList(orgId), count, offset);
 	}
 
 	public List<Asset> getAssetsByTags(DruidPooledConnection conn, Long orgId, JSONObject tags, Integer count,
 			Integer offset) throws ServerException {
-		return getListByTagsJSONObject(conn, "groups", tags, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
+		return getListByTagsJSONObject(conn, "groups", tags, "org_id=? ", Arrays.asList(orgId), count, offset);
 	}
 
 	public int batchEditAssetsGroups(DruidPooledConnection conn, Long orgId, JSONArray assetIds, JSONArray groups)
@@ -108,7 +108,7 @@ public class AssetRepository extends RDSRepository<Asset> {
 			sqlWhere.fillSQL(sbwhere);
 
 			System.out.println(StringUtils.join(sbset.toString(), " ", sbwhere.toString()));
-			return update(conn, sbset.toString(), pset.toArray(), sbwhere.toString(), sqlWhere.getParams());
+			return update(conn, sbset.toString(), pset , sbwhere.toString(), sqlWhere.getParams());
 		} else {
 			return 0;
 		}
@@ -120,7 +120,7 @@ public class AssetRepository extends RDSRepository<Asset> {
 		// "3755%"
 		// 按编号模糊查询
 		return this.getList(conn, StringUtils.join("WHERE org_id = ? AND sn LIKE '%", assetNum, "%'"),
-				new Object[] { orgId }, count, offset);
+				Arrays.asList(orgId), count, offset);
 	}
 
 	public List<Asset> getAssetsByName(DruidPooledConnection conn, Long orgId, String assetNum, Integer count,
@@ -129,12 +129,12 @@ public class AssetRepository extends RDSRepository<Asset> {
 		// "3755%"
 		// 按名称模糊查询
 		return this.getList(conn, StringUtils.join("WHERE org_id = ? AND name LIKE '%", assetNum, "%' "),
-				new Object[] { orgId }, count, offset);
+				Arrays.asList(orgId), count, offset);
 	}
 
 	public List<Asset> getAssetByYear(DruidPooledConnection conn, Long orgId, String buildTime, Integer count,
 			Integer offset) throws Exception {
-		return this.getList(conn, "WHERE org_id = ? AND build_time = ? ", new Object[] { orgId, buildTime }, count,
+		return this.getList(conn, "WHERE org_id = ? AND build_time = ? ", Arrays.asList(orgId, buildTime), count,
 				offset);
 	}
 

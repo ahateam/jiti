@@ -9,6 +9,7 @@ import com.alibaba.druid.pool.DruidPooledConnection;
 
 import zyxhj.utils.IDUtils;
 import zyxhj.utils.Singleton;
+import zyxhj.utils.data.EXP;
 
 public class VideoService {
 
@@ -40,7 +41,7 @@ public class VideoService {
 	}
 
 	public void deleteVideo(DruidPooledConnection conn, Long videoId) throws Exception {
-		videoRepository.deleteByKey(conn, "id", videoId);
+		videoRepository.delete(conn,EXP.ins().key( "id", videoId));
 	}
 
 	public Video editVideo(DruidPooledConnection conn, Long videoId, String title, String type, String imageUrl,
@@ -52,16 +53,16 @@ public class VideoService {
 		vi.imageUrl = imageUrl;
 		vi.urlType = urlType;
 		vi.videoUrl = videoUrl;
-		videoRepository.updateByKey(conn, "id", videoId, vi, true);
+		videoRepository.update(conn,EXP.ins().key("id",videoId), vi, true);
 		return vi;
 	}
 
 	public List<Video> getVideo(DruidPooledConnection conn, Integer count, Integer offset) throws Exception {
-		return videoRepository.getList(conn, count, offset);
+		return videoRepository.getList(conn,null, count, offset);
 	}
 
 	public Video getVideById(DruidPooledConnection conn, Long videoId) throws Exception {
-		return videoRepository.getByKey(conn, "id", videoId);
+		return videoRepository.get(conn,EXP.ins().key( "id", videoId));
 	}
 
 }

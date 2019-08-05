@@ -1,5 +1,6 @@
 package zyxhj.jiti.repository;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -109,7 +110,7 @@ public class NoticeTaskRecordRepository extends RDSRepository<NoticeTaskRecord> 
 
 		sql.fillSQL(s);
 		List<User> us = sqlGetOtherList(conn, Singleton.ins(UserRepository.class), s.toString(),
-				new Object[] { orgId });
+				Arrays.asList(orgId));
 
 		Integer sum = 0;
 		NoticeTaskRecord noti = new NoticeTaskRecord();

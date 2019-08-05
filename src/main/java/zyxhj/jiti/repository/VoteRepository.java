@@ -1,5 +1,6 @@
 package zyxhj.jiti.repository;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -21,16 +22,16 @@ public class VoteRepository extends RDSRepository<Vote> {
 	public List<Vote> getVotes(DruidPooledConnection conn, Long orgId, Byte status, Integer count, Integer offset)
 			throws ServerException {
 		if (status == null) {
-			return getList(conn, "WHERE org_id=? ORDER BY create_time DESC", new Object[] { orgId }, count, offset);
+			return getList(conn, " org_id=? ORDER BY create_time DESC", Arrays.asList( orgId), count, offset);
 		} else {
-			return getList(conn, "WHERE org_id=? AND status=? ORDER BY create_time DESC",
-					new Object[] { orgId, status }, count, offset);
+			return getList(conn, " org_id=? AND status=? ORDER BY create_time DESC",
+					 Arrays.asList( orgId,status), count, offset);
 		}
 	}
 
 	public List<Vote> getUserVotes(DruidPooledConnection conn, Long orgId, Long userId, Integer count, Integer offset)
 			throws ServerException {
-		return getList(conn, "WHERE org_id=? AND user_id=? ORDER BY create_time DESC", new Object[] { orgId, userId },
+		return getList(conn, " org_id=? AND user_id=? ORDER BY create_time DESC", Arrays.asList( orgId, userId),
 				count, offset);
 	}
 
@@ -52,7 +53,7 @@ public class VoteRepository extends RDSRepository<Vote> {
 		if (status != null) {
 			sql.AND("status = ? ", status);
 		}
-		StringBuffer sb = new StringBuffer(" WHERE "); // TODO 以后要加上区级id
+		StringBuffer sb = new StringBuffer(); // TODO 以后要加上区级id
 		sql.fillSQL(sb);
 		System.out.println(sb.toString());
 		return getList(conn, sb.toString(), sql.getParams(), count, offset);
@@ -66,7 +67,7 @@ public class VoteRepository extends RDSRepository<Vote> {
 		// tk.vote_id WHERE tk.user_id = 398070436000626 AND vo.org_id = 398067474765236
 		return sqlGetJSONArray(conn,
 				"SELECT vo.* FROM tb_ecm_vote vo LEFT JOIN tb_ecm_vote_ticket tk ON vo.id = tk.vote_id WHERE tk.user_id = ? AND vo.org_id = ?",
-				new Object[] { userId, orgId }, count, offset);
+				Arrays.asList(userId, orgId), count, offset);
 	}
 
 	public List<Vote> getNotVoteByUserRoles(DruidPooledConnection conn, Long orgId, String roles, Integer count,
@@ -76,7 +77,7 @@ public class VoteRepository extends RDSRepository<Vote> {
 		// (JSON_CONTAINS(crowd, '104','$.roles') OR JSON_CONTAINS(crowd,
 		// '106','$.roles'))
 
-		StringBuffer sb = new StringBuffer("WHERE ");
+		StringBuffer sb = new StringBuffer();
 		JSONArray json = JSONArray.parseArray(roles);
 		SQL sql = new SQL();
 		sql.addEx("org_id = ?", orgId);

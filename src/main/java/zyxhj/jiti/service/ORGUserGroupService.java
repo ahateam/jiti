@@ -1,6 +1,7 @@
 package zyxhj.jiti.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -19,6 +20,7 @@ import zyxhj.jiti.domain.ORGUserTagGroup;
 import zyxhj.jiti.repository.ORGUserTagGroupRepository;
 import zyxhj.utils.IDUtils;
 import zyxhj.utils.Singleton;
+import zyxhj.utils.data.EXP;
 
 /**
  * 第三方用户自定义角色service
@@ -100,22 +102,22 @@ public class ORGUserGroupService {
 		renew.keyword = keyword;
 		renew.remark = remark;
 
-		return groupRepository.updateByANDKeys(conn, new String[] { "org_id", "group_id" },
-				new Object[] { orgId, groupId }, renew, true);
+		return groupRepository.update(conn,EXP.ins().key("org_id", orgId).andKey("group_id", groupId), renew, true);
+		
 
 	}
 
 	public List<ORGUserTagGroup> getTagGroups(DruidPooledConnection conn, Long orgId) throws Exception {
 		List<ORGUserTagGroup> ret = ORG_USER_TAG_GROUP_LIST_CACHE.getIfPresent(orgId);
 		if (ret == null) {
-			ret = groupRepository.getListByKey(conn, "org_id", orgId, 512, 0);
+			ret = groupRepository.getList(conn,EXP.ins().key("org_id", orgId), 512, 0);
 			ORG_USER_TAG_GROUP_LIST_CACHE.put(orgId, ret);
 		}
 		return ret;
 	}
 
 	public int delTagGroupById(DruidPooledConnection conn, Long groupId) throws Exception {
-		return groupRepository.deleteByKey(conn, "group_id", groupId);
+		return groupRepository.delete(conn,EXP.ins().key("group_id", groupId));
 	}
 
 	public JSONArray getTagGroupTree(DruidPooledConnection conn, Long orgId, Long groupId) throws Exception {

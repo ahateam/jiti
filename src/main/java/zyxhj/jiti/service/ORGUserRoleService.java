@@ -1,6 +1,7 @@
 package zyxhj.jiti.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -20,6 +21,7 @@ import zyxhj.jiti.repository.ORGPermissionRelaRepository;
 import zyxhj.jiti.repository.ORGUserRoleRepository;
 import zyxhj.utils.IDUtils;
 import zyxhj.utils.Singleton;
+import zyxhj.utils.data.EXP;
 
 /**
  * 第三方用户自定义角色service
@@ -101,8 +103,7 @@ public class ORGUserRoleService {
 		renew.name = name;
 		renew.remark = remark;
 
-		return orgUserRoleRepository.updateByANDKeys(conn, new String[] { "org_id", "role_id" },
-				new Object[] { orgId, roleId }, renew, true);
+		return orgUserRoleRepository.update(conn,EXP.ins().key("org_id", orgId).andKey("role_id", roleId), renew, true);
 	}
 
 	public ORGUserRole getORGUserRoleById(DruidPooledConnection conn, Long orgId, Long roleId) throws Exception {
@@ -112,8 +113,7 @@ public class ORGUserRoleService {
 			role = ORG_USER_ROLE_CACHE.getIfPresent(roleId);
 			if (role == null) {
 				// 从数据库中获取
-				role = orgUserRoleRepository.getByANDKeys(conn, new String[] { "org_id", "role_id" },
-						new Object[] { orgId, roleId });
+				role = orgUserRoleRepository.get(conn, EXP.ins().key("org_id", orgId).andKey("role_id", roleId));
 				if (role != null) {
 					// 放入缓存
 					ORG_USER_ROLE_CACHE.put(roleId, role);
@@ -127,7 +127,7 @@ public class ORGUserRoleService {
 	 * 获取自定义角色列表
 	 */
 	public List<ORGUserRole> getORGUserRoles(DruidPooledConnection conn, Long orgId) throws Exception {
-		return orgUserRoleRepository.getListByKey(conn, "org_id", orgId, 512, 0);
+		return orgUserRoleRepository.getList(conn, EXP.ins().key("org_id", orgId), 512, 0);
 	}
 
 	/**
@@ -155,7 +155,7 @@ public class ORGUserRoleService {
 		}
 		
 		if (json != null && json.size() > 0) {
-			List<ORGUserRole> op = orgUserRoleRepository.getListByKeyInValues(conn, "role_id", json.toArray());
+			List<ORGUserRole> op = orgUserRoleRepository.getList(conn, EXP.ins().in("role_id",json.toArray()),null,null);
 			for (ORGUserRole orgPermission : op) {
 				list.add(orgPermission);
 			}

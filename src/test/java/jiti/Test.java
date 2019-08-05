@@ -11,7 +11,7 @@ public class Test {
 
 	static {
 		try {
-			conn = DataSource.getDruidDataSource("rdsDefault").getConnection();
+			conn = DataSource.getDruidDataSource("rdsDefault.prop").getConnection();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

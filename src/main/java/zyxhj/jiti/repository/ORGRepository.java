@@ -1,5 +1,6 @@
 package zyxhj.jiti.repository;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -38,22 +39,22 @@ public class ORGRepository extends RDSRepository<ORG> {
 
 	public List<ORG> getOrgByNameAndLevel(DruidPooledConnection conn, Byte level, String orgName) throws Exception {
 		return getList(conn, StringUtils.join("WHERE level = ? AND name LIKE '%", orgName, "%'"),
-				new Object[] { level }, null, null);
+				Arrays.asList(level), null, null);
 	}
 
 	public List<ORG> getORGs(DruidPooledConnection conn, JSONArray json, int count, int offset) throws Exception {
-		StringBuffer sb = new StringBuffer("WHERE ");
+		StringBuffer sb = new StringBuffer();
 		SQL sql = new SQL();
 		for (int i = 0; i < json.size(); i++) {
 			sql.OR(StringUtils.join("id = ", json.getLong(i)));
 		}
 		sql.fillSQL(sb);
-		return getList(conn, sb.toString(), new Object[] {}, count, offset);
+		return getList(conn, sb.toString(), null, count, offset);
 	}
 
 	public List<ORG> getOrgByName(DruidPooledConnection conn, String name, Integer count, Integer offset)
 			throws Exception {
-		return getList(conn, StringUtils.join("WHERE name LIKE '%", name, "%'"), new Object[] {}, count, offset);
+		return getList(conn, StringUtils.join("name LIKE '%", name, "%'"), null, count, offset);
 	}
 
 	public List<ORG> getBankList(DruidPooledConnection conn, JSONArray json, String name, Byte type, Integer count,

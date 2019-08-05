@@ -1,6 +1,7 @@
 package zyxhj.jiti.repository;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -23,6 +24,7 @@ import zyxhj.utils.ServiceUtils;
 import zyxhj.utils.Singleton;
 import zyxhj.utils.api.BaseRC;
 import zyxhj.utils.api.ServerException;
+import zyxhj.utils.data.EXP;
 import zyxhj.utils.data.rds.RDSRepository;
 import zyxhj.utils.data.rds.SQL;
 import zyxhj.utils.data.rds.SQLEx;
@@ -40,7 +42,9 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 	 */
 	public ORGUser checkORGUserRoles(DruidPooledConnection conn, Long orgId, Long userId, ORGUserRole[] roles)
 			throws ServerException {
-		ORGUser orgUser = getByANDKeys(conn, new String[] { "org_id", "user_id" }, new Object[] { orgId, userId });
+//		ORGUser orgUser = getByANDKeys(conn, new String[] { "org_id", "user_id" }, new Object[] { orgId, userId });
+		
+		ORGUser orgUser = get(conn, StringUtils.join("org_id = ", orgId, "AND user_id", userId), null);
 		ServiceUtils.checkNull(orgUser);
 		// check role，字符串搜索的做法不严谨，但是将就了
 		if (roles == null || roles.length == 0) {
@@ -75,7 +79,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		JSONObject tags = crowd.getJSONObject("tags");
 
 		SQL sql = new SQL();
-
+		
 		sql.addEx("org_id = ? ");
 		if ((roles != null && roles.size() > 0) || (groups != null && groups.size() > 0) || (tags != null)) {
 			SQL sqlEx = new SQL();
@@ -115,7 +119,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		StringBuffer s = new StringBuffer("SELECT COUNT(*) FROM tb_ecm_org_user WHERE ");
 
 		sql.fillSQL(s);
-		Object[] getObj = sqlGetObjects(conn, s.toString(), new Object[] { orgId });
+		Object[] getObj = sqlGetObjects(conn, s.toString(), Arrays.asList(orgId));
 		return Integer.parseInt(getObj[0].toString());
 
 	}
@@ -128,28 +132,28 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 			ORGUser renew = new ORGUser();
 			renew.roles = JSON.toJSONString(roles);
 
-			return updateByANDKeys(conn, new String[] { "org_id", "user_id" }, new Object[] { orgId, userId }, renew,
-					true);
+			return update(conn,EXP.ins().key("org_id", orgId).andKey("user_id", userId), renew,true);
+			
 		}
 	}
 
 	public List<ORGUser> getORGUsersByRoles(DruidPooledConnection conn, Long orgId, String[] roles, Integer count,
 			Integer offset) throws ServerException {
-		return getListByTagsJSONArray(conn, "roles", "", roles, "WHERE org_id=? ", new Object[] { orgId }, count,
+		return getListByTagsJSONArray(conn, "roles", "", roles, " org_id=? ",Arrays.asList(orgId), count,
 				offset);
 	}
 
 	public List<ORGUser> getORGUsersByGroups(DruidPooledConnection conn, Long orgId, String[] groups, Integer count,
 			Integer offset) throws ServerException {
 
-		return getListByTagsJSONArray(conn, "groups", "", groups, "WHERE org_id=? ", new Object[] { orgId }, count,
+		return getListByTagsJSONArray(conn, "groups", "", groups, " org_id=? ", Arrays.asList(orgId), count,
 				offset);
 	}
 
 	public List<ORGUser> getORGUsersByTags(DruidPooledConnection conn, Long orgId, JSONObject tags, Integer count,
 			Integer offset) throws ServerException {
 
-		return getListByTagsJSONObject(conn, "tags", tags, "WHERE org_id=? ", new Object[] { orgId }, count, offset);
+		return getListByTagsJSONObject(conn, "tags", tags, " org_id=? ", Arrays.asList(orgId), count, offset);
 	}
 
 	public List<User> getORGUsersLikeIDNumber(DruidPooledConnection conn, Long orgId, String idNumber, Integer count,
@@ -165,7 +169,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 				// count, offset });
 				return sqlGetOtherList(conn, Singleton.ins(UserRepository.class), StringUtils.join(
 						"SELECT * FROM `tb_user` INNER JOIN `tb_ecm_org_user` ON `tb_user`.`id` = `tb_ecm_org_user`.`user_id` WHERE `org_id` =? AND `tb_user`.`id_number` LIKE '%",
-						idNumber, "%' LIMIT ? OFFSET ?"), new Object[] { orgId, count, offset });
+						idNumber, "%' LIMIT ? OFFSET ?"), Arrays.asList(orgId, count, offset ));
 			} catch (Exception e) {
 				e.printStackTrace();
 				return new ArrayList<>();
@@ -189,7 +193,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 				// count, offset });
 				return sqlGetOtherList(conn, Singleton.ins(UserRepository.class), StringUtils.join(
 						"SELECT * FROM `tb_user` INNER JOIN `tb_ecm_org_user` ON `tb_user`.`id` = `tb_ecm_org_user`.`user_id` WHERE `org_id` =? AND `tb_user`.`real_name` LIKE '%",
-						realName, "%' LIMIT ? OFFSET ?"), new Object[] { orgId, count, offset });
+						realName, "%' LIMIT ? OFFSET ?"), Arrays.asList(orgId, count, offset ));
 			} catch (Exception e) {
 				e.printStackTrace();
 				return new ArrayList<>();
@@ -222,8 +226,9 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 
 		for (int i = 0; i < userIds.size(); i++) {
 			// 查询用户
-			ORGUser getORGUser = getByANDKeys(conn, new String[] { "org_id", "user_id" },
-					new Object[] { orgId, userIds.getLong(i) });
+//			ORGUser getORGUser = getByANDKeys(conn, new String[] { "org_id", "user_id" },
+//					new Object[] { orgId, userIds.getLong(i) });
+			ORGUser getORGUser = get(conn, StringUtils.join("org_id = ", orgId," AND user_id",userIds.getLong(i)),null);
 
 			// 等于-1表示不存在
 			if (getORGUser.groups.indexOf(groups.toString()) == -1) {
@@ -232,8 +237,8 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 				json.add(groups);
 				ORGUser or = new ORGUser();
 				or.groups = json.toString();
-				updateByANDKeys(conn, new String[] { "org_id", "user_id" }, new Object[] { orgId, userIds.getLong(i) },
-						or, true);
+				update(conn,EXP.ins().key("org_id", orgId).andKey("user_id", userIds.getLong(i)), or, true);
+				
 			}
 
 		}
@@ -249,8 +254,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 			// 获取roles值
 			String ro = roles.getString(i);
 			Object[] s = sqlGetObjects(conn,
-					StringUtils.join("SELECT COUNT(*) FROM tb_ecm_org_user WHERE JSON_CONTAINS(roles, '", ro, "','$')"),
-					new Object[] {});
+					StringUtils.join("SELECT COUNT(*) FROM tb_ecm_org_user WHERE JSON_CONTAINS(roles, '", ro, "','$')"), null);
 			map.put(ro, Integer.parseInt(s[0].toString()));
 		}
 		return map;
@@ -339,7 +343,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 	public ORGUser maxFamilyNumber(DruidPooledConnection conn, Long orgId) throws Exception {
 		StringBuffer sb = new StringBuffer(
 				"WHERE family_number = (SELECT MAX(family_number) FROM tb_ecm_org_user WHERE org_id = ?)");
-		return get(conn, sb.toString(), new Object[] { orgId });
+		return get(conn, sb.toString(), Arrays.asList(orgId ));
 	}
 
 	public int getOrgUser(DruidPooledConnection conn, Long orgId, String idNumber) throws Exception {

@@ -34,10 +34,8 @@ public class ExamineRepository extends RDSRepository<Examine> {
 
 	public List<Examine> getExamineLikeUserId(DruidPooledConnection conn, Long orgId, Long userId, Integer count,
 			Integer offset) throws Exception {
-		StringBuffer sb = new StringBuffer("WHERE org_id = ").append(orgId)
-				.append(" AND JSON_EXTRACT(`data`, '$.newData') ").append(StringUtils.join(" LIKE \"%", userId, "%\""));
-
-		return this.getList(conn, sb.toString(), new Object[] {}, count, offset);
+		return this.getList(conn, StringUtils.join("org_id = ", orgId, " AND JSON_EXTRACT(`data`, '$.newData') ",
+				" LIKE \"%", userId, "%\""), null, count, offset);
 	}
 
 }

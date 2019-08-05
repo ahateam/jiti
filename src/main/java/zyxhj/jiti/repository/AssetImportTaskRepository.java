@@ -1,5 +1,7 @@
 package zyxhj.jiti.repository;
 
+import java.util.Arrays;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
@@ -16,7 +18,7 @@ public class AssetImportTaskRepository extends RDSRepository<AssetImportTask> {
 
 	public void countImportTaskSum(DruidPooledConnection conn, Long importTaskId, Integer sum) throws Exception {
 		this.update(conn, StringUtils.join("SET sum = ", sum), null, " WHERE id = ? ",
-				new Object[] { importTaskId });
+				Arrays.asList(importTaskId));
 	}
 
 	public void countAssetImportCompletionTask(DruidPooledConnection conn, Long importTaskId) throws Exception {

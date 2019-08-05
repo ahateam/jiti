@@ -31,6 +31,7 @@ import zyxhj.utils.IDUtils;
 import zyxhj.utils.Singleton;
 import zyxhj.utils.api.BaseRC;
 import zyxhj.utils.api.ServerException;
+import zyxhj.utils.data.EXP;
 
 public class VoteService {
 
@@ -93,7 +94,8 @@ public class VoteService {
 		if (true) {
 			return;
 		}
-		Vote vp = voteRepository.getByKey(conn, "id", voteId);
+		Vote vp = voteRepository.get(conn, EXP.ins().key( "id", voteId));
+		
 		if (vp != null) {
 			int tmp = compareTime(vp.startTime, vp.expiryTime);
 			if (tmp >= 0) {
@@ -150,7 +152,8 @@ public class VoteService {
 
 	// 发送微信通知
 	public void sendVoteMessage(DruidPooledConnection conn, Long orgId, Long voteId) throws Exception {
-		Vote vote = voteRepository.getByANDKeys(conn, new String[] { "id", "org_id" }, new Object[] { voteId, orgId });
+		Vote vote = voteRepository.get(conn,EXP.ins().key("id", voteId).andKey("org_id",orgId));
+		
 		JSONObject crowd = JSONObject.parseObject(vote.crowd);
 		// 发送微信通知 解析crowd 获取roles 通过roles获取到用户 然后通过用户得wxopenId去发送模板消息 TODO 应该得开新线程处理
 		// 查询可投票选项
@@ -211,10 +214,10 @@ public class VoteService {
 		// 应到人数
 		renew.quorum = orgUserRepository.getParticipateCount(conn, orgId, renew.id, crowd);
 
-		int ret = voteRepository.updateByKey(conn, "id", voteId, renew, true);
+		int ret = voteRepository.update(conn,EXP.ins().key("id",voteId), renew, true);
+		
 
-		VoteOption op = optionRepository.getByANDKeys(conn, new String[] { "vote_id", "is_abstain" },
-				new Object[] { voteId, true });
+		VoteOption op = optionRepository.get(conn,EXP.ins().key("vote_id",  voteId).andKey("is_abstain",true));
 		if (isAbstain) {
 			// 没有要创建
 			if (op == null) {
@@ -232,7 +235,7 @@ public class VoteService {
 	public int setVoteActivation(DruidPooledConnection conn, Long voteId, Boolean activation) throws Exception {
 		checkVoteTime(conn, voteId);
 
-		Vote exist = voteRepository.getByKey(conn, "id", voteId);
+		Vote exist = voteRepository.get(conn, EXP.ins().key( "id", voteId));
 		if (exist == null) {
 			throw new ServerException(BaseRC.ECM_VOIT_NOTEXIST);
 		} else {
@@ -244,7 +247,7 @@ public class VoteService {
 					Vote renew = new Vote();
 					renew.status = Vote.STATUS.VOTING.v();
 
-					return voteRepository.updateByKey(conn, "id", voteId, renew, true);
+					return voteRepository.update(conn,EXP.ins().key("id",voteId), renew, true);
 				}
 			} else {
 				// 禁用
@@ -253,7 +256,7 @@ public class VoteService {
 					Vote renew = new Vote();
 					renew.status = Vote.STATUS.WAITING.v();
 
-					return voteRepository.updateByKey(conn, "id", voteId, renew, true);
+					return voteRepository.update(conn,EXP.ins().key("id",voteId), renew, true);
 				}
 			}
 		}
@@ -264,7 +267,7 @@ public class VoteService {
 	public int setVotePaused(DruidPooledConnection conn, Long voteId, Boolean paused) throws Exception {
 		checkVoteTime(conn, voteId);
 
-		Vote exist = voteRepository.getByKey(conn, "id", voteId);
+		Vote exist = voteRepository.get(conn, EXP.ins().key( "id", voteId));
 		if (exist == null) {
 			throw new ServerException(BaseRC.ECM_VOIT_NOTEXIST);
 		} else {
@@ -275,7 +278,7 @@ public class VoteService {
 					Vote renew = new Vote();
 					renew.status = Vote.STATUS.PAUSED.v();
 
-					return voteRepository.updateByKey(conn, "id", voteId, renew, true);
+					return voteRepository.update(conn,EXP.ins().key("id",voteId), renew, true);
 				}
 			} else {
 				// 恢复
@@ -284,7 +287,7 @@ public class VoteService {
 					Vote renew = new Vote();
 					renew.status = Vote.STATUS.VOTING.v();
 
-					return voteRepository.updateByKey(conn, "id", voteId, renew, true);
+					return voteRepository.update(conn,EXP.ins().key("id",voteId), renew, true);
 				}
 			}
 		}
@@ -300,14 +303,14 @@ public class VoteService {
 		Vote renew = new Vote();
 		renew.optionIds = JSON.toJSONString(optionIds);
 
-		return voteRepository.updateByKey(conn, "id", voteId, renew, true);
+		return voteRepository.update(conn,EXP.ins().key("id",voteId), renew, true);
 	}
 
 	public int delVote(DruidPooledConnection conn, Long voteId) throws Exception {
 
 		checkVoteTime(conn, voteId);
 
-		return voteRepository.deleteByKey(conn, "id", voteId);
+		return voteRepository.delete(conn, EXP.ins().key( "id", voteId));
 
 	}
 
@@ -330,7 +333,7 @@ public class VoteService {
 
 		optionRepository.insert(conn, vo);
 
-		Vote vote = voteRepository.getByKey(conn, "id", voteId);
+		Vote vote = voteRepository.get(conn, EXP.ins().key( "id", voteId));
 		if (vote != null) {
 			JSONArray ar = JSON.parseArray(vote.optionIds);
 			if (ar == null) {
@@ -340,7 +343,7 @@ public class VoteService {
 
 			Vote renew = new Vote();
 			renew.optionIds = JSON.toJSONString(ar);
-			voteRepository.updateByKey(conn, "id", voteId, renew, true);
+			voteRepository.update(conn,EXP.ins().key("id",voteId), renew, true);
 		}
 		return vo;
 	}
@@ -355,15 +358,15 @@ public class VoteService {
 		renew.remark = remark;
 		renew.ext = ext;
 
-		return optionRepository.updateByKey(conn, "id", optionId, renew, true);
+		return optionRepository.update(conn,EXP.ins().key("id",optionId), renew, true);
 	}
 
 	public int delVoteOption(DruidPooledConnection conn, Long voteId, Long optionId) throws Exception {
 		checkVoteTime(conn, voteId);
 
-		int ret = optionRepository.deleteByKey(conn, "id", optionId);
+		int ret = optionRepository.delete(conn, EXP.ins().key( "id", optionId));
 		if (ret == 1) {
-			Vote vote = voteRepository.getByKey(conn, "id", voteId);
+			Vote vote = voteRepository.get(conn, EXP.ins().key( "id", voteId));
 			if (vote != null) {
 				JSONArray ar = JSON.parseArray(vote.optionIds);
 				if (ar == null) {
@@ -373,7 +376,7 @@ public class VoteService {
 
 				Vote renew = new Vote();
 				renew.optionIds = JSON.toJSONString(ar);
-				voteRepository.updateByKey(conn, "id", voteId, renew, true);
+				voteRepository.update(conn,EXP.ins().key("id",voteId), renew, true);
 			}
 		}
 		return ret;
@@ -381,7 +384,7 @@ public class VoteService {
 
 	public List<VoteOption> getVoteOptions(DruidPooledConnection conn, Long voteId) throws Exception {
 
-		Vote vote = voteRepository.getByKey(conn, "id", voteId);
+		Vote vote = voteRepository.get(conn, EXP.ins().key( "id", voteId));
 
 		JSONArray ja = JSON.parseArray(vote.optionIds);
 
@@ -390,8 +393,7 @@ public class VoteService {
 			for (int i = 0; i < values.length; i++) {
 				values[i] = ja.get(i).toString();
 			}
-
-			return optionRepository.getListByKeyInValues(conn, "id", values);
+			return optionRepository.getList(conn, EXP.ins().in( "id", values),null,null);
 		} else {
 			return new ArrayList<VoteOption>();
 		}
@@ -499,10 +501,11 @@ public class VoteService {
 	public void vote(DruidPooledConnection conn, Long orgId, Long voteId, Long userId, JSONArray selections,
 			Integer ballotCount, String remark) throws Exception {
 
+		//从缓存区中拿到编号为voteId的vote
 		Vote vote = VOTE_CACHE.getIfPresent(voteId);
 		if (vote == null) {
 			// 缓存中没有，从数据库中获取
-			vote = voteRepository.getByKey(conn, "id", voteId);
+			vote = voteRepository.get(conn, EXP.ins().key( "id", voteId));
 			if (vote == null) {
 				throw new ServerException(BaseRC.ECM_VOIT_NOTEXIST);
 			} else {
@@ -517,16 +520,14 @@ public class VoteService {
 		}
 
 		// 判断用户是否有权限投票
-		ORGUser ou = orgUserRepository.getByANDKeys(conn, new String[] { "org_id", "user_id" },
-				new Object[] { orgId, userId });
+		ORGUser ou = orgUserRepository.get(conn,EXP.ins().key("org_id", orgId).andKey("user_id",userId));
 		if (ou == null) {
 			throw new ServerException(BaseRC.ECM_VOTE_ORGROLE_ERROR);
 		}
 
 		if (hasPrmission(vote.crowd, ou)) {
 			// 开始投票
-			VoteTicket exist = ticketRepository.getByANDKeys(conn, new String[] { "vote_id", "user_id" },
-					new Object[] { voteId, userId });
+			VoteTicket exist = ticketRepository.get(conn,EXP.ins().key("vote_id",  voteId).andKey("user_id",userId));
 
 			boolean firstTime = (exist == null ? true : false);
 
@@ -568,16 +569,16 @@ public class VoteService {
 	}
 
 	public void delVoteTicket(DruidPooledConnection conn, Long voteId, Long userId) throws Exception {
-		voteRepository.deleteByANDKeys(conn, new String[] { "vote_id", "user_id" }, new Object[] { voteId, userId });
+		voteRepository.delete(conn,EXP.ins().key("vote_id", voteId).andKey("user_id", userId));
 	}
 
 	/**
 	 * 获取投票详细
 	 */
 	public JSONObject getVoteDetail(DruidPooledConnection conn, Long voteId) throws Exception {
-		Vote vote = voteRepository.getByKey(conn, "id", voteId);
+		Vote vote = voteRepository.get(conn, EXP.ins().key( "id", voteId));
 
-		List<VoteOption> options = optionRepository.getListByKey(conn, "vote_id", voteId, 512, 0);
+		List<VoteOption> options = optionRepository.getList(conn, EXP.ins().key("vote_id", voteId), 512, 0);
 
 		int ticketCount = ticketRepository.countTicket(conn, voteId);
 
@@ -594,8 +595,7 @@ public class VoteService {
 	 * 获取用户的选票
 	 */
 	public VoteTicket getVoteTicket(DruidPooledConnection conn, Long voteId, Long userId) throws Exception {
-		return ticketRepository.getByANDKeys(conn, new String[] { "vote_id", "user_id" },
-				new Object[] { voteId, userId });
+		return ticketRepository.get(conn,EXP.ins().key("vote_id", voteId).andKey("user_id",userId));
 	}
 
 	/**
@@ -656,10 +656,12 @@ public class VoteService {
 		// 遍历orgid 获取orgid下的投票
 		for (int i = 0; i < orgIds.size(); i++) {
 			// 根据orgId取得当前org下得VOTE
-			List<Vote> getVote = voteRepository.getListByKey(conn, "org_id", orgIds.getString(i), null, null);
+			List<Vote> getVote = voteRepository.getList(conn,EXP.ins().key( "org_id", orgIds.getString(i)), null, null);
 			// 遍历VOTE 得到一个投票率
 			for (Vote v : getVote) {
+				//得到投票法定人数
 				double a = v.quorum;
+				//得到当前投票的所有投票记录
 				int c = ticketRepository.countTicket(conn, v.id);
 				if (c != 0) {
 					// 把相票率放入list中
@@ -694,8 +696,7 @@ public class VoteService {
 	// 查询用户所投选项
 	public List<VoteOption> getOptionByUserSelection(DruidPooledConnection conn, Long userId, Long voteId)
 			throws Exception {
-		VoteTicket getTicket = ticketRepository.getByANDKeys(conn, new String[] { "vote_id", "user_id" },
-				new Object[] { voteId, userId });
+		VoteTicket getTicket = ticketRepository.get(conn,EXP.ins().key("vote_id", voteId ).andKey("user_id",userId));
 		JSONArray js = JSON.parseArray(getTicket.selection);
 
 		if (js != null && js.size() > 0) {
@@ -703,7 +704,8 @@ public class VoteService {
 			for (int i = 0; i < js.size(); i++) {
 				s[i] = js.get(i).toString();
 			}
-			return optionRepository.getListByKeyInValues(conn, "id", s);
+			return optionRepository.getList(conn, EXP.ins().in( "id", s),null,null);
+			
 		} else {
 			return new ArrayList<VoteOption>();
 		}
@@ -719,8 +721,7 @@ public class VoteService {
 		// 再去根据用户id去查询当前用户是否已经投了此票 如果用户id+投票id为空 则表示未投 不为空 则表示已经投了票
 		JSONArray json = new JSONArray();
 		for (Vote v : vote) {
-			VoteTicket voteTicket = ticketRepository.getByANDKeys(conn, new String[] { "vote_id", "user_id" },
-					new Object[] { v.id, userId });
+			VoteTicket voteTicket = ticketRepository.get(conn,EXP.ins().key("vote_id", v.id ).andKey("user_id",userId));
 			if (voteTicket == null) {
 				json.add(v);
 			}

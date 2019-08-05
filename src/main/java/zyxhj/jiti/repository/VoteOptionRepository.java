@@ -31,7 +31,9 @@ public class VoteOptionRepository extends RDSRepository<VoteOption> {
 
 	public int subTicket(DruidPooledConnection conn, Object[] ids, Integer weight) throws Exception {
 
-		VoteOption vo = getByKey(conn, "id", ids);
+//		VoteOption vo = getByKey(conn, "id", ids);
+		VoteOption vo = get(conn, StringUtils.join("id = " ,ids), null);
+		
 		if (vo.ballotCount == 0) {
 			throw new ServerException(BaseRC.ECM_VOTE_NO_BALLOTCOUNT);
 		} else {

@@ -26,7 +26,7 @@ public class ORGPermissionRepository extends RDSRepository<ORGPermission> {
 			}
 			sql.fillSQL(sb);
 			System.out.println(sb.toString());
-			return getList(conn, sb.toString(), new Object[] {}, 512, 0);
+			return getList(conn, sb.toString(), null, 512, 0);
 		} else {
 			return null;
 		}
@@ -39,7 +39,7 @@ public class ORGPermissionRepository extends RDSRepository<ORGPermission> {
 			sql.OR(StringUtils.join("id = ", json.getLong(i)));
 		}
 		sql.fillSQL(sb);
-		return getList(conn, sb.toString(), new Object[] {}, 512, 0);
+		return getList(conn, sb.toString(), null, 512, 0);
 	}
 
 }

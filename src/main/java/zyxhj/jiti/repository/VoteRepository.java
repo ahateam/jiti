@@ -10,6 +10,7 @@ import com.alibaba.fastjson.JSONArray;
 
 import zyxhj.jiti.domain.Vote;
 import zyxhj.utils.api.ServerException;
+import zyxhj.utils.data.EXP;
 import zyxhj.utils.data.rds.RDSRepository;
 import zyxhj.utils.data.rds.SQL;
 
@@ -79,16 +80,15 @@ public class VoteRepository extends RDSRepository<Vote> {
 
 		StringBuffer sb = new StringBuffer();
 		JSONArray json = JSONArray.parseArray(roles);
-		SQL sql = new SQL();
-		sql.addEx("org_id = ?", orgId);
-		SQL sqlEx = new SQL();
+		EXP exp = EXP.ins().exp("org_id", "=", orgId);
+		EXP subExp = EXP.ins();
 		for (int i = 0; i < json.size(); i++) {
-			sqlEx.OR(StringUtils.join("JSON_CONTAINS(crowd, '", json.getLong(i), "','$.roles')"));
+			String temp = StringUtils.join("JSON_CONTAINS(crowd, '", json.getLong(i), "','$.roles')");
+			subExp.or(temp, null);
 		}
-		sql.AND(sqlEx);
-		sql.fillSQL(sb);
+		exp.and(subExp);
 
-		return getList(conn, sb.toString(), sql.getParams(), count, offset);
+		return getList(conn, sb.toString(), null, count, offset);
 
 	}
 
@@ -117,25 +117,26 @@ public class VoteRepository extends RDSRepository<Vote> {
 
 	}
 
-//	//统计组织下可投票人数
-//	public void countNumberByOrgId(DruidPooledConnection conn, JSONArray orgIds) {
-//		//SELECT SUM(quorum) qu FROM tb_ecm_vote WHERE org_id = ? OR org_id = ?
-//		StringBuffer sb = new StringBuffer(
-//				"SELECT SUM(quorum) FROM tb_ecm_vote "
-//				);
-//		if(orgIds != null && orgIds.size() > 0) {
-//			sb.append(" WHERE (");
-//			for(int i = 0 ; i < orgIds.size() ; i++) {
-//				sb.append("org_id = ").append(orgIds.getString(i));
-//				if (i < orgIds.size() - 1) {
-//					sb.append(" OR ");
-//				}
-//			}
-//			
-//			sb.delete(sb.length() - 3, sb.length() - 1);// 移除最后的 OR
-//			sb.append(")");
-//			
-//		}
-//	}
+	// //统计组织下可投票人数
+	// public void countNumberByOrgId(DruidPooledConnection conn, JSONArray orgIds)
+	// {
+	// //SELECT SUM(quorum) qu FROM tb_ecm_vote WHERE org_id = ? OR org_id = ?
+	// StringBuffer sb = new StringBuffer(
+	// "SELECT SUM(quorum) FROM tb_ecm_vote "
+	// );
+	// if(orgIds != null && orgIds.size() > 0) {
+	// sb.append(" WHERE (");
+	// for(int i = 0 ; i < orgIds.size() ; i++) {
+	// sb.append("org_id = ").append(orgIds.getString(i));
+	// if (i < orgIds.size() - 1) {
+	// sb.append(" OR ");
+	// }
+	// }
+	//
+	// sb.delete(sb.length() - 3, sb.length() - 1);// 移除最后的 OR
+	// sb.append(")");
+	//
+	// }
+	// }
 
 }

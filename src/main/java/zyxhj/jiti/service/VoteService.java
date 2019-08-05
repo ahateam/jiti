@@ -155,7 +155,7 @@ public class VoteService {
 		Vote vote = voteRepository.get(conn,EXP.ins().key("id", voteId).andKey("org_id",orgId));
 		
 		JSONObject crowd = JSONObject.parseObject(vote.crowd);
-		// 发送微信通知 解析crowd 获取roles 通过roles获取到用户 然后通过用户得wxopenId去发送模板消息 TODO 应该得开新线程处理
+		// 发送微信通知 解析crowd 获取roles 通过roles获取到用户 然后通过用户得wxopenId去发送模板消息		 TODO 应该得开新线程处理
 		// 查询可投票选项
 		JSONArray options = new JSONArray();
 		List<VoteOption> option = optionRepository.getOptionByVoteId(conn, voteId);

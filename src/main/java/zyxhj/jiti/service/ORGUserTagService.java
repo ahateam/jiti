@@ -11,7 +11,6 @@ import com.alibaba.druid.pool.DruidPooledConnection;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
-import zyxhj.cms.domian.ContentTag;
 import zyxhj.jiti.domain.ORGUserTag;
 import zyxhj.jiti.repository.ORGUserTagRepository;
 import zyxhj.utils.IDUtils;
@@ -49,7 +48,7 @@ public class ORGUserTagService {
 		ORGUserTag tag = new ORGUserTag();
 		tag.orgId = orgId;
 		tag.tagId = IDUtils.getSimpleId();
-		tag.status = ContentTag.STATUS.ENABLED.v();
+		tag.status = ORGUserTag.STATUS.ENABLED.v();
 		tag.groupKeyword = groupKeyword;
 		tag.name = name;
 

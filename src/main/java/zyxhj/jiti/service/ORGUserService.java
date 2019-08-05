@@ -2,7 +2,7 @@ package zyxhj.jiti.service;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -101,7 +101,7 @@ public class ORGUserService {
 	private JSONArray checkRoles(JSONArray roles) throws Exception {
 
 		// 获取当前组织的角色列表
-		ArrayList<ORGUserRole> oList = ORGUserRoleService.SYS_ORG_USER_ROLE_LIST;
+		List<ORGUserRole> oList = new ArrayList<>(ORGUserRole.SYS_ORG_USER_ROLE_MAP.values());
 
 		JSONArray ret = new JSONArray();
 		boolean exist = false;
@@ -212,44 +212,46 @@ public class ORGUserService {
 		or.familyNumber = familyNumber;
 		or.familyMaster = familyMaster;
 
-//		if (familyNumber != null) {
-//			// 查询户序号在family表里是否拥有 有则把usreid插入到户成员下 无则添加户
-//
-//			Family fn = FAMILY_CACHE.getIfPresent(familyNumber);
-//			if (fn == null) {
-//
-//				fn = familyRepository.get(conn, EXP.ins().key("org_id", orgId).andKey("family_number", familyNumber));
-//				if (fn != null) {
-//					FAMILY_CACHE.put(familyNumber.toString(), fn);
-//				}
-//
-//			}
-//
-//			// 从缓存和数据库都取了一遍，
-//			if (fn == null) {
-//				// 如果空需要创建
-//				// 添加户
-//				fa.id = IDUtils.getSimpleId();
-//				fa.orgId = orgId;
-//				fa.familyNumber = familyNumber;
-//				fa.familyMaster = familyMaster;
-//
-//				// 将当前用户的id插入到户成员里
-//				JSONArray json = new JSONArray();
-//				json.add(userId);
-//				fa.familyMember = json.toString();
-//				familyRepository.insert(conn, fa);
-//			} else {
-//				// 添加到户成员下
-//				JSONArray json = JSONArray.parseArray(fn.familyMember);
-//				json.add(userId);
-//				fa.familyMember = json.toString();
-//				familyRepository.updateByKey(conn, "family_number", familyNumber, fa, true);
-//				FAMILY_CACHE.put(familyNumber.toString(), fa);
-//
-//			}
-//
-//		}
+		// if (familyNumber != null) {
+		// // 查询户序号在family表里是否拥有 有则把usreid插入到户成员下 无则添加户
+		//
+		// Family fn = FAMILY_CACHE.getIfPresent(familyNumber);
+		// if (fn == null) {
+		//
+		// fn = familyRepository.getByANDKeys(conn, new String[] { "org_id",
+		// "family_number" },
+		// new Object[] { orgId, familyNumber });
+		// if (fn != null) {
+		// FAMILY_CACHE.put(familyNumber.toString(), fn);
+		// }
+		//
+		// }
+		//
+		// // 从缓存和数据库都取了一遍，
+		// if (fn == null) {
+		// // 如果空需要创建
+		// // 添加户
+		// fa.id = IDUtils.getSimpleId();
+		// fa.orgId = orgId;
+		// fa.familyNumber = familyNumber;
+		// fa.familyMaster = familyMaster;
+		//
+		// // 将当前用户的id插入到户成员里
+		// JSONArray json = new JSONArray();
+		// json.add(userId);
+		// fa.familyMember = json.toString();
+		// familyRepository.insert(conn, fa);
+		// } else {
+		// // 添加到户成员下
+		// JSONArray json = JSONArray.parseArray(fn.familyMember);
+		// json.add(userId);
+		// fa.familyMember = json.toString();
+		// familyRepository.updateByKey(conn, "family_number", familyNumber, fa, true);
+		// FAMILY_CACHE.put(familyNumber.toString(), fa);
+		//
+		// }
+		//
+		// }
 		orgUserRepository.insert(conn, or);
 	}
 
@@ -1280,8 +1282,9 @@ public class ORGUserService {
 	// 根据用户审核权限查看审核 用户只能看到自己的审核 拥有审核权限的查看所有审核
 	public List<Examine> getExamineByPer(DruidPooledConnection conn, Long orgId, Long userId, String permissionIds,
 			Byte type, Byte status, Integer count, Integer offset) throws Exception {
-//		ORGPermissionRel permissionRela = orgPermissionRelaRepository.getPermissionRela(conn, orgId, roles,
-//				ORGPermission.per_examine.id);
+		// ORGPermissionRel permissionRela =
+		// orgPermissionRelaRepository.getPermissionRela(conn, orgId, roles,
+		// ORGPermission.per_examine.id);
 		JSONArray json = JSONArray.parseArray(permissionIds);
 		boolean check = false;
 		for (int i = 0; i < json.size(); i++) {

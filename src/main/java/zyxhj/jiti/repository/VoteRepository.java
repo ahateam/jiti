@@ -80,8 +80,8 @@ public class VoteRepository extends RDSRepository<Vote> {
 
 		StringBuffer sb = new StringBuffer();
 		JSONArray json = JSONArray.parseArray(roles);
-		EXP exp = EXP.ins().exp("org_id", "=", orgId);
-		EXP subExp = EXP.ins();
+		EXP exp = EXP.INS().exp("org_id", "=", orgId);
+		EXP subExp = EXP.INS();
 		for (int i = 0; i < json.size(); i++) {
 			String temp = StringUtils.join("JSON_CONTAINS(crowd, '", json.getLong(i), "','$.roles')");
 			subExp.or(temp, null);

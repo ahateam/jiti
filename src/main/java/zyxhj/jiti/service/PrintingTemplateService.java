@@ -49,32 +49,32 @@ public class PrintingTemplateService {
 		printingTemplate.data = data;
 		printingTemplate.type = type;
 		printingTemplate.page = page;
-		printingTemplateRepository.update(conn,EXP.ins().key("id",prTeId).andKey("org_id", orgId), printingTemplate, true);
+		printingTemplateRepository.update(conn,EXP.INS().key("id",prTeId).andKey("org_id", orgId), printingTemplate, true);
 		
 		return printingTemplate;
 	}
 
 	// 获取单个模板
 	public PrintingTemplate getPrintingTemplate(DruidPooledConnection conn, Long prTeId, Long orgId) throws Exception {
-		return printingTemplateRepository.get(conn, EXP.ins().key("id", prTeId).andKey("org_id",orgId ));
+		return printingTemplateRepository.get(conn, EXP.INS().key("id", prTeId).andKey("org_id",orgId ));
 		
 	}
 
 	// 获取模板列表
 	public List<PrintingTemplate> getPrintingTemplates(DruidPooledConnection conn, Long orgId, Integer count,
 			Integer offset) throws Exception {
-		return printingTemplateRepository.getList(conn,EXP.ins().key( "org_id", orgId), count, offset);
+		return printingTemplateRepository.getList(conn,EXP.INS().key( "org_id", orgId), count, offset);
 	}
 
 	// 删除模板
 	public int delPrintingTemplate(DruidPooledConnection conn, Long prTeId) throws Exception {
-		return printingTemplateRepository.delete(conn,EXP.ins().key("id", prTeId));
+		return printingTemplateRepository.delete(conn,EXP.INS().key("id", prTeId));
 	}
 
 	// 根据类型获取打印模板
 	public PrintingTemplate getPrintingTemplateByType(DruidPooledConnection conn, Long orgId, Byte type, Byte page)
 			throws Exception {
-		return printingTemplateRepository.get(conn, EXP.ins().key("org_id", orgId).andKey("type", type).andKey("page", page));
+		return printingTemplateRepository.get(conn, EXP.INS().key("org_id", orgId).andKey("type", type).andKey("page", page));
 	}
 
 }

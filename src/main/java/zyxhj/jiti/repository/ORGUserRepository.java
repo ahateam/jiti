@@ -132,7 +132,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 			ORGUser renew = new ORGUser();
 			renew.roles = JSON.toJSONString(roles);
 
-			return update(conn,EXP.ins().key("org_id", orgId).andKey("user_id", userId), renew,true);
+			return update(conn,EXP.INS().key("org_id", orgId).andKey("user_id", userId), renew,true);
 			
 		}
 	}
@@ -237,7 +237,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 				json.add(groups);
 				ORGUser or = new ORGUser();
 				or.groups = json.toString();
-				update(conn,EXP.ins().key("org_id", orgId).andKey("user_id", userIds.getLong(i)), or, true);
+				update(conn,EXP.INS().key("org_id", orgId).andKey("user_id", userIds.getLong(i)), or, true);
 				
 			}
 
@@ -262,7 +262,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 
 	public List<ORGUser> getORGUsersInfoByUsers(DruidPooledConnection conn, Long orgId, Object[] values)
 			throws Exception {
-		StringBuffer sb = new StringBuffer(" WHERE ");
+		StringBuffer sb = new StringBuffer();
 		SQL sql = new SQL();
 		sql.addEx("org_id = ?", orgId);
 		sql.AND(SQLEx.exIn("user_id", values));
@@ -308,7 +308,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 
 	public List<ORGUser> getFamilyByFamilyMaster(DruidPooledConnection conn, Long orgId, String master, Integer count,
 			Integer offset) throws Exception {
-		StringBuffer sb = new StringBuffer("WHERE ");
+		StringBuffer sb = new StringBuffer();
 		SQL sql = new SQL();
 		sql.addEx("org_id = ? ", orgId);
 		sql.AND(StringUtils.join("family_master LIKE '%", master, "%'"));
@@ -320,7 +320,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 
 	public List<ORGUser> getFamilyByshare(DruidPooledConnection conn, Long orgId, String share, Integer count,
 			Integer offset) throws Exception {
-		StringBuffer sb = new StringBuffer("WHERE ");
+		StringBuffer sb = new StringBuffer();
 		SQL sql = new SQL();
 		sql.addEx("org_id = ? ", orgId);
 		sql.AND(StringUtils.join("share_cer_no LIKE '%", share, "%'"));
@@ -331,7 +331,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 
 	public List<ORGUser> getFamilyByFamilyNumber(DruidPooledConnection conn, Long orgId, Long number, Integer count,
 			Integer offset) throws Exception {
-		StringBuffer sb = new StringBuffer("WHERE ");
+		StringBuffer sb = new StringBuffer();
 		SQL sql = new SQL();
 		sql.addEx("org_id = ? ", orgId);
 		sql.AND("family_number = ? ", number);
@@ -342,7 +342,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 
 	public ORGUser maxFamilyNumber(DruidPooledConnection conn, Long orgId) throws Exception {
 		StringBuffer sb = new StringBuffer(
-				"WHERE family_number = (SELECT MAX(family_number) FROM tb_ecm_org_user WHERE org_id = ?)");
+				"family_number = (SELECT MAX(family_number) FROM tb_ecm_org_user WHERE org_id = ?)");
 		return get(conn, sb.toString(), Arrays.asList(orgId ));
 	}
 

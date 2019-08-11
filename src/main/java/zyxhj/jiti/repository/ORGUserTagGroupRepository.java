@@ -46,7 +46,7 @@ public class ORGUserTagGroupRepository extends RDSRepository<ORGUserTagGroup> {
 
 		// 找出groupId对应的所有子节点
 		List<ORGUserTagGroup> groups = this.getList(conn,
-				StringUtils.join("WHERE org_id=? AND JSON_CONTAINS(parents, '", groupId, "', '$')"),
+				StringUtils.join("org_id=? AND JSON_CONTAINS(parents, '", groupId, "', '$')"),
 				Arrays.asList(orgId ), 512, 0);
 
 		JSONArray ret = new JSONArray();

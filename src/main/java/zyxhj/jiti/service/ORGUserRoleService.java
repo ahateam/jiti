@@ -70,7 +70,7 @@ public class ORGUserRoleService {
 		renew.name = name;
 		renew.remark = remark;
 
-		return orgUserRoleRepository.update(conn,EXP.ins().key("org_id", orgId).andKey("role_id", roleId), renew, true);
+		return orgUserRoleRepository.update(conn,EXP.INS().key("org_id", orgId).andKey("role_id", roleId), renew, true);
 	}
 
 	public ORGUserRole getORGUserRoleById(DruidPooledConnection conn, Long orgId, Long roleId) throws Exception {
@@ -80,7 +80,7 @@ public class ORGUserRoleService {
 			role = ORG_USER_ROLE_CACHE.getIfPresent(roleId);
 			if (role == null) {
 				// 从数据库中获取
-				role = orgUserRoleRepository.get(conn, EXP.ins().key("org_id", orgId).andKey("role_id", roleId));
+				role = orgUserRoleRepository.get(conn, EXP.INS().key("org_id", orgId).andKey("role_id", roleId));
 				if (role != null) {
 					// 放入缓存
 					ORG_USER_ROLE_CACHE.put(roleId, role);
@@ -94,7 +94,7 @@ public class ORGUserRoleService {
 	 * 获取自定义角色列表
 	 */
 	public List<ORGUserRole> getORGUserRoles(DruidPooledConnection conn, Long orgId) throws Exception {
-		return orgUserRoleRepository.getList(conn, EXP.ins().key("org_id", orgId), 512, 0);
+		return orgUserRoleRepository.getList(conn, EXP.INS().key("org_id", orgId), 512, 0);
 	}
 
 	/**
@@ -122,7 +122,7 @@ public class ORGUserRoleService {
 		}
 
 		if (json != null && json.size() > 0) {
-			List<ORGUserRole> op = orgUserRoleRepository.getList(conn, EXP.ins().in("role_id",json.toArray()),null,null);
+			List<ORGUserRole> op = orgUserRoleRepository.getList(conn, EXP.INS().IN("role_id",json.toArray()),null,null);
 			for (ORGUserRole orgPermission : op) {
 				list.add(orgPermission);
 			}

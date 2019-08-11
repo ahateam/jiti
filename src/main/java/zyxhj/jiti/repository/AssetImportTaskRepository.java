@@ -16,25 +16,25 @@ public class AssetImportTaskRepository extends RDSRepository<AssetImportTask> {
 	}
 
 	public void countImportTaskSum(DruidPooledConnection conn, Long importTaskId, Integer sum) throws Exception {
-		this.update(conn, StringUtils.join("SET sum = ", sum), null, " WHERE id = ? ", Arrays.asList(importTaskId));
+		this.update(conn, StringUtils.join("SET sum = ", sum), null, "id = ? ", Arrays.asList(importTaskId));
 	}
 
 	public void countAssetImportCompletionTask(DruidPooledConnection conn, Long importTaskId) throws Exception {
-		// StringBuffer sb = new StringBuffer("WHERE ");
+		// StringBuffer sb = new StringBuffer();
 		// SQL sql = new SQL();
 		// sql.addEx("id = ? ", importTaskId);
 		// sql.fillSQL(sb);
-		this.update(conn, StringUtils.join("SET success = success+1,completion = completion + 1"), null, "WHERE id=?",
+		this.update(conn, StringUtils.join("SET success = success+1,completion = completion + 1"), null, "id=?",
 				Arrays.asList(importTaskId));
 	}
 
 	public void countAssetImportNotCompletionTask(DruidPooledConnection conn, Long importTaskId) throws Exception {
-		// StringBuffer sb = new StringBuffer("WHERE ");
+		// StringBuffer sb = new StringBuffer();
 		// SQL sql = new SQL();
 		// sql.addEx("id = ? ", importTaskId);
 		// sql.fillSQL(sb);
-		this.update(conn, StringUtils.join("SET success = success+1,not_completion = not_completion + 1"), null,
-				"WHERE id=?", Arrays.asList(importTaskId));
+		this.update(conn, StringUtils.join("SET success = success+1,not_completion = not_completion + 1"), null, "id=?",
+				Arrays.asList(importTaskId));
 	}
 
 }

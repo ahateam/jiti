@@ -38,8 +38,8 @@ public class ORGRepository extends RDSRepository<ORG> {
 	}
 
 	public List<ORG> getOrgByNameAndLevel(DruidPooledConnection conn, Byte level, String orgName) throws Exception {
-		return getList(conn, StringUtils.join("WHERE level = ? AND name LIKE '%", orgName, "%'"),
-				Arrays.asList(level), null, null);
+		return getList(conn, StringUtils.join("level = ? AND name LIKE '%", orgName, "%'"), Arrays.asList(level), null,
+				null);
 	}
 
 	public List<ORG> getORGs(DruidPooledConnection conn, JSONArray json, int count, int offset) throws Exception {
@@ -60,7 +60,7 @@ public class ORGRepository extends RDSRepository<ORG> {
 	public List<ORG> getBankList(DruidPooledConnection conn, JSONArray json, String name, Byte type, Integer count,
 			Integer offset) throws Exception {
 
-		StringBuffer sb = new StringBuffer("WHERE ");
+		StringBuffer sb = new StringBuffer();
 		SQL sql = new SQL();
 		sql.AND("type = ? ", type);
 		if (json != null && json.size() > 0) {

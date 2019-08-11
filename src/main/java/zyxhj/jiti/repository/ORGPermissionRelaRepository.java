@@ -21,7 +21,7 @@ public class ORGPermissionRelaRepository extends RDSRepository<ORGPermissionRel>
 
 	public List<ORGPermissionRel> getPermissionsId(DruidPooledConnection conn, Long orgId, JSONArray orgRoles)
 			throws Exception {
-		StringBuffer sb = new StringBuffer("WHERE ");
+		StringBuffer sb = new StringBuffer();
 		SQL sql = new SQL();
 		sql.addEx("org_id = ? ", orgId);
 		if (orgRoles != null && orgRoles.size() > 0) {
@@ -37,7 +37,7 @@ public class ORGPermissionRelaRepository extends RDSRepository<ORGPermissionRel>
 
 	public List<ORGPermissionRel> getRolesId(DruidPooledConnection conn, Long orgId, JSONArray permissionId)
 			throws Exception {
-		StringBuffer sb = new StringBuffer("WHERE ");
+		StringBuffer sb = new StringBuffer();
 		SQL sql = new SQL();
 		sql.addEx("org_id = ? ", orgId);
 		if (permissionId != null && permissionId.size() > 0) {
@@ -53,7 +53,7 @@ public class ORGPermissionRelaRepository extends RDSRepository<ORGPermissionRel>
 
 	public ORGPermissionRel getPermissionRela(DruidPooledConnection conn, Long orgId, String roles, Long permissionId)
 			throws Exception {
-		StringBuffer sb = new StringBuffer("WHERE ");
+		StringBuffer sb = new StringBuffer();
 		JSONArray role = JSONArray.parseArray(roles);
 		SQL sql = new SQL();
 		sql.addEx("org_id = ? ", orgId);

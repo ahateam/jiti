@@ -102,7 +102,7 @@ public class ORGUserGroupService {
 		renew.keyword = keyword;
 		renew.remark = remark;
 
-		return groupRepository.update(conn,EXP.ins().key("org_id", orgId).andKey("group_id", groupId), renew, true);
+		return groupRepository.update(conn,EXP.INS().key("org_id", orgId).andKey("group_id", groupId), renew, true);
 		
 
 	}
@@ -110,14 +110,14 @@ public class ORGUserGroupService {
 	public List<ORGUserTagGroup> getTagGroups(DruidPooledConnection conn, Long orgId) throws Exception {
 		List<ORGUserTagGroup> ret = ORG_USER_TAG_GROUP_LIST_CACHE.getIfPresent(orgId);
 		if (ret == null) {
-			ret = groupRepository.getList(conn,EXP.ins().key("org_id", orgId), 512, 0);
+			ret = groupRepository.getList(conn,EXP.INS().key("org_id", orgId), 512, 0);
 			ORG_USER_TAG_GROUP_LIST_CACHE.put(orgId, ret);
 		}
 		return ret;
 	}
 
 	public int delTagGroupById(DruidPooledConnection conn, Long groupId) throws Exception {
-		return groupRepository.delete(conn,EXP.ins().key("group_id", groupId));
+		return groupRepository.delete(conn,EXP.INS().key("group_id", groupId));
 	}
 
 	public JSONArray getTagGroupTree(DruidPooledConnection conn, Long orgId, Long groupId) throws Exception {

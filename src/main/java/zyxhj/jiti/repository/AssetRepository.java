@@ -32,7 +32,7 @@ public class AssetRepository extends RDSRepository<Asset> {
 		SQL sql = new SQL();
 		sql.addEx("org_id=? ", orgId);
 
-		StringBuffer sb = new StringBuffer(" WHERE ");
+		StringBuffer sb = new StringBuffer();
 		if (null != assetType) {
 			sql.AND("asset_type= ? ", assetType);
 		}
@@ -97,7 +97,7 @@ public class AssetRepository extends RDSRepository<Asset> {
 		sqlset.fillSQL(sbset);
 
 		// WHERE org_id=? AND id IN (1,2,3)
-		StringBuffer sbwhere = new StringBuffer(" WHERE ");
+		StringBuffer sbwhere = new StringBuffer(" ");
 
 		SQL sqlWhere = new SQL();
 		sqlWhere.addEx("org_id= ? ", orgId);
@@ -119,7 +119,7 @@ public class AssetRepository extends RDSRepository<Asset> {
 		// SELECT * FROM tb_ecm_org_user WHERE family_master LIKE '%文%' OR user_id LIKE
 		// "3755%"
 		// 按编号模糊查询
-		return this.getList(conn, StringUtils.join("WHERE org_id = ? AND sn LIKE '%", assetNum, "%'"),
+		return this.getList(conn, StringUtils.join("org_id = ? AND sn LIKE '%", assetNum, "%'"),
 				Arrays.asList(orgId), count, offset);
 	}
 
@@ -128,13 +128,13 @@ public class AssetRepository extends RDSRepository<Asset> {
 		// SELECT * FROM tb_ecm_org_user WHERE family_master LIKE '%文%' OR user_id LIKE
 		// "3755%"
 		// 按名称模糊查询
-		return this.getList(conn, StringUtils.join("WHERE org_id = ? AND name LIKE '%", assetNum, "%' "),
+		return this.getList(conn, StringUtils.join("org_id = ? AND name LIKE '%", assetNum, "%' "),
 				Arrays.asList(orgId), count, offset);
 	}
 
 	public List<Asset> getAssetByYear(DruidPooledConnection conn, Long orgId, String buildTime, Integer count,
 			Integer offset) throws Exception {
-		return this.getList(conn, "WHERE org_id = ? AND build_time = ? ", Arrays.asList(orgId, buildTime), count,
+		return this.getList(conn, "org_id = ? AND build_time = ? ", Arrays.asList(orgId, buildTime), count,
 				offset);
 	}
 

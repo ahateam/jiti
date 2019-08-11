@@ -25,7 +25,7 @@ public class DemonstrationRepository extends RDSRepository<Asset> {
 		// for (int i = 0; i < ro.length; i++) {
 
 		// }
-		return getList(conn, StringUtils.join("WHERE org_id = ? AND JSON_CONTAINS(groups, '", groups, "','$')"),
+		return getList(conn, StringUtils.join("org_id = ? AND JSON_CONTAINS(groups, '", groups, "','$')"),
 				Arrays.asList(orgId), count, offset);
 	}
 

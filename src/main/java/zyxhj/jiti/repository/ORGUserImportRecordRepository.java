@@ -16,6 +16,6 @@ public class ORGUserImportRecordRepository extends RDSRepository<ORGUserImportRe
 	}
 
 	public void updateStatus(DruidPooledConnection conn, Long id, Byte status) throws Exception {
-		this.update(conn, StringUtils.join("SET status = ", status), null, "WHERE id = ? ", Arrays.asList(id));
+		this.update(conn, StringUtils.join("SET status = ", status), null, "id = ? ", Arrays.asList(id));
 	}
 }

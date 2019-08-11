@@ -113,7 +113,7 @@ public class ORGPermissionService {
 		if (json != null && json.size() > 0) {
 //			List<ORGPermission> op = orgPermissionRepository.getListByKeyInValues(conn, "id", json.toArray());
 			
-			List<ORGPermission> op = orgPermissionRepository.getList(conn, EXP.ins().in("id", json.toArray()), null, null);
+			List<ORGPermission> op = orgPermissionRepository.getList(conn, EXP.INS().IN("id", json.toArray()), null, null);
 			for (ORGPermission orgPermission : op) {
 				list.add(orgPermission);
 			}
@@ -126,7 +126,7 @@ public class ORGPermissionService {
 	public int insertPermissionRole(DruidPooledConnection conn, Long orgId, Long permissionId, String role)
 			throws Exception {
 
-		orgPermissionRelRepository.delete(conn, EXP.ins().key("org_id", orgId).andKey("permission_id", permissionId));
+		orgPermissionRelRepository.delete(conn, EXP.INS().key("org_id", orgId).andKey("permission_id", permissionId));
 
 		JSONArray json = JSONArray.parseArray(role);
 		if (json.size() > 0 && json != null) {
@@ -166,7 +166,7 @@ public class ORGPermissionService {
 		}
 		if (json != null && json.size() > 0) {
 //			List<ORGPermission> op = orgPermissionRepository.getListByKeyInValues(conn, "id", json.toArray());
-			List<ORGPermission> op = orgPermissionRepository.getList(conn, EXP.ins().in("id", json.toArray()), null, null);
+			List<ORGPermission> op = orgPermissionRepository.getList(conn, EXP.INS().IN("id", json.toArray()), null, null);
 			for (ORGPermission orgPermission : op) {
 				list.add(orgPermission);
 			}

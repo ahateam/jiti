@@ -19,7 +19,7 @@ public class ExamineRepository extends RDSRepository<Examine> {
 
 	public List<Examine> getExamineByORGIds(DruidPooledConnection conn, List<ORG> orgs, Byte type, Byte status,
 			Integer count, Integer offset) throws Exception {
-		StringBuffer sb = new StringBuffer("WHERE ");
+		StringBuffer sb = new StringBuffer();
 		SQL sql = new SQL();
 		SQL sqlEx = new SQL();
 		for (ORG org : orgs) {

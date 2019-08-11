@@ -20,7 +20,7 @@ public class VoteOptionRepository extends RDSRepository<VoteOption> {
 	}
 
 	public int countTicket(DruidPooledConnection conn, Object[] ids, Integer weight) throws ServerException {
-		StringBuffer sb = new StringBuffer("WHERE ");
+		StringBuffer sb = new StringBuffer();
 		SQL sql = new SQL();
 		sql.addEx(SQLEx.exIn("id", ids));
 		sql.fillSQL(sb);
@@ -37,7 +37,7 @@ public class VoteOptionRepository extends RDSRepository<VoteOption> {
 		if (vo.ballotCount == 0) {
 			throw new ServerException(BaseRC.ECM_VOTE_NO_BALLOTCOUNT);
 		} else {
-			StringBuffer sb = new StringBuffer("WHERE ");
+			StringBuffer sb = new StringBuffer();
 			SQL sql = new SQL();
 			sql.addEx(SQLEx.exIn("id", ids));
 			sql.fillSQL(sb);
@@ -48,7 +48,7 @@ public class VoteOptionRepository extends RDSRepository<VoteOption> {
 	}
 
 	public List<VoteOption> getOptionByVoteId(DruidPooledConnection conn, Long voteId) throws Exception {
-		StringBuffer sb = new StringBuffer("WHERE ");
+		StringBuffer sb = new StringBuffer();
 		SQL sql = new SQL();
 		sql.addEx("vote_id = ? ", voteId);
 		sql.AND(" title <> '弃权'");

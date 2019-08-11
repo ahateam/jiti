@@ -19,7 +19,7 @@ public class ORGPermissionRepository extends RDSRepository<ORGPermission> {
 
 	public List<ORGPermission> getPermissions(DruidPooledConnection conn, JSONArray json) throws Exception {
 		if (json != null && json.size() > 0) {
-			StringBuffer sb = new StringBuffer("WHERE ");
+			StringBuffer sb = new StringBuffer();
 			SQL sql = new SQL();
 			for (int i = 0; i < json.size(); i++) {
 				sql.OR(StringUtils.join("id = ", json.getLong(i)));
@@ -33,7 +33,7 @@ public class ORGPermissionRepository extends RDSRepository<ORGPermission> {
 	}
 
 	public List<ORGPermission> getPermissionById(DruidPooledConnection conn, JSONArray json) throws Exception {
-		StringBuffer sb = new StringBuffer("WHERE ");
+		StringBuffer sb = new StringBuffer();
 		SQL sql = new SQL();
 		for (int i = 0; i < json.size(); i++) {
 			sql.OR(StringUtils.join("id = ", json.getLong(i)));

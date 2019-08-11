@@ -108,7 +108,7 @@ public class MessageService {
 	public Integer countMessageByUserId(DruidPooledConnection conn, Long orgId, Long userId) throws Exception {
 //		List<Message> me = messageRepository.getListByANDKeys(conn, new String[] { "org_id", "user_id" },
 //				new Object[] { orgId, userId }, 512, 0);
-		List<Message> me = messageRepository.getList(conn, EXP.ins().key("org_id", orgId).andKey("user_id", userId), 512, 0);
+		List<Message> me = messageRepository.getList(conn, EXP.INS().key("org_id", orgId).andKey("user_id", userId), 512, 0);
 		return me.size();
 
 	}
@@ -116,14 +116,14 @@ public class MessageService {
 	// 获取用户的消息通知
 	public List<Message> getMessageByUserId(DruidPooledConnection conn, Long orgId, Long userId, Integer count,
 			Integer offset) throws Exception {
-		return messageRepository.getList(conn, EXP.ins().key("org_id", orgId).andKey("user_id", userId), count, offset);
+		return messageRepository.getList(conn, EXP.INS().key("org_id", orgId).andKey("user_id", userId), count, offset);
 	}
 
 	// 修改消息状态为已读
 	public void editMessageStatus(DruidPooledConnection conn, Long messageId) throws Exception {
 		Message message = new Message();
 		message.status = Message.STATUS.READ.v();
-		messageRepository.update(conn,EXP.ins().key("id", messageId), message, true);
+		messageRepository.update(conn,EXP.INS().key("id", messageId), message, true);
 
 	}
 

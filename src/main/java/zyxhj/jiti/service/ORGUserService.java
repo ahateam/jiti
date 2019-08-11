@@ -263,7 +263,7 @@ public class ORGUserService {
 			Integer weight, JSONArray roles, JSONArray groups, JSONObject tags, Long familyNumber, String familyMaster)
 			throws Exception {
 
-		User extUser = userRepository.get(conn, EXP.ins().key( "id_number", idNumber));
+		User extUser = userRepository.get(conn, EXP.INS().key( "id_number", idNumber));
 		
 		if (null == extUser) {
 			// 用户完全不存在，则User和ORGUser记录都创建
@@ -287,7 +287,7 @@ public class ORGUserService {
 
 		} else {
 			// 判断ORGUser是否存在
-			ORGUser existor = orgUserRepository.get(conn, EXP.ins().key("org_id", orgId).andKey("user_id", extUser.id));
+			ORGUser existor = orgUserRepository.get(conn, EXP.INS().key("org_id", orgId).andKey("user_id", extUser.id));
 			
 			if (null == existor) {
 				// ORGUser用户不存在，直接创建
@@ -314,7 +314,7 @@ public class ORGUserService {
 		renew.realName = realName;
 		renew.pwd = pwd;
 
-		return userRepository.update(conn,EXP.ins().key("id", userId), renew, true);
+		return userRepository.update(conn,EXP.INS().key("id", userId), renew, true);
 		
 	}
 
@@ -323,7 +323,7 @@ public class ORGUserService {
 	 * 只修改ORGUser表，不删除user本身。
 	 */
 	public void delORGUser(DruidPooledConnection conn, Long orgId, Long userId) throws Exception {
-		orgUserRepository.delete(conn, EXP.ins().key("org_id", orgId).andKey("user_id", userId));
+		orgUserRepository.delete(conn, EXP.INS().key("org_id", orgId).andKey("user_id", userId));
 		
 	}
 
@@ -349,13 +349,13 @@ public class ORGUserService {
 		renew.familyNumber = familyNumber;
 		renew.familyMaster = familyMaster;
 
-		return orgUserRepository.update(conn,EXP.ins().key("org_id", orgId).andKey("user_id", userId), renew, true);
+		return orgUserRepository.update(conn,EXP.INS().key("org_id", orgId).andKey("user_id", userId), renew, true);
 		
 
 	}
 
 	public ORGUser getORGUserById(DruidPooledConnection conn, Long orgId, Long userId) throws Exception {
-		return orgUserRepository.get(conn, EXP.ins().key("org_id", orgId).andKey("user_id", userId));
+		return orgUserRepository.get(conn, EXP.INS().key("org_id", orgId).andKey("user_id", userId));
 	}
 
 	/**
@@ -570,7 +570,7 @@ public class ORGUserService {
 
 	public List<User> getUsersByMobile(DruidPooledConnection conn, String mobile, Integer count, Integer offset)
 			throws Exception {
-		List<User> ret = userRepository.getList(conn, EXP.ins().key("mobile", mobile), count, offset);
+		List<User> ret = userRepository.getList(conn, EXP.INS().key("mobile", mobile), count, offset);
 		for (User u : ret) {
 			u.pwd = null;
 		}
@@ -589,7 +589,7 @@ public class ORGUserService {
 	 */
 	public JSONArray getORGUsers(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)
 			throws Exception {
-		List<ORGUser> ors = orgUserRepository.getList(conn, EXP.ins().key("org_id", orgId), count, offset);
+		List<ORGUser> ors = orgUserRepository.getList(conn, EXP.INS().key("org_id", orgId), count, offset);
 
 		return getORGUsersInfo(conn, ors);
 	}
@@ -665,7 +665,7 @@ public class ORGUserService {
 			for (int i = 0; i < ors.size(); i++) {
 				values[i] = ors.get(i).userId;
 			}
-			List<User> us = userRepository.getList(conn, EXP.ins().in("id", values),null,null);
+			List<User> us = userRepository.getList(conn, EXP.INS().IN("id", values),null,null);
 			JSONArray ret = new JSONArray();
 			for (int i = 0; i < ors.size(); i++) {
 				ORGUser or = ors.get(i);
@@ -717,7 +717,7 @@ public class ORGUserService {
 	// 查询组织用户导入任务信息
 	public ORGUserImportTask getORGUserImportTask(DruidPooledConnection conn, Long importTaskId, Long orgId,
 			Long userId) throws Exception {
-		return orgUserImportTaskRepository.get(conn, EXP.ins().key("id", importTaskId).andKey("org_id", orgId).andKey("user_id", userId));
+		return orgUserImportTaskRepository.get(conn, EXP.INS().key("id", importTaskId).andKey("org_id", orgId).andKey("user_id", userId));
 	}
 
 	public void importORGUserRecord(DruidPooledConnection conn, Long orgId, Long userId, String url, Long importTaskId)
@@ -922,7 +922,7 @@ public class ORGUserService {
 	// 组织用户回调页面
 	public List<ORGUserImportRecord> getORGUserImportRecords(DruidPooledConnection conn, Long orgId, Long importTaskId,
 			Integer count, Integer offset) throws Exception {
-		return orgUserImportRecordRepository.getList(conn,EXP.ins().key("org_id", orgId).andKey("task_id", importTaskId), count, offset);
+		return orgUserImportRecordRepository.getList(conn,EXP.INS().key("org_id", orgId).andKey("task_id", importTaskId), count, offset);
 		
 	}
 
@@ -979,22 +979,22 @@ public class ORGUserService {
 				// 修改导入任务状态为正在导入
 				ORGUserImportTask orgUs = new ORGUserImportTask();
 				orgUs.status = ORGUserImportTask.STATUS.START.v();
-				orgUserImportTaskRepository.update(conn,EXP.ins().key("id", importTaskId), orgUs, true);
+				orgUserImportTaskRepository.update(conn,EXP.INS().key("id", importTaskId), orgUs, true);
 				
 
 				// 把数据取出进行处理
-				ORGUserImportTask orgUserTa = orgUserImportTaskRepository.get(conn, EXP.ins().key( "id", importTaskId));
+				ORGUserImportTask orgUserTa = orgUserImportTaskRepository.get(conn, EXP.INS().key( "id", importTaskId));
 				for (int i = 0; i < (orgUserTa.sum / 100) + 1; i++) {
 					// 从导入任务数据表中取出数据
 					List<ORGUserImportRecord> orgUserRec = orgUserImportRecordRepository.getList(conn,
-							EXP.ins().key("org_id", orgId).andKey("task_id", importTaskId).andKey("status",  ORGUserImportRecord.STATUS.UNDETECTED.v()), 100, 0);
+							EXP.INS().key("org_id", orgId).andKey("task_id", importTaskId).andKey("status",  ORGUserImportRecord.STATUS.UNDETECTED.v()), 100, 0);
 
 					System.out.println("");
 					imp(conn, orgId, orgUserRec, importTaskId);
 				}
 				// 修改导入任务的导入状态为导入完成
 				orgUs.status = ORGUserImportTask.STATUS.END.v();
-				orgUserImportTaskRepository.update(conn,EXP.ins().key("id", importTaskId), orgUs, true);
+				orgUserImportTaskRepository.update(conn,EXP.INS().key("id", importTaskId), orgUs, true);
 
 			} catch (Exception eee) {
 				eee.printStackTrace();
@@ -1015,7 +1015,7 @@ public class ORGUserService {
 	// 获取导入失败的组织用户
 	public List<ORGUserImportRecord> getNotcompletionRecord(DruidPooledConnection conn, Long orgId, Long importTaskId,
 			Integer count, Integer offset) throws Exception {
-		return orgUserImportRecordRepository.getList(conn,EXP.ins().key("org_id", orgId).andKey("task_id", importTaskId).andKey("status", ORGUserImportRecord.STATUS.NOTCOMPLETION.v()), count, offset);
+		return orgUserImportRecordRepository.getList(conn,EXP.INS().key("org_id", orgId).andKey("task_id", importTaskId).andKey("status", ORGUserImportRecord.STATUS.NOTCOMPLETION.v()), count, offset);
 	}
 
 	// 创建行政机构管理员
@@ -1027,7 +1027,7 @@ public class ORGUserService {
 	// 创建组织用户管理员
 	private void createORGUserAdmin(DruidPooledConnection conn, Long orgId, String mobile, String realName,
 			String idNumber, Byte level) throws Exception {
-		User extUser = userRepository.get(conn, EXP.ins().key( "id_number", idNumber));
+		User extUser = userRepository.get(conn, EXP.INS().key( "id_number", idNumber));
 		if (null == extUser) {
 			// 用户完全不存在，则User和ORGUser记录都创建
 
@@ -1049,7 +1049,7 @@ public class ORGUserService {
 
 		} else {
 			// 判断ORGUser是否存在
-			ORGUser existor = orgUserRepository.get(conn, EXP.ins().key("org_id", orgId).andKey("user_id", extUser.id));
+			ORGUser existor = orgUserRepository.get(conn, EXP.INS().key("org_id", orgId).andKey("user_id", extUser.id));
 			if (null == existor) {
 				// ORGUser用户不存在，直接创建
 
@@ -1079,7 +1079,7 @@ public class ORGUserService {
 
 	// 删除组织管理员
 	public int delORGUserAdmin(DruidPooledConnection conn, Long orgId, Long userId) throws Exception {
-		return orgUserRepository.delete(conn, EXP.ins().key("org_id", orgId).andKey("user_id", userId));
+		return orgUserRepository.delete(conn, EXP.INS().key("org_id", orgId).andKey("user_id", userId));
 	}
 
 	// 修改组织管理员
@@ -1090,7 +1090,7 @@ public class ORGUserService {
 		u.idNumber = idNumber;
 		u.mobile = mobile;
 		u.realName = realName;
-		return userRepository.update(conn,EXP.ins().key("id", userId), u, true);
+		return userRepository.update(conn,EXP.INS().key("id", userId), u, true);
 
 	}
 
@@ -1136,7 +1136,7 @@ public class ORGUserService {
 		examine.type = type;
 		if (type == Examine.TYPE.FAMILY.v()) {
 			ORGPermissionRel orgPer = orgPermissionRelaRepository.get(conn,
-					EXP.ins().andKey("org_id", orgId ).andKey("permission_id", ORGPermission.per_feparate_family.id));
+					EXP.INS().andKey("org_id", orgId ).andKey("permission_id", ORGPermission.per_feparate_family.id));
 			if (orgPer != null) {
 				examine.status = Examine.STATUS.NOEXAMINE.v();
 				// 给审核人员发送通知
@@ -1152,7 +1152,7 @@ public class ORGUserService {
 
 		} else if (type == Examine.TYPE.SHARE.v()) {
 			ORGPermissionRel orgPer = orgPermissionRelaRepository.get(conn,
-					EXP.ins().key("org_id", orgId).andKey("permission_id", ORGPermission.per_share_change.id));
+					EXP.INS().key("org_id", orgId).andKey("permission_id", ORGPermission.per_share_change.id));
 			if (orgPer != null) {
 				examine.status = Examine.STATUS.NOEXAMINE.v();
 				// 给审核人员发送通知
@@ -1215,7 +1215,7 @@ public class ORGUserService {
 		ORG or = orgService.getORGById(conn, orgId);
 		if (examine.status == Examine.STATUS.NOEXAMINE.v()) {
 			List<ORGPermissionRel> orgPermission = orgPermissionRelaRepository.getList(conn,
-					EXP.ins().key("org_id", orgId).andKey("permission_id", permissionId), 64, 0);
+					EXP.INS().key("org_id", orgId).andKey("permission_id", permissionId), 64, 0);
 			for (ORGPermissionRel orgPermissionRel : orgPermission) {
 				json.add(orgPermissionRel.roleId);
 			}
@@ -1276,7 +1276,7 @@ public class ORGUserService {
 	// 根据审核类型，审核状态查询某个组织的审核
 	public List<Examine> getExamine(DruidPooledConnection conn, Long orgId, Byte type, Byte status, Integer count,
 			Integer offset) throws Exception {
-		return examineRepository.getList(conn,EXP.ins().key("org_id", orgId).andKey("type", type).andKey("status", status), count, offset);
+		return examineRepository.getList(conn,EXP.INS().key("org_id", orgId).andKey("type", type).andKey("status", status), count, offset);
 	}
 
 	// 根据用户审核权限查看审核 用户只能看到自己的审核 拥有审核权限的查看所有审核
@@ -1303,7 +1303,7 @@ public class ORGUserService {
 			if (status == null) {
 				status = 0;
 			}
-			return examineRepository.getList(conn,EXP.ins().key("org_id", orgId).andKey("type", type).andKey("status", status), count, offset);
+			return examineRepository.getList(conn,EXP.INS().key("org_id", orgId).andKey("type", type).andKey("status", status), count, offset);
 		} else {
 			// 用户查看自己的审核 TODO 有问题
 			return examineRepository.getExamineLikeUserId(conn, orgId, userId, count, offset);
@@ -1312,13 +1312,13 @@ public class ORGUserService {
 
 	// 修改审核
 	public Examine editExamine(DruidPooledConnection conn, Long examineId, Long orgId, Byte status) throws Exception {
-		Examine examine = examineRepository.get(conn, EXP.ins().key( "id", examineId));
+		Examine examine = examineRepository.get(conn, EXP.INS().key( "id", examineId));
 		Examine ex = new Examine();
 		if (status == Examine.STATUS.ORGEXAMINE.v()) {
 			// 组织审核
 			ex.examineDate = new Date();
 			ex.status = Examine.STATUS.ORGEXAMINE.v();
-			examineRepository.update(conn,EXP.ins().key("id", examineId).andKey("org_id", orgId),
+			examineRepository.update(conn,EXP.INS().key("id", examineId).andKey("org_id", orgId),
 					ex, true);
 			
 			message(conn, examine.data, ORGPermission.per_feparate_family.name, ex.status);
@@ -1333,7 +1333,7 @@ public class ORGUserService {
 			// 区级审核
 			ex.examineDate = new Date();
 			ex.status = status;
-			examineRepository.update(conn,EXP.ins().key("id", examineId).andKey("org_id", orgId),
+			examineRepository.update(conn,EXP.INS().key("id", examineId).andKey("org_id", orgId),
 					ex, true);
 			message(conn, examine.data, ORGPermission.per_feparate_family.name, ex.status);
 			return ex;
@@ -1341,7 +1341,7 @@ public class ORGUserService {
 			// 审核失败
 			ex.examineDate = new Date();
 			ex.status = Examine.STATUS.FAIL.v();
-			examineRepository.update(conn,EXP.ins().key("id", examineId).andKey("org_id", orgId),
+			examineRepository.update(conn,EXP.INS().key("id", examineId).andKey("org_id", orgId),
 					ex, true);
 			message(conn, examine.data, ORGPermission.per_feparate_family.name, ex.status);
 			return ex;
@@ -1351,7 +1351,7 @@ public class ORGUserService {
 	// 审核 添加户/分户/新增户成员/删除户成员/移户操作
 	private JSONArray examine(DruidPooledConnection conn, Long examineId, Long orgId) throws Exception {
 		// 先从数据库拿出审核数据
-		Examine ex = examineRepository.get(conn, EXP.ins().key( "id", examineId));
+		Examine ex = examineRepository.get(conn, EXP.INS().key( "id", examineId));
 		JSONObject jsonObj = JSONObject.parseObject(ex.data); // 转换为JSONObject数组
 		JSONObject ext = jsonObj.getJSONObject("ext");
 		Byte familyOperate = ext.getByte("familyOperate");
@@ -1398,7 +1398,7 @@ public class ORGUserService {
 					// 移除户成员
 					Long or = jo.getLong("orgId");
 					Long userId = jo.getLong("userId");
-					orgUserRepository.delete(conn, EXP.ins().key("org_id", or).andKey("user_id", userId));
+					orgUserRepository.delete(conn, EXP.INS().key("org_id", or).andKey("user_id", userId));
 				} else {
 					continue;
 				}
@@ -1448,7 +1448,7 @@ public class ORGUserService {
 				String familyMaster = jo.getString("familyMaster");
 				ORGUser orgUser = new ORGUser();
 				orgUser.familyMaster = familyMaster;
-				orgUserRepository.update(conn,EXP.ins().key("org_id", or).andKey("family_number", familyNumber), orgUser, true);
+				orgUserRepository.update(conn,EXP.INS().key("org_id", or).andKey("family_number", familyNumber), orgUser, true);
 				
 			}
 		}
@@ -1488,7 +1488,7 @@ public class ORGUserService {
 					// 移除户成员
 					Long or = json.getLong("orgId");
 					Long userId = json.getLong("userId");
-					orgUserRepository.delete(conn, EXP.ins().key("org_id", or).andKey("user_id", userId));
+					orgUserRepository.delete(conn, EXP.INS().key("org_id", or).andKey("user_id", userId));
 				} else {
 					continue;
 				}
@@ -1504,7 +1504,7 @@ public class ORGUserService {
 			String familyMaster = jo.getString("familyMaster");
 			ORGUser orgUser = new ORGUser();
 			orgUser.familyMaster = familyMaster;
-			orgUserRepository.update(conn,EXP.ins().key("org_id", or).andKey("family_number", familyNumber), orgUser, true);
+			orgUserRepository.update(conn,EXP.INS().key("org_id", or).andKey("family_number", familyNumber), orgUser, true);
 		}
 
 	}
@@ -1564,7 +1564,7 @@ public class ORGUserService {
 					// 移除户成员
 					Long or = jo.getLong("orgId");
 					Long userId = jo.getLong("userId");
-					orgUserRepository.delete(conn, EXP.ins().key("org_id", or).andKey("user_id", userId));
+					orgUserRepository.delete(conn, EXP.INS().key("org_id", or).andKey("user_id", userId));
 					js.add(jo);
 				} else {
 					js.add(jo);
@@ -1577,7 +1577,7 @@ public class ORGUserService {
 		jsonObj.put("newData", editData);
 		Examine ex = new Examine();
 		ex.data = jsonObj.toJSONString();
-		examineRepository.update(conn,EXP.ins().key("id",examineId), ex, true);
+		examineRepository.update(conn,EXP.INS().key("id",examineId), ex, true);
 
 		// editHouseholder修改户主不为空 则表示需要修改户主
 		if (StringUtils.isNotBlank(editHouseholder)) {
@@ -1589,7 +1589,7 @@ public class ORGUserService {
 			String familyMaster = jo.getString("familyMaster");
 			ORGUser orgUser = new ORGUser();
 			orgUser.familyMaster = familyMaster;
-			orgUserRepository.update(conn,EXP.ins().key("org_id", or).andKey("family_number", familyNumber), orgUser, true);
+			orgUserRepository.update(conn,EXP.INS().key("org_id", or).andKey("family_number", familyNumber), orgUser, true);
 		}
 		return editData;
 
@@ -1633,7 +1633,7 @@ public class ORGUserService {
 		jsonObj.put("newData", addNewData);
 		Examine ex = new Examine();
 		ex.data = jsonObj.toJSONString();
-		examineRepository.update(conn,EXP.ins().key("id",examineId), ex, true);
+		examineRepository.update(conn,EXP.INS().key("id",examineId), ex, true);
 
 		return addNewData;
 	}
@@ -1650,14 +1650,14 @@ public class ORGUserService {
 	public void setShareCerNo(DruidPooledConnection conn, Long orgId, Long examineId, Long familyNumber,
 			String shareCerNo) throws Exception {
 		// 判断股权证号是否存在
-		ORGUser orgUser = orgUserRepository.get(conn, EXP.ins().key("org_id", orgId).andKey("share_cer_no", shareCerNo));
+		ORGUser orgUser = orgUserRepository.get(conn, EXP.INS().key("org_id", orgId).andKey("share_cer_no", shareCerNo));
 		if (orgUser == null) {
 			// 表示无此股权证
 			ORGUser or = new ORGUser();
 			or.shareCerNo = shareCerNo;
-			orgUserRepository.update(conn,EXP.ins().key("org_id", orgId).andKey("family_number", familyNumber), or, true);
+			orgUserRepository.update(conn,EXP.INS().key("org_id", orgId).andKey("family_number", familyNumber), or, true);
 			// 将股权证放入newData数据中
-			Examine ex = examineRepository.get(conn, EXP.ins().key( "id", examineId));
+			Examine ex = examineRepository.get(conn, EXP.INS().key( "id", examineId));
 			JSONObject jsob = JSONObject.parseObject(ex.data);
 			JSONArray json = jsob.getJSONArray("newData");
 			JSONArray editNewDatas = new JSONArray();
@@ -1680,7 +1680,7 @@ public class ORGUserService {
 			jsob.put("newData", editNewDatas);
 			Examine e = new Examine();
 			e.data = jsob.toJSONString();
-			examineRepository.update(conn,EXP.ins().key("id",examineId), e, true);
+			examineRepository.update(conn,EXP.INS().key("id",examineId), e, true);
 			
 		} else {
 			// 表示有股权证号存在
@@ -1693,9 +1693,9 @@ public class ORGUserService {
 	public void editExamineStatus(DruidPooledConnection conn, Long examineId, Byte status) throws Exception {
 		Examine ex = new Examine();
 		ex.status = status;
-		examineRepository.update(conn,EXP.ins().key("id",examineId), ex, true);
+		examineRepository.update(conn,EXP.INS().key("id",examineId), ex, true);
 
-		Examine examine = examineRepository.get(conn, EXP.ins().key( "id", examineId));
+		Examine examine = examineRepository.get(conn, EXP.INS().key( "id", examineId));
 		if (examine.type == Examine.TYPE.FAMILY.v()) {
 			message(conn, examine.data, ORGPermission.per_feparate_family.name, status);
 		} else if (examine.type == Examine.TYPE.SHARE.v()) {
@@ -1708,7 +1708,7 @@ public class ORGUserService {
 	// 查询股权证号是否已经存在 0 表示不存在 1 表示已经存在
 	public int getFamilyByshareCerNo(DruidPooledConnection conn, Long orgId, String shareCerNo) throws Exception {
 		// 判断股权证号是否存在
-		ORGUser orgUser = orgUserRepository.get(conn, EXP.ins().key("org_id", orgId).andKey("share_cer_no", shareCerNo));
+		ORGUser orgUser = orgUserRepository.get(conn, EXP.INS().key("org_id", orgId).andKey("share_cer_no", shareCerNo));
 		if (orgUser == null) {
 			return 0;
 		} else {
@@ -1720,7 +1720,7 @@ public class ORGUserService {
 	// 股权证号审核
 	public Examine examineShareCerNo(DruidPooledConnection conn, Long orgId, Long examineId, Byte status)
 			throws Exception {
-		Examine exa = examineRepository.get(conn, EXP.ins().key( "id", examineId));
+		Examine exa = examineRepository.get(conn, EXP.INS().key( "id", examineId));
 		JSONObject jsonObj = JSONObject.parseObject(exa.data); // 转换为JSONObject数组
 
 		Examine ex = new Examine();
@@ -1728,7 +1728,7 @@ public class ORGUserService {
 			// 组织审核
 			ex.examineDate = new Date();
 			ex.status = Examine.STATUS.ORGEXAMINE.v();
-			examineRepository.update(conn,EXP.ins().key("id",examineId).andKey("org_id", orgId),
+			examineRepository.update(conn,EXP.INS().key("id",examineId).andKey("org_id", orgId),
 					ex, true);
 			
 			shareMessage(conn, exa.data, ORGPermission.per_share_change.name, ex.status);
@@ -1748,12 +1748,12 @@ public class ORGUserService {
 				ORGUser orgUser = new ORGUser();
 				orgUser.shareCerNo = shareCerNo;
 				orgUser.shareAmount = shareAmount;
-				orgUserRepository.update(conn,EXP.ins().key("org_id",or).andKey("user_id", userId).andKey("family_number", familyNumber), orgUser, true);
+				orgUserRepository.update(conn,EXP.INS().key("org_id",or).andKey("user_id", userId).andKey("family_number", familyNumber), orgUser, true);
 			}
 			// 区级审核
 			ex.examineDate = new Date();
 			ex.status = Examine.STATUS.DISEXAMINE.v();
-			examineRepository.update(conn,EXP.ins().key("id",examineId).andKey("org_id", orgId),
+			examineRepository.update(conn,EXP.INS().key("id",examineId).andKey("org_id", orgId),
 					ex, true);
 			
 			shareMessage(conn, exa.data, ORGPermission.per_share_change.name, ex.status);
@@ -1763,7 +1763,7 @@ public class ORGUserService {
 			// 审核失败
 			ex.examineDate = new Date();
 			ex.status = Examine.STATUS.FAIL.v();
-			examineRepository.update(conn,EXP.ins().key("id",examineId).andKey("org_id", orgId),
+			examineRepository.update(conn,EXP.INS().key("id",examineId).andKey("org_id", orgId),
 					ex, true);
 			shareMessage(conn, exa.data, ORGPermission.per_share_change.name, ex.status);
 			return ex;
@@ -1772,9 +1772,9 @@ public class ORGUserService {
 
 	// 删除审核
 	public int delExamine(DruidPooledConnection conn, Long examineId) throws Exception {
-		Examine ex = examineRepository.get(conn, EXP.ins().key( "id", examineId));
+		Examine ex = examineRepository.get(conn, EXP.INS().key( "id", examineId));
 		if (ex.status <= Examine.STATUS.DISEXAMINE.v()) {
-			return examineRepository.delete(conn, EXP.ins().key("id", examineId));
+			return examineRepository.delete(conn, EXP.INS().key("id", examineId));
 		} else {
 			return 0;
 		}

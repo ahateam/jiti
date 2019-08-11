@@ -41,7 +41,7 @@ public class VideoService {
 	}
 
 	public void deleteVideo(DruidPooledConnection conn, Long videoId) throws Exception {
-		videoRepository.delete(conn,EXP.ins().key( "id", videoId));
+		videoRepository.delete(conn,EXP.INS().key( "id", videoId));
 	}
 
 	public Video editVideo(DruidPooledConnection conn, Long videoId, String title, String type, String imageUrl,
@@ -53,7 +53,7 @@ public class VideoService {
 		vi.imageUrl = imageUrl;
 		vi.urlType = urlType;
 		vi.videoUrl = videoUrl;
-		videoRepository.update(conn,EXP.ins().key("id",videoId), vi, true);
+		videoRepository.update(conn,EXP.INS().key("id",videoId), vi, true);
 		return vi;
 	}
 
@@ -62,7 +62,7 @@ public class VideoService {
 	}
 
 	public Video getVideById(DruidPooledConnection conn, Long videoId) throws Exception {
-		return videoRepository.get(conn,EXP.ins().key( "id", videoId));
+		return videoRepository.get(conn,EXP.INS().key( "id", videoId));
 	}
 
 }

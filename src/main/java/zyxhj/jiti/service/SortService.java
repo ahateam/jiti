@@ -47,14 +47,14 @@ public class SortService {
 		ad.title = title;
 		ad.data = data;
 		ad.tags = tags;
-		advertRepository.update(conn,EXP.ins().key("id",advertId), ad, true);
+		advertRepository.update(conn,EXP.INS().key("id",advertId), ad, true);
 		
 		return ad;
 	}
 
 	// 删除广告
 	public void delAdvert(DruidPooledConnection conn, Long advertId) throws Exception {
-		advertRepository.delete(conn, EXP.ins().key("id", advertId));
+		advertRepository.delete(conn, EXP.INS().key("id", advertId));
 	}
 
 	// 广告查询

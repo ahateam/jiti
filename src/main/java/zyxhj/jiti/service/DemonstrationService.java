@@ -35,11 +35,11 @@ public class DemonstrationService {
 	}
 
 	public List<ORGUserTagGroup> getGroup(DruidPooledConnection conn, Long orgId) throws Exception {
-		return orgUserTagGroupRepository.getList(conn,EXP.ins().key("org_id", orgId), null, null);
+		return orgUserTagGroupRepository.getList(conn,EXP.INS().key("org_id", orgId), null, null);
 	}
 
 	public Asset getAssetById(DruidPooledConnection conn, Long assetId, Long orgId) throws Exception {
-		return demonstrationRepository.get(conn, EXP.ins().key("id", assetId).andKey("org_id", orgId));
+		return demonstrationRepository.get(conn, EXP.INS().key("id", assetId).andKey("org_id", orgId));
 	}
 
 }

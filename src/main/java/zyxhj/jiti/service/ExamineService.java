@@ -72,7 +72,7 @@ public class ExamineService {
 //			ORGPermissionRel orgPer = orgPermissionRelaRepository.getByANDKeys(conn,
 //					new String[] { "org_id", "permission_id" },
 //					new Object[] { orgId, ORGPermission.per_feparate_family.id });
-			ORGPermissionRel orgPer = orgPermissionRelaRepository.get(conn, EXP.ins().key("org_id", orgId).andKey("permission_id", ORGPermission.per_feparate_family.id ));
+			ORGPermissionRel orgPer = orgPermissionRelaRepository.get(conn, EXP.INS().key("org_id", orgId).andKey("permission_id", ORGPermission.per_feparate_family.id ));
 			if (orgPer != null) {
 				cb.add("status", (long) Examine.STATUS.NOEXAMINE.v());
 				// 给审核人员发送通知
@@ -90,7 +90,7 @@ public class ExamineService {
 //			ORGPermissionRel orgPer = orgPermissionRelaRepository.getByANDKeys(conn,
 //					new String[] { "org_id", "permission_id" },
 //					new Object[] { orgId, ORGPermission.per_share_change.id });
-			ORGPermissionRel orgPer = orgPermissionRelaRepository.get(conn, EXP.ins().key("org_id", orgId).andKey("permission_id", ORGPermission.per_share_change.id));
+			ORGPermissionRel orgPer = orgPermissionRelaRepository.get(conn, EXP.INS().key("org_id", orgId).andKey("permission_id", ORGPermission.per_share_change.id));
 			if (orgPer != null) {
 				cb.add("status", (long) Examine.STATUS.NOEXAMINE.v());
 				// 给审核人员发送通知
@@ -123,7 +123,7 @@ public class ExamineService {
 		if (status == Examine.STATUS.NOEXAMINE.v()) {
 //			List<ORGPermissionRel> orgPermission = orgPermissionRelaRepository.getListByANDKeys(conn,
 //					new String[] { "org_id", "permission_id" }, new Object[] { orgId, permissionId }, 64, 0);
-			List<ORGPermissionRel> orgPermission = orgPermissionRelaRepository.getList(conn, EXP.ins().key("org_id", orgId).andKey("permission_id", permissionId), 64, 0);
+			List<ORGPermissionRel> orgPermission = orgPermissionRelaRepository.getList(conn, EXP.INS().key("org_id", orgId).andKey("permission_id", permissionId), 64, 0);
 			for (ORGPermissionRel orgPermissionRel : orgPermission) {
 				
 				json.add(orgPermissionRel.roleId);
@@ -302,7 +302,7 @@ public class ExamineService {
 					// 移除户成员
 					Long or = jo.getLong("orgId");
 					Long userId = jo.getLong("userId");
-					orgUserRepository.delete(conn,EXP.ins().key("org_id", or).andKey("user_id", userId));
+					orgUserRepository.delete(conn,EXP.INS().key("org_id", or).andKey("user_id", userId));
 				} else {
 					continue;
 				}
@@ -352,7 +352,7 @@ public class ExamineService {
 				String familyMaster = jo.getString("familyMaster");
 				ORGUser orgUser = new ORGUser();
 				orgUser.familyMaster = familyMaster;
-				orgUserRepository.update(conn,EXP.ins().key("org_id", or).andKey("family_number", familyNumber), orgUser, true);
+				orgUserRepository.update(conn,EXP.INS().key("org_id", or).andKey("family_number", familyNumber), orgUser, true);
 				
 			}
 		}
@@ -394,7 +394,7 @@ public class ExamineService {
 					Long userId = json.getLong("userId");
 //					orgUserRepository.deleteByANDKeys(conn, new String[] { "org_id", "user_id" },
 //							new Object[] { or, userId });
-					orgUserRepository.delete(conn,EXP.ins().key("org_id", or).andKey("user_id", userId));
+					orgUserRepository.delete(conn,EXP.INS().key("org_id", or).andKey("user_id", userId));
 				} else {
 					continue;
 				}
@@ -410,7 +410,7 @@ public class ExamineService {
 			String familyMaster = jo.getString("familyMaster");
 			ORGUser orgUser = new ORGUser();
 			orgUser.familyMaster = familyMaster;
-			orgUserRepository.update(conn,EXP.ins().key("org_id", or).andKey("family_number", familyNumber), orgUser, true);
+			orgUserRepository.update(conn,EXP.INS().key("org_id", or).andKey("family_number", familyNumber), orgUser, true);
 			
 		}
 
@@ -473,7 +473,7 @@ public class ExamineService {
 					Long userId = jo.getLong("userId");
 //					orgUserRepository.deleteByANDKeys(conn, new String[] { "org_id", "user_id" },
 //							new Object[] { or, userId });
-					orgUserRepository.delete(conn,EXP.ins().key("org_id", or).andKey("user_id", userId));
+					orgUserRepository.delete(conn,EXP.INS().key("org_id", or).andKey("user_id", userId));
 					js.add(jo);
 				} else {
 					js.add(jo);
@@ -500,7 +500,7 @@ public class ExamineService {
 			String familyMaster = jo.getString("familyMaster");
 			ORGUser orgUser = new ORGUser();
 			orgUser.familyMaster = familyMaster;
-			orgUserRepository.update(conn,EXP.ins().key("org_id", or).andKey("family_number", familyNumber), orgUser, true);
+			orgUserRepository.update(conn,EXP.INS().key("org_id", or).andKey("family_number", familyNumber), orgUser, true);
 			
 		}
 		return editData;

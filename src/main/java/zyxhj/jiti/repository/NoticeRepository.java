@@ -38,7 +38,7 @@ public class NoticeRepository extends RDSRepository<Notice> {
 
 	private List<Notice> getNoticeByRG(DruidPooledConnection conn, Long orgId, JSONArray role, JSONArray group)
 			throws Exception {
-		StringBuffer sb = new StringBuffer("WHERE ");
+		StringBuffer sb = new StringBuffer();
 		SQL sql = new SQL();
 		sql.addEx(StringUtils.join("JSON_CONTAINS(crowd,'", orgId, "','$.orgId')"));
 		SQL roleEx = new SQL();
@@ -61,7 +61,7 @@ public class NoticeRepository extends RDSRepository<Notice> {
 
 	public List<Notice> getNotice(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)
 			throws Exception {
-		StringBuffer sb = new StringBuffer("WHERE ");
+		StringBuffer sb = new StringBuffer();
 		SQL sql = new SQL();
 		sql.addEx("org_id = ?", orgId);
 		sql.addEx(" ORDER BY create_time DESC");

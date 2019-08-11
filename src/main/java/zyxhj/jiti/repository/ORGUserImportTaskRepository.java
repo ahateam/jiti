@@ -18,11 +18,11 @@ public class ORGUserImportTaskRepository extends RDSRepository<ORGUserImportTask
 	}
 
 	public void countImportTaskSum(DruidPooledConnection conn, Long importTaskId, Integer sum) throws Exception {
-		this.update(conn, StringUtils.join("SET sum = ", sum), null, " WHERE id = ? ",Arrays.asList(importTaskId));
+		this.update(conn, StringUtils.join("SET sum = ", sum), null, "id = ? ", Arrays.asList(importTaskId));
 	}
 
 	public void countORGUserImportCompletionTask(DruidPooledConnection conn, Long importTaskId) throws Exception {
-		StringBuffer sb = new StringBuffer("WHERE ");
+		StringBuffer sb = new StringBuffer();
 		SQL sql = new SQL();
 		sql.addEx("id = ? ", importTaskId);
 		sql.fillSQL(sb);
@@ -31,7 +31,7 @@ public class ORGUserImportTaskRepository extends RDSRepository<ORGUserImportTask
 	}
 
 	public void countORGUserImportNotCompletionTask(DruidPooledConnection conn, Long importTaskId) throws Exception {
-		StringBuffer sb = new StringBuffer("WHERE ");
+		StringBuffer sb = new StringBuffer();
 		SQL sql = new SQL();
 		sql.addEx("id = ? ", importTaskId);
 		sql.fillSQL(sb);
@@ -41,7 +41,7 @@ public class ORGUserImportTaskRepository extends RDSRepository<ORGUserImportTask
 
 	public List<ORGUserImportTask> getORGUserImportTasks(DruidPooledConnection conn, Long orgId, Long userId,
 			Integer count, Integer offset) throws Exception {
-		StringBuffer sb = new StringBuffer("WHERE ");
+		StringBuffer sb = new StringBuffer();
 		SQL sql = new SQL();
 		sql.addEx("org_id = ? ", orgId);
 		sql.AND("user_id = ? ", userId);

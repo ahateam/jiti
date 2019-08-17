@@ -274,6 +274,59 @@ public class ORGService {
 		}
 
 	}
+	
+	public ORG createSubORG(DruidPooledConnection conn, Long orgExamineId, String name, String code,
+			String address, String imgOrg, String imgAuth, Byte level, Integer shareAmount) throws Exception {
+		ORG existORG = orgRepository.get(conn, EXP.INS().key("code", code));
+		if (null == existORG) {
+			// 组织不存在
+			ORG newORG = new ORG();
+
+			newORG.id = orgExamineId;
+			newORG.createTime = new Date();
+			newORG.name = name;
+			newORG.code = code;
+			newORG.address = address;
+			newORG.imgOrg = imgOrg;
+			newORG.imgAuth = imgAuth;
+			newORG.shareAmount = shareAmount;
+			newORG.level = level;
+
+			// 判断为哪个等级的机构
+			if (level == ORG.LEVEL.COOPERATIVE.v()) {
+				newORG.type = ORG.TYPE.COOPERATIVE.v();
+			} else if (level == ORG.LEVEL.PRO.v() || level == ORG.LEVEL.CITY.v() || level == ORG.LEVEL.DISTRICT.v()) {
+				newORG.type = ORG.TYPE.ADMINISTRATIVEORGAN.v();
+			}
+
+			// 将数据添加到数据库
+			orgRepository.insert(conn, newORG);
+			
+			return newORG;
+		} else {
+			// 组织已存在
+			throw new ServerException(BaseRC.ECM_ORG_EXIST);
+		}
+
+	}
+
+	/**
+	 * 	创建下属组织
+	 */
+	public void createSubOrg(DruidPooledConnection conn, String name, String code,
+			String address, String imgOrg, String imgAuth, Byte level, Integer shareAmount, Long superiorId,
+			Long province, Long city, Long district) throws Exception {
+		Long orgExamineId = IDUtils.getSimpleId();
+		//创建组织
+		createSubORG(conn, orgExamineId, name, code, address, imgOrg, imgAuth, level, shareAmount);
+
+		// 创建上级关系
+		addSupAndSub(conn, superiorId, orgExamineId, level);
+
+		// 创建组织归属
+		createORGDistrict(conn, orgExamineId, province, city, district);
+		
+	}
 
 	/**
 	 * 更新组织信息，目前全都可以改，将来应该限定code，name等不允许更改</br>

@@ -148,7 +148,28 @@ public class ORGController extends Controller {
 			return APIResponse.getNewSuccessResp();
 		}
 	}
-
+	
+	@POSTAPI(path = "createSubOrg", //
+			des = "创建下级组织机构" //
+	)
+	public void createSubOrg(//
+			@P(t = "组织名称") String name, //
+			@P(t = "组织机构代码") String code, //
+			@P(t = "省", r = false) Long province, //
+			@P(t = "市", r = false) Long city, //
+			@P(t = "区", r = false) Long district, //
+			@P(t = "街道地址") String address, //
+			@P(t = "组织机构证书图片地址", r = false) String imgOrg, //
+			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
+			@P(t = "总股份数", r = false) Integer shareAmount, //
+			@P(t = "等级") Byte level, //
+			@P(t = "上级组织id", r = false) Long superiorId //
+	) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			orgService.createSubOrg(conn, name, code, address, imgOrg,
+					imgAuth, level, shareAmount, superiorId, province, city, district);
+		}
+	}
 	/**
 	 * 
 	 */

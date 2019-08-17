@@ -44,7 +44,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 			throws ServerException {
 //		ORGUser orgUser = getByANDKeys(conn, new String[] { "org_id", "user_id" }, new Object[] { orgId, userId });
 		
-		ORGUser orgUser = get(conn, StringUtils.join("org_id = ", orgId, "AND user_id", userId), null);
+		ORGUser orgUser = get(conn, StringUtils.join("org_id = ", orgId, " AND user_id = ", userId), null);
 		ServiceUtils.checkNull(orgUser);
 		// check role，字符串搜索的做法不严谨，但是将就了
 		if (roles == null || roles.length == 0) {

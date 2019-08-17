@@ -29,7 +29,7 @@ public class JITIVerticle extends ZeroVerticle {
 	}
 
 	public int port() {
-		return 8099;
+		return 8080;
 	}
 
 	protected void init() throws Exception {

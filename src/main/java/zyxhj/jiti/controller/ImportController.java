@@ -172,12 +172,13 @@ public class ImportController extends Controller {
 	)
 	public APIResponse getListImportTask(//
 			@P(t = "组织id") Long orgId, //
+			@P(t = "类型") Byte type, //
 			Integer count, //
 			Integer offset //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
 
-			return APIResponse.getNewSuccessResp(importTaskService.getListImportTask(conn, orgId, count, offset));
+			return APIResponse.getNewSuccessResp(importTaskService.getListImportTask(conn, orgId, type, count, offset));
 		}
 	}
 

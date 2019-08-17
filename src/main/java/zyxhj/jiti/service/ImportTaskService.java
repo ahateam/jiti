@@ -88,9 +88,9 @@ public class ImportTaskService {
 	}
 
 	// 查询组织导入
-	public List<ImportTask> getListImportTask(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)
+	public List<ImportTask> getListImportTask(DruidPooledConnection conn, Long orgId,Byte type, Integer count, Integer offset)
 			throws Exception {
-		return taskRepository.getListImportTask(conn, orgId, count, offset);
+		return taskRepository.getListImportTask(conn, orgId,type, count, offset);
 	}
 
 	/**
@@ -372,7 +372,7 @@ public class ImportTaskService {
 							PrimaryKey pk = new PrimaryKeyBuilder().add("taskId", importTaskId)
 									.add("recordId", recordId).build();
 							ColumnBuilder cb = new ColumnBuilder();
-							cb.add("status", (long) ImportTempRecord.STATUS.SUCCESS.v());
+							cb.add("status", (long) ImportTempRecord.STATUS.FAILURE.v());
 							cb.add("result", e.getLocalizedMessage());
 							List<Column> columns = cb.build();
 							TSRepository.nativeUpdate(client, tempRecordRepository.getTableName(), pk, true, columns);
@@ -539,7 +539,7 @@ public class ImportTaskService {
 							PrimaryKey pk = new PrimaryKeyBuilder().add("taskId", importTaskId)
 									.add("recordId", recordId).build();
 							ColumnBuilder cb = new ColumnBuilder();
-							cb.add("status", ImportTempRecord.STATUS.SUCCESS.v());
+							cb.add("status", ImportTempRecord.STATUS.FAILURE.v());
 							cb.add("result", e.getLocalizedMessage());
 							List<Column> columns = cb.build();
 							TSRepository.nativeUpdate(client, tempRecordRepository.getTableName(), pk, true, columns);

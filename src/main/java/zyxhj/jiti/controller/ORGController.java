@@ -148,7 +148,7 @@ public class ORGController extends Controller {
 			return APIResponse.getNewSuccessResp();
 		}
 	}
-	
+
 	@POSTAPI(path = "createSubOrg", //
 			des = "创建下级组织机构" //
 	)
@@ -166,10 +166,11 @@ public class ORGController extends Controller {
 			@P(t = "上级组织id", r = false) Long superiorId //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			orgService.createSubOrg(conn, name, code, address, imgOrg,
-					imgAuth, level, shareAmount, superiorId, province, city, district);
+			orgService.createSubOrg(conn, name, code, address, imgOrg, imgAuth, level, shareAmount, superiorId,
+					province, city, district);
 		}
 	}
+
 	/**
 	 * 
 	 */
@@ -1079,139 +1080,139 @@ public class ORGController extends Controller {
 		}
 	}
 
-	/**
-	 * 
-	 */
-	@POSTAPI(//
-			path = "createORGUserImportTask", //
-			des = "创建组织用户导入任务", //
-			ret = ""//
-	)
-	public APIResponse createORGUserImportTask(//
-			@P(t = "组织id") Long orgId, //
-			@P(t = "用户id") Long userId, //
-			@P(t = "任务名称") String name //
-
-	) throws Exception {
-		try (DruidPooledConnection conn = dds.getConnection()) {
-			orgUserService.createORGUserImportTask(conn, orgId, userId, name);
-			return APIResponse.getNewSuccessResp();
-		}
-	}
-
-	/**
-	 * 
-	 */
-	@POSTAPI(//
-			path = "getORGUserImportTasks", //
-			des = "获取组织用户导入任务", //
-			ret = ""//
-	)
-	public APIResponse getORGUserImportTasks(//
-			@P(t = "组织id") Long orgId, //
-			@P(t = "用户id") Long userId, //
-			Integer count, //
-			Integer offset//
-	) throws Exception {
-		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse
-					.getNewSuccessResp(orgUserService.getORGUserImportTasks(conn, orgId, userId, count, offset));
-		}
-	}
-
-	/**
-	 * 
-	 */
-	@POSTAPI(//
-			path = "getORGUserImportTask", //
-			des = "获取当前导入任务信息", //
-			ret = ""//
-	)
-	public APIResponse getORGUserImportTask(//
-			@P(t = "组织id") Long orgId, //
-			@P(t = "用户id") Long userId, //
-			@P(t = "导入任务id") Long importTaskId//
-	) throws Exception {
-		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse
-					.getNewSuccessResp(orgUserService.getORGUserImportTask(conn, importTaskId, orgId, userId));
-		}
-	}
-
-	/**
-	 * 
-	 */
-	@POSTAPI(//
-			path = "importORGUserRecord", //
-			des = "导入组织用户列表" //
-	)
-	public APIResponse importORGUserRecord(//
-			@P(t = "组织编号") Long orgId, //
-			@P(t = "用户编号") Long userId, //
-			@P(t = "excel文件url") String url, //
-			@P(t = "导入任务id") Long importTaskId//
-	) throws Exception {
-		try (DruidPooledConnection conn = dds.getConnection()) {
-			orgUserService.importORGUserRecord(conn, orgId, userId, url, importTaskId);
-			return APIResponse.getNewSuccessResp();
-		}
-	}
-
-	/**
-	 * 
-	 */
-	@POSTAPI(//
-			path = "getORGUserImportRecords", //
-			des = "获取导入组织用户列表", //
-			ret = "需导入的组织用户列表")
-	public APIResponse getORGUserImportRecords(//
-			@P(t = "组织编号") Long orgId, //
-			@P(t = "导入任务id") Long importTaskId, //
-			Integer count, //
-			Integer offset //
-	) throws Exception {
-		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(
-					orgUserService.getORGUserImportRecords(conn, orgId, importTaskId, count, offset));
-		}
-	}
-
-	/**
-	 * 
-	 */
-	@POSTAPI(//
-			path = "importORGUser", //
-			des = "开始导入组织用户列表", //
-			ret = "")
-	public APIResponse importORGUser(//
-			@P(t = "组织编号") Long orgId, //
-			@P(t = "导入任务id") Long importTaskId //
-	) throws Exception {
-		try (DruidPooledConnection conn = dds.getConnection()) {
-			orgUserService.importORGUser(orgId, importTaskId);
-			return APIResponse.getNewSuccessResp();
-		}
-	}
-
-	/**
-	 * 
-	 */
-	@POSTAPI(//
-			path = "getNotcompletionRecord", //
-			des = "获取导入失败的组织用户", //
-			ret = ""//
-	)
-	public APIResponse getNotcompletionRecord(//
-			@P(t = "组织编号") Long orgId, //
-			@P(t = "导入任务id") Long importTaskId, //
-			Integer count, //
-			Integer offset //
-	) throws Exception {
-		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse
-					.getNewSuccessResp(orgUserService.getNotcompletionRecord(conn, orgId, importTaskId, count, offset));
-		}
-	}
+//	/**
+//	 * 
+//	 */
+//	@POSTAPI(//
+//			path = "createORGUserImportTask", //
+//			des = "创建组织用户导入任务", //
+//			ret = ""//
+//	)
+//	public APIResponse createORGUserImportTask(//
+//			@P(t = "组织id") Long orgId, //
+//			@P(t = "用户id") Long userId, //
+//			@P(t = "任务名称") String name //
+//
+//	) throws Exception {
+//		try (DruidPooledConnection conn = dds.getConnection()) {
+//			orgUserService.createORGUserImportTask(conn, orgId, userId, name);
+//			return APIResponse.getNewSuccessResp();
+//		}
+//	}
+//
+//	/**
+//	 * 
+//	 */
+//	@POSTAPI(//
+//			path = "getORGUserImportTasks", //
+//			des = "获取组织用户导入任务", //
+//			ret = ""//
+//	)
+//	public APIResponse getORGUserImportTasks(//
+//			@P(t = "组织id") Long orgId, //
+//			@P(t = "用户id") Long userId, //
+//			Integer count, //
+//			Integer offset//
+//	) throws Exception {
+//		try (DruidPooledConnection conn = dds.getConnection()) {
+//			return APIResponse
+//					.getNewSuccessResp(orgUserService.getORGUserImportTasks(conn, orgId, userId, count, offset));
+//		}
+//	}
+//
+//	/**
+//	 * 
+//	 */
+//	@POSTAPI(//
+//			path = "getORGUserImportTask", //
+//			des = "获取当前导入任务信息", //
+//			ret = ""//
+//	)
+//	public APIResponse getORGUserImportTask(//
+//			@P(t = "组织id") Long orgId, //
+//			@P(t = "用户id") Long userId, //
+//			@P(t = "导入任务id") Long importTaskId//
+//	) throws Exception {
+//		try (DruidPooledConnection conn = dds.getConnection()) {
+//			return APIResponse
+//					.getNewSuccessResp(orgUserService.getORGUserImportTask(conn, importTaskId, orgId, userId));
+//		}
+//	}
+//
+//	/**
+//	 * 
+//	 */
+//	@POSTAPI(//
+//			path = "importORGUserRecord", //
+//			des = "导入组织用户列表" //
+//	)
+//	public APIResponse importORGUserRecord(//
+//			@P(t = "组织编号") Long orgId, //
+//			@P(t = "用户编号") Long userId, //
+//			@P(t = "excel文件url") String url, //
+//			@P(t = "导入任务id") Long importTaskId//
+//	) throws Exception {
+//		try (DruidPooledConnection conn = dds.getConnection()) {
+//			orgUserService.importORGUserRecord(conn, orgId, userId, url, importTaskId);
+//			return APIResponse.getNewSuccessResp();
+//		}
+//	}
+//
+//	/**
+//	 * 
+//	 */
+//	@POSTAPI(//
+//			path = "getORGUserImportRecords", //
+//			des = "获取导入组织用户列表", //
+//			ret = "需导入的组织用户列表")
+//	public APIResponse getORGUserImportRecords(//
+//			@P(t = "组织编号") Long orgId, //
+//			@P(t = "导入任务id") Long importTaskId, //
+//			Integer count, //
+//			Integer offset //
+//	) throws Exception {
+//		try (DruidPooledConnection conn = dds.getConnection()) {
+//			return APIResponse.getNewSuccessResp(
+//					orgUserService.getORGUserImportRecords(conn, orgId, importTaskId, count, offset));
+//		}
+//	}
+//
+//	/**
+//	 * 
+//	 */
+//	@POSTAPI(//
+//			path = "importORGUser", //
+//			des = "开始导入组织用户列表", //
+//			ret = "")
+//	public APIResponse importORGUser(//
+//			@P(t = "组织编号") Long orgId, //
+//			@P(t = "导入任务id") Long importTaskId //
+//	) throws Exception {
+//		try (DruidPooledConnection conn = dds.getConnection()) {
+//			orgUserService.importORGUser(orgId, importTaskId);
+//			return APIResponse.getNewSuccessResp();
+//		}
+//	}
+//
+//	/**
+//	 * 
+//	 */
+//	@POSTAPI(//
+//			path = "getNotcompletionRecord", //
+//			des = "获取导入失败的组织用户", //
+//			ret = ""//
+//	)
+//	public APIResponse getNotcompletionRecord(//
+//			@P(t = "组织编号") Long orgId, //
+//			@P(t = "导入任务id") Long importTaskId, //
+//			Integer count, //
+//			Integer offset //
+//	) throws Exception {
+//		try (DruidPooledConnection conn = dds.getConnection()) {
+//			return APIResponse
+//					.getNewSuccessResp(orgUserService.getNotcompletionRecord(conn, orgId, importTaskId, count, offset));
+//		}
+//	}
 
 	/**
 	 * 
@@ -1821,22 +1822,16 @@ public class ORGController extends Controller {
 			return APIResponse.getNewSuccessResp();
 		}
 	}
-	
-	
+
 	/**
 	 * 
 	 */
 	@POSTAPI(//
-			path = "delSubOrg", 
-			des = "移除下级组织机构", 
-			ret = ""
-	)
-	public APIResponse delSubOrg(
-			@P(t = "组织id") Long orgId 
-	) throws Exception {
+			path = "delSubOrg", des = "移除下级组织机构", ret = "")
+	public APIResponse delSubOrg(@P(t = "组织id") Long orgId) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.delSubOrg(conn, orgId)); 
+			return APIResponse.getNewSuccessResp(orgService.delSubOrg(conn, orgId));
 		}
 	}
-	 
+
 }

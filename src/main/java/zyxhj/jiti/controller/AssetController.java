@@ -464,138 +464,138 @@ public class AssetController extends Controller {
 					resTypes, assetTypes, businessModes, count, offset));
 		}
 	}
-
-	/**
-	 * 
-	 */
-	@POSTAPI(//
-			path = "createAssetImportTask", //
-			des = "创建资产导入任务", //
-			ret = ""//
-	)
-	public APIResponse createAssetImportTask(//
-			@P(t = "组织id") Long orgId, //
-			@P(t = "用户id") Long userId, //
-			@P(t = "任务名称") String name //
-
-	) throws Exception {
-		try (DruidPooledConnection conn = dds.getConnection()) {
-			assetService.createAssetImportTask(conn, orgId, userId, name);
-			return APIResponse.getNewSuccessResp();
-		}
-	}
-
-	/**
-	 * 
-	 */
-	@POSTAPI(//
-			path = "getAssetImportTasks", //
-			des = "获取资产导入任务", //
-			ret = ""//
-	)
-	public APIResponse getAssetImportTasks(//
-			@P(t = "组织id") Long orgId, //
-			@P(t = "用户id") Long userId, //
-			Integer count, //
-			Integer offset//
-
-	) throws Exception {
-		try (DruidPooledConnection conn = dds.getConnection()) {
-
-			return APIResponse.getNewSuccessResp(assetService.getAssetImportTasks(conn, orgId, userId, count, offset));
-		}
-	}
-
-	/**
-	 * 
-	 */
-	@POSTAPI(//
-			path = "getAssetImportTask", //
-			des = "获取当前导入任务信息", //
-			ret = ""//
-	)
-	public APIResponse getAssetImportTask(//
-			@P(t = "组织id") Long orgId, //
-			@P(t = "用户id") Long userId, //
-			@P(t = "导入任务id") Long importTaskId//
-	) throws Exception {
-		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(assetService.getAssetImportTask(conn, importTaskId, orgId, userId));
-		}
-	}
-
-	/**
-	 * 
-	 */
-	@POSTAPI(//
-			path = "importAssetsRecord", //
-			des = "导入资产列表" //
-	)
-	public APIResponse importAssetsRecord(//
-			@P(t = "组织编号") Long orgId, //
-			@P(t = "用户编号") Long userId, //
-			@P(t = "excel文件url") String url, //
-			@P(t = "导入任务id") Long importTaskId//
-	) throws Exception {
-		try (DruidPooledConnection conn = dds.getConnection()) {
-			assetService.importAssetsRecord(conn, orgId, userId, url, importTaskId);
-			return APIResponse.getNewSuccessResp();
-		}
-	}
-
-	/**
-	 * 
-	 */
-	@POSTAPI(//
-			path = "getAssetImportRecords", //
-			des = "获取导入资产列表", //
-			ret = "需导入的资产列表")
-	public APIResponse getAssetImportRecords(//
-			@P(t = "组织编号") Long orgId, //
-			@P(t = "导入任务id") Long importTaskId, //
-			Integer count, //
-			Integer offset //
-	) throws Exception {
-		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse
-					.getNewSuccessResp(assetService.getAssetImportRecords(conn, orgId, importTaskId, count, offset));
-		}
-	}
-
-	/**
-	 * 
-	 */
-	@POSTAPI(//
-			path = "importAsset", //
-			des = "开始导入资产列表", //
-			ret = "")
-	public APIResponse importAsset(//
-			@P(t = "组织编号") Long orgId, //
-			@P(t = "导入任务id") Long importTaskId //
-	) throws Exception {
-		try (DruidPooledConnection conn = dds.getConnection()) {
-			assetService.importAsset(orgId, importTaskId);
-			return APIResponse.getNewSuccessResp();
-		}
-	}
-
-	/**
-	 * 
-	 */
-	@POSTAPI(//
-			path = "getNotcompletionRecord", //
-			des = "获取导入失败的数据", //
-			ret = "")
-	public APIResponse getNotcompletionRecord(//
-			@P(t = "组织编号") Long orgId, //
-			@P(t = "导入任务id") Long importTaskId, //
-			Integer count, //
-			Integer offset //
-	) throws Exception {
-		try (DruidPooledConnection conn = dds.getConnection()) {
-
-			return APIResponse
-					.getNewSuccessResp(assetService.getNotcompletionRecord(conn, orgId, importTaskId, count, offset));
-		}
-	}
+//
+//	/**
+//	 * 
+//	 */
+//	@POSTAPI(//
+//			path = "createAssetImportTask", //
+//			des = "创建资产导入任务", //
+//			ret = ""//
+//	)
+//	public APIResponse createAssetImportTask(//
+//			@P(t = "组织id") Long orgId, //
+//			@P(t = "用户id") Long userId, //
+//			@P(t = "任务名称") String name //
+//
+//	) throws Exception {
+//		try (DruidPooledConnection conn = dds.getConnection()) {
+//			assetService.createAssetImportTask(conn, orgId, userId, name);
+//			return APIResponse.getNewSuccessResp();
+//		}
+//	}
+//
+//	/**
+//	 * 
+//	 */
+//	@POSTAPI(//
+//			path = "getAssetImportTasks", //
+//			des = "获取资产导入任务", //
+//			ret = ""//
+//	)
+//	public APIResponse getAssetImportTasks(//
+//			@P(t = "组织id") Long orgId, //
+//			@P(t = "用户id") Long userId, //
+//			Integer count, //
+//			Integer offset//
+//
+//	) throws Exception {
+//		try (DruidPooledConnection conn = dds.getConnection()) {
+//
+//			return APIResponse.getNewSuccessResp(assetService.getAssetImportTasks(conn, orgId, userId, count, offset));
+//		}
+//	}
+//
+//	/**
+//	 * 
+//	 */
+//	@POSTAPI(//
+//			path = "getAssetImportTask", //
+//			des = "获取当前导入任务信息", //
+//			ret = ""//
+//	)
+//	public APIResponse getAssetImportTask(//
+//			@P(t = "组织id") Long orgId, //
+//			@P(t = "用户id") Long userId, //
+//			@P(t = "导入任务id") Long importTaskId//
+//	) throws Exception {
+//		try (DruidPooledConnection conn = dds.getConnection()) {
+//			return APIResponse.getNewSuccessResp(assetService.getAssetImportTask(conn, importTaskId, orgId, userId));
+//		}
+//	}
+//
+//	/**
+//	 * 
+//	 */
+//	@POSTAPI(//
+//			path = "importAssetsRecord", //
+//			des = "导入资产列表" //
+//	)
+//	public APIResponse importAssetsRecord(//
+//			@P(t = "组织编号") Long orgId, //
+//			@P(t = "用户编号") Long userId, //
+//			@P(t = "excel文件url") String url, //
+//			@P(t = "导入任务id") Long importTaskId//
+//	) throws Exception {
+//		try (DruidPooledConnection conn = dds.getConnection()) {
+//			assetService.importAssetsRecord(conn, orgId, userId, url, importTaskId);
+//			return APIResponse.getNewSuccessResp();
+//		}
+//	}
+//
+//	/**
+//	 * 
+//	 */
+//	@POSTAPI(//
+//			path = "getAssetImportRecords", //
+//			des = "获取导入资产列表", //
+//			ret = "需导入的资产列表")
+//	public APIResponse getAssetImportRecords(//
+//			@P(t = "组织编号") Long orgId, //
+//			@P(t = "导入任务id") Long importTaskId, //
+//			Integer count, //
+//			Integer offset //
+//	) throws Exception {
+//		try (DruidPooledConnection conn = dds.getConnection()) {
+//			return APIResponse
+//					.getNewSuccessResp(assetService.getAssetImportRecords(conn, orgId, importTaskId, count, offset));
+//		}
+//	}
+//
+//	/**
+//	 * 
+//	 */
+//	@POSTAPI(//
+//			path = "importAsset", //
+//			des = "开始导入资产列表", //
+//			ret = "")
+//	public APIResponse importAsset(//
+//			@P(t = "组织编号") Long orgId, //
+//			@P(t = "导入任务id") Long importTaskId //
+//	) throws Exception {
+//		try (DruidPooledConnection conn = dds.getConnection()) {
+//			assetService.importAsset(orgId, importTaskId);
+//			return APIResponse.getNewSuccessResp();
+//		}
+//	}
+//
+//	/**
+//	 * 
+//	 */
+//	@POSTAPI(//
+//			path = "getNotcompletionRecord", //
+//			des = "获取导入失败的数据", //
+//			ret = "")
+//	public APIResponse getNotcompletionRecord(//
+//			@P(t = "组织编号") Long orgId, //
+//			@P(t = "导入任务id") Long importTaskId, //
+//			Integer count, //
+//			Integer offset //
+//	) throws Exception {
+//		try (DruidPooledConnection conn = dds.getConnection()) {
+//
+//			return APIResponse
+//					.getNewSuccessResp(assetService.getNotcompletionRecord(conn, orgId, importTaskId, count, offset));
+//		}
+//	}
 }

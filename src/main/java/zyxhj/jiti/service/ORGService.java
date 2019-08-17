@@ -497,7 +497,7 @@ public class ORGService {
 		ORGExamine ex = new ORGExamine();
 		// 是否有org
 		ORG org = orgRepository.get(conn, EXP.INS().key( "id", orgExamineId));
-		// 如果org不为空 则表示是修改提交审核
+		// 如果org不为空 则表示是修改提交审核e
 		if (org != null) {
 			ex.orgId = org.id;
 			// 判断是否要修改地址 如果要修改地址 则为ture 需要去表里删除对应的地址 然后再添加
@@ -984,4 +984,14 @@ public class ORGService {
 
 	}
 
+	public int delSubOrg(DruidPooledConnection conn, Long id) throws ServerException {
+		try {
+			orgRepository.delete(conn, EXP.INS().key("id", id));
+			superiorRepository.delete(conn, EXP.INS().key("org_id", id));
+			orgDistrictRepository.delete(conn, EXP.INS().key("org_id", id));
+			return 1;
+		} catch (Exception e) {
+			return 0;
+		}
+	}
 }

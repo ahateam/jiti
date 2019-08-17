@@ -1800,5 +1800,22 @@ public class ORGController extends Controller {
 			return APIResponse.getNewSuccessResp();
 		}
 	}
-
+	
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "delSubOrg", 
+			des = "移除下级组织机构", 
+			ret = ""
+	)
+	public APIResponse delSubOrg(
+			@P(t = "组织id") Long orgId 
+	) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.delSubOrg(conn, orgId)); 
+		}
+	}
+	 
 }

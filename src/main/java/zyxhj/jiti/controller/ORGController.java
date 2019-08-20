@@ -354,15 +354,16 @@ public class ORGController extends Controller {
 	 */
 	@POSTAPI(//
 			path = "batchEditORGUsersGroups", //
-			des = "获取组织的用户" //
+			des = "修改组织用户的分组" //
 	)
 	public APIResponse batchEditORGUsersGroups(//
 			@P(t = "组织编号") Long orgId, //
 			@P(t = "用户编号列表，JSONArray格式") JSONArray userIds, //
-			@P(t = "分组信息列表 字符串") Long groups//
+			@P(t = "分组信息列表 长整形") Long groups//
 
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
+			System.out.println("123456");
 			orgUserService.batchEditORGUsersGroups(conn, orgId, userIds, groups);
 			return APIResponse.getNewSuccessResp();
 		}
@@ -537,7 +538,7 @@ public class ORGController extends Controller {
 	)
 	public APIResponse getORGUsersByGroups(//
 			@P(t = "组织编号") Long orgId, //
-			@P(t = "角色分组,String[]格式", r = false) String[] groups, //
+			@P(t = "角色分组,int[]格式", r = false) String[] groups, //
 			Integer count, //
 			Integer offset//
 	) throws Exception {

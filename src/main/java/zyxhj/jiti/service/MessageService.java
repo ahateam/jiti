@@ -77,8 +77,9 @@ public class MessageService {
 		}
 
 		// 获取到通知内容 根据userId 将通知信息一条一条插入到message表
-
-		messageRepository.insertList(conn, messages);
+		if (!(messages == null && messages.size() == 0)) {
+			messageRepository.insertList(conn, messages);
+		}
 	}
 
 	// 创建投票消息通知
@@ -108,7 +109,8 @@ public class MessageService {
 	public Integer countMessageByUserId(DruidPooledConnection conn, Long orgId, Long userId) throws Exception {
 //		List<Message> me = messageRepository.getListByANDKeys(conn, new String[] { "org_id", "user_id" },
 //				new Object[] { orgId, userId }, 512, 0);
-		List<Message> me = messageRepository.getList(conn, EXP.INS().key("org_id", orgId).andKey("user_id", userId), 512, 0);
+		List<Message> me = messageRepository.getList(conn, EXP.INS().key("org_id", orgId).andKey("user_id", userId),
+				512, 0);
 		return me.size();
 
 	}
@@ -123,7 +125,7 @@ public class MessageService {
 	public void editMessageStatus(DruidPooledConnection conn, Long messageId) throws Exception {
 		Message message = new Message();
 		message.status = Message.STATUS.READ.v();
-		messageRepository.update(conn,EXP.INS().key("id", messageId), message, true);
+		messageRepository.update(conn, EXP.INS().key("id", messageId), message, true);
 
 	}
 

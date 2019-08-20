@@ -688,6 +688,8 @@ public class ORGUserService {
 
 	public void batchEditORGUsersGroups(DruidPooledConnection conn, Long orgId, JSONArray userIds, Long groups)
 			throws Exception {
+
+		System.out.println("123456123");
 		orgUserRepository.batchEditORGUsersGroups(conn, orgId, userIds, groups);
 	}
 
@@ -1166,6 +1168,7 @@ public class ORGUserService {
 		} else if (type == Examine.TYPE.ORG.v()) {
 			examine.status = Examine.STATUS.NOEXAMINE.v();
 		}
+
 		examine.remark = remark;
 		examineRepository.insert(conn, examine);
 
@@ -1198,6 +1201,8 @@ public class ORGUserService {
 				JSONArray oldData = oldDatas.getJSONArray(i);
 				messageService.createExamineMessages(conn, oldData, perName, data, examineStatus);
 			}
+		} else if(familyOperate == Examine.OPERATE.ADDFAMILY.v()) {
+			
 		} else {
 			messageService.createExamineMessages(conn, oldDatas, perName, data, examineStatus);
 		}

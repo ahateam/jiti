@@ -90,7 +90,8 @@ public class ImportTaskService {
 	// 查询组织导入
 	public List<ImportTask> getListImportTask(DruidPooledConnection conn, Long orgId,Byte type, Integer count, Integer offset)
 			throws Exception {
-		return taskRepository.getListImportTask(conn, orgId,type, count, offset);
+		System.out.println("12");
+		return taskRepository.getListImportTask(conn, orgId, count, offset);
 	}
 
 	/**

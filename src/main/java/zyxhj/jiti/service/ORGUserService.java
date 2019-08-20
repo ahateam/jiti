@@ -597,7 +597,7 @@ public class ORGUserService {
 	/**
 	 * 根据权限查询用户
 	 */
-	public JSONArray getORGUsersByRoles(DruidPooledConnection conn, Long orgId, String[] roles, Integer count,
+	public JSONArray getORGUsersByRoles(DruidPooledConnection conn, Long orgId,  String[] roles, Integer count,
 			Integer offset) throws Exception {
 		List<ORGUser> ors = orgUserRepository.getORGUsersByRoles(conn, orgId, roles, count, offset);
 

@@ -330,7 +330,7 @@ public class AssetRepository extends RDSRepository<Asset> {
 				|| (assetTypes != null && assetTypes.size() > 0)
 				|| (businessModes != null && businessModes.size() > 0)) {
 
-			sb.append(" WHERE "); // TODO 此处where在添加区级管理以后 放到上面去
+//			sb.append(" WHERE "); // TODO 此处where在添加区级管理以后 放到上面去
 			SQL sqlEx = new SQL();
 
 			if (buildTimes != null && buildTimes.size() > 0) {
@@ -384,7 +384,7 @@ public class AssetRepository extends RDSRepository<Asset> {
 		}
 		sql.fillSQL(sb);
 
-		// System.out.println(sb.toString());
+		 System.out.println(sb.toString());
 		return getList(conn, sb.toString(), sql.getParams(), count, offset);
 
 	}

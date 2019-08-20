@@ -139,6 +139,10 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 
 	public List<ORGUser> getORGUsersByRoles(DruidPooledConnection conn, Long orgId, String[] roles, Integer count,
 			Integer offset) throws ServerException {
+//		String[] a = new String[roles.size()];
+//		for(int i = 0 ; i < roles.size() ; i++) {
+//			a[i] = roles.getString(i);
+//		}
 		return getListByTagsJSONArray(conn, "roles", "", roles, " org_id=? ",Arrays.asList(orgId), count,
 				offset);
 	}

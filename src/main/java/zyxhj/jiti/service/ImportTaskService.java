@@ -91,7 +91,7 @@ public class ImportTaskService {
 	public List<ImportTask> getListImportTask(DruidPooledConnection conn, Long orgId,Byte type, Integer count, Integer offset)
 			throws Exception {
 		System.out.println("12");
-		return taskRepository.getListImportTask(conn, orgId, count, offset);
+		return taskRepository.getListImportTask(conn, orgId, type, count, offset);
 	}
 
 	/**

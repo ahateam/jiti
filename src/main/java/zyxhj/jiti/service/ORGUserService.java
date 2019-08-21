@@ -689,7 +689,6 @@ public class ORGUserService {
 	public void batchEditORGUsersGroups(DruidPooledConnection conn, Long orgId, JSONArray userIds, Long groups)
 			throws Exception {
 
-		System.out.println("123456123");
 		orgUserRepository.batchEditORGUsersGroups(conn, orgId, userIds, groups);
 	}
 

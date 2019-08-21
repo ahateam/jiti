@@ -232,13 +232,12 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 			// 等于-1表示不存在
 			if (getORGUser != null) {
 				// 不存在分组 给组织用户添加分组
-				System.out.println("456");
 				JSONArray json = JSONArray.parseArray(getORGUser.groups);
 				json.add(groups);
 				ORGUser or = new ORGUser();
 				or.groups = json.toString();
 
-				EXP where = EXP.INS().andKey("org_id", orgId).andKey("user_id", userIds.getLong(i)).exp("ORDER BY family_number", null, null);
+				EXP where = EXP.INS().andKey("org_id", orgId).andKey("user_id", userIds.getLong(i));
 				EXP set = EXP.JSON_ARRAY_APPEND("groups", groups, true);
 				update(conn, set, where);
 			}

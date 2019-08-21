@@ -83,12 +83,13 @@ public class VoteRepository extends RDSRepository<Vote> {
 		EXP exp = EXP.INS().exp("org_id", "=", orgId);
 		EXP subExp = EXP.INS();
 		for (int i = 0; i < json.size(); i++) {
-			String temp = StringUtils.join("JSON_CONTAINS(crowd, '", json.getLong(i), "','$.roles')");
-			subExp.or(temp, null);
+//			String temp = StringUtils.join("JSON_CONTAINS(crowd, '", json.getLong(i), "','$.roles')");
+//			subExp.or(temp, null);
+			subExp.or(EXP.JSON_CONTAINS("crowd", "$.roles", json.get(i)));
 		}
 		exp.and(subExp);
 
-		return getList(conn, sb.toString(), null, count, offset);
+		return getList(conn, exp, count, offset);
 
 	}
 

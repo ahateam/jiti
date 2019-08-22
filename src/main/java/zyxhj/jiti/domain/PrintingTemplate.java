@@ -16,6 +16,10 @@ public class PrintingTemplate {
 		INITREG((byte) 1, "初始登记"), //
 		EDITREG((byte) 2, "变更登记"), //
 		MORTGAGE((byte) 3, "抵押情况登记"), //
+		PROSHAREHOLDER((byte) 4, "股东基本信息登记"), //
+		PROSHARE((byte) 5, "股权登记"), //
+		PROSHARECHANGE((byte) 6, "股权变更登记"), //
+		PROINCOMEDISTRIBUTION((byte) 7, "收益分配领取记录"), //
 		;
 
 		private byte v;

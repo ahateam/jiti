@@ -88,8 +88,8 @@ public class ImportTaskService {
 	}
 
 	// 查询组织导入
-	public List<ImportTask> getListImportTask(DruidPooledConnection conn, Long orgId,Byte type, Integer count, Integer offset)
-			throws Exception {
+	public List<ImportTask> getListImportTask(DruidPooledConnection conn, Long orgId, Byte type, Integer count,
+			Integer offset) throws Exception {
 		System.out.println("12");
 		return taskRepository.getListImportTask(conn, orgId, type, count, offset);
 	}
@@ -152,8 +152,7 @@ public class ImportTaskService {
 		imp.amount = count;
 		imp.startTime = new Date();
 		imp.status = ImportTask.STATUS.FILE_READY.v();
-		taskRepository.update(conn,EXP.INS().key("id", importTaskId), imp, true);
-		
+		taskRepository.update(conn, EXP.INS().key("id", importTaskId), imp, true);
 
 	}
 
@@ -187,8 +186,7 @@ public class ImportTaskService {
 						// 修改导入任务为正在导入
 						ImportTask ta = new ImportTask();
 						ta.status = ImportTask.STATUS.PROGRESSING.v();
-						taskRepository.update(conn,EXP.INS().key("id", importTaskId), ta, true);
-						
+						taskRepository.update(conn, EXP.INS().key("id", importTaskId), ta, true);
 
 						// 获取导入数据
 						JSONObject data = JSONObject.parseObject(listImportTemp.getString(i));
@@ -386,7 +384,7 @@ public class ImportTaskService {
 				ImportTask imp = new ImportTask();
 				imp.finishTime = new Date();
 				imp.status = ImportTask.STATUS.COMPLETED.v();
-				taskRepository.update(conn,EXP.INS().key("id", importTaskId), imp, true);
+				taskRepository.update(conn, EXP.INS().key("id", importTaskId), imp, true);
 			} catch (Exception eee) {
 				eee.printStackTrace();
 			} finally {
@@ -424,10 +422,10 @@ public class ImportTaskService {
 				// 修改导入任务为正在导入
 				ImportTask imp = new ImportTask();
 				imp.status = ImportTask.STATUS.PROGRESSING.v();
-				taskRepository.update(conn,EXP.INS().key("id", importTaskId), imp, true);
+				taskRepository.update(conn, EXP.INS().key("id", importTaskId), imp, true);
 
 				// 根据taskid去获取导入表
-				ImportTask task = taskRepository.get(conn,EXP.INS().key("id", importTaskId));
+				ImportTask task = taskRepository.get(conn, EXP.INS().key("id", importTaskId));
 				Integer amount = task.amount;
 				Integer offset = 0;
 				for (int k = 0; k < amount / 100 + 1; k++) {
@@ -439,7 +437,7 @@ public class ImportTaskService {
 						// 修改导入任务为正在导入
 						AssetImportTask ass = new AssetImportTask();
 						ass.status = AssetImportTask.STATUS.START.v();
-						assetImportTaskRepository.update(conn,EXP.INS().key("id", importTaskId), ass, true);
+						assetImportTaskRepository.update(conn, EXP.INS().key("id", importTaskId), ass, true);
 
 						// 获取导入数据
 						JSONObject data = JSONObject.parseObject(listImportTemp.getString(i));
@@ -552,7 +550,7 @@ public class ImportTaskService {
 				// 执行完成 修改任务表里成功与失败数量
 				imp.finishTime = new Date();
 				imp.status = ImportTask.STATUS.COMPLETED.v();
-				taskRepository.update(conn,EXP.INS().key("id", importTaskId), imp, true);
+				taskRepository.update(conn, EXP.INS().key("id", importTaskId), imp, true);
 
 			} catch (Exception eee) {
 				eee.printStackTrace();
@@ -601,7 +599,7 @@ public class ImportTaskService {
 	}
 
 	public ImportTask getImportTask(DruidPooledConnection conn, Long importTaskId) throws Exception {
-		return taskRepository.get(conn,EXP.INS().key("id", importTaskId));
+		return taskRepository.get(conn, EXP.INS().key("id", importTaskId));
 	}
 
 }

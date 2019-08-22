@@ -6,6 +6,8 @@ import java.util.List;
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
 
+import zyxhj.core.domain.User;
+import zyxhj.jiti.controller.ORGController;
 import zyxhj.jiti.domain.ORGUser;
 import zyxhj.jiti.repository.ORGUserRepository;
 import zyxhj.jiti.service.ORGService;
@@ -89,4 +91,12 @@ public class Test {
 		return tag;
 	}
 
+	@org.junit.Test
+	public void testEditUserMobile() throws Exception {
+		
+		ORGController c = new ORGController("node");
+		
+		c.editUserMobile(400987736416750L, null);
+		System.out.println();
+	}
 }

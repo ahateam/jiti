@@ -1,5 +1,6 @@
 package zyxhj.jiti.controller;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 import org.slf4j.Logger;
@@ -11,6 +12,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
+import zyxhj.core.domain.User;
 import zyxhj.jiti.domain.Examine;
 import zyxhj.jiti.domain.Notice;
 import zyxhj.jiti.domain.ORG;
@@ -300,6 +302,27 @@ public class ORGController extends Controller {
 		try (DruidPooledConnection conn = dds.getConnection()) {
 			int ret = orgUserService.editUser(conn, userId, mobile, realName, pwd);
 			return APIResponse.getNewSuccessResp(ret);
+		}
+	}
+	
+	/**
+	 * 
+	 */
+	@POSTAPI(//
+			path = "editUserMobile", //
+			des = "用户绑定/解绑手机号", //
+			ret = "更新影响记录的行数"//
+	)
+	public APIResponse editUserMobile(
+			@P(t = "用户编号") Long userId, //
+			@P(t = "手机号,当手机号为null时为解除绑定", r = false) String mobile //
+			) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			User u = orgUserService.editUserMobile(conn, userId, mobile);
+			if(u!=null) {
+				return APIResponse.getNewSuccessResp(u);
+			}
+			return APIResponse.getNewSuccessResp(0);
 		}
 	}
 

@@ -67,7 +67,7 @@ public class ImportController extends Controller {
 	@POSTAPI(//
 			path = "deleteImportTask", //
 			des = "删除导入", //
-			ret = "返回省列表"//
+			ret = "返回新列表"//
 	)
 	public APIResponse deleteImportTask(//
 			@P(t = "导入任务id") Long importTaskId//
@@ -178,7 +178,6 @@ public class ImportController extends Controller {
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
 
-			System.out.println("34");
 			return APIResponse.getNewSuccessResp(importTaskService.getListImportTask(conn, orgId, type, count, offset));
 		}
 	}

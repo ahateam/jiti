@@ -16,6 +16,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alicloud.openservices.tablestore.SyncClient;
 import com.alicloud.openservices.tablestore.model.Column;
+import com.alicloud.openservices.tablestore.model.Direction;
 import com.alicloud.openservices.tablestore.model.PrimaryKey;
 import com.alicloud.openservices.tablestore.model.PrimaryKeyValue;
 import com.alicloud.openservices.tablestore.model.search.SearchQuery;
@@ -97,9 +98,12 @@ public class ImportTaskService {
 	/**
 	 * 导入到临时表
 	 * 
-	 * @param importTaskId 导入id
-	 * @param skipRowCount 第几行开始
-	 * @param colCount     总列数
+	 * @param importTaskId
+	 *            导入id
+	 * @param skipRowCount
+	 *            第几行开始
+	 * @param colCount
+	 *            总列数
 	 */
 	public void importRecord(SyncClient client, DruidPooledConnection conn, Long orgId, Long userId, String url,
 			Long importTaskId, Integer skipRowCount, Integer colCount) throws Exception {
@@ -583,7 +587,7 @@ public class ImportTaskService {
 		// 设置结束主键
 		PrimaryKey pkEnd = new PrimaryKeyBuilder().add("taskId", importTaskId).add("recordId", PrimaryKeyValue.INF_MAX)
 				.build();
-		return tempRecordRepository.getRange(client, pkStart, pkEnd, count, offset);
+		return tempRecordRepository.getRange(client, Direction.FORWARD, pkStart, pkEnd, count, offset);
 
 	}
 

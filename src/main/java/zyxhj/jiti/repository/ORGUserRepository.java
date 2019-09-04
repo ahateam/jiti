@@ -416,5 +416,24 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		sql.fillSQL(sb);
 		return sqlGetJSONArray(conn, sb.toString(), sql.getParams(), count, offset);
 	}
+	
+	
+	public int getCountByRole(DruidPooledConnection conn, Long orgId,Long role) throws Exception {
+		JSONArray ja = new JSONArray();
+		ja.add(role);
+		EXP where = EXP.INS().key("org_id", orgId).and(EXP.JSON_CONTAINS_KEYS(ja, "roles", null));
+		
+		StringBuffer sql = new StringBuffer("SELECT COUNT(*) FROM tb_ecm_org_user WHERE ");
+		StringBuffer sb = new StringBuffer();
+		List<Object> params = new ArrayList<Object>();
+		where.toSQL(sb, params);
+		sql.append(sb);
+		System.out.println(sql.toString());
+		
+		Object[] s = this.sqlGetObjects(conn, sql.toString(), params);
+		
+		int count = Integer.parseInt(s[0].toString());
+		return count;
+	}
 
 }

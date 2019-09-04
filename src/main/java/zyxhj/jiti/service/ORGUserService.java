@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +41,7 @@ import zyxhj.jiti.repository.ORGPermissionRelaRepository;
 import zyxhj.jiti.repository.ORGUserImportRecordRepository;
 import zyxhj.jiti.repository.ORGUserImportTaskRepository;
 import zyxhj.jiti.repository.ORGUserRepository;
+import zyxhj.jiti.repository.ORGUserRoleRepository;
 import zyxhj.utils.CodecUtils;
 import zyxhj.utils.ExcelUtils;
 import zyxhj.utils.IDUtils;
@@ -55,6 +57,7 @@ public class ORGUserService {
 
 	private ORGUserRepository orgUserRepository;
 	private UserRepository userRepository;
+	private ORGUserRoleRepository orgUserRoleRepository;
 	private ORGUserImportTaskRepository orgUserImportTaskRepository;
 	private ORGUserImportRecordRepository orgUserImportRecordRepository;
 	private ExamineRepository examineRepository;
@@ -77,6 +80,7 @@ public class ORGUserService {
 			wxDataService = Singleton.ins(WxDataService.class);
 			wxFuncService = Singleton.ins(WxFuncService.class);
 			messageService = Singleton.ins(MessageService.class);
+			orgUserRoleRepository = Singleton.ins(ORGUserRoleRepository.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -254,6 +258,101 @@ public class ORGUserService {
 		// }
 		orgUserRepository.insert(conn, or);
 	}
+
+	/////////////////////////////////////////////////
+	/////////////////////////////////////////////////
+	/////////////////////////////////////////////////
+	/////////////////////////////////////////////////
+
+	// 修改字段后的方法----新建方法
+	public void createORGUser(DruidPooledConnection conn, Long orgId, String mobile, String realName, String idNumber,
+			Byte sex, String familyRelations, Double resourceShares, Double assetShares, Boolean isORGUser,
+			String address, String shareCerNo, String shareCerImg, Boolean shareCerHolder, Double shareAmount,
+			Integer weight, JSONArray roles, JSONArray groups, JSONObject tags, Long familyNumber, String familyMaster)
+			throws Exception {
+		User extUser = userRepository.get(conn, EXP.INS().key("id_number", idNumber));
+
+		if (null == extUser) {
+			// 用户完全不存在，则User和ORGUser记录都创建
+
+			User newUser = new User();
+			newUser.id = IDUtils.getSimpleId();
+			newUser.createDate = new Date();
+			newUser.realName = realName;
+			newUser.sex = sex;
+			newUser.mobile = mobile;
+			newUser.idNumber = idNumber;
+
+			// 默认密码,身份证后6位
+			newUser.pwd = idNumber.substring(idNumber.length() - 6);
+
+			// 创建用户
+			userRepository.insert(conn, newUser);
+
+			// 写入股东信息表
+			insertORGUser(conn, orgId, newUser.id, sex, familyRelations, resourceShares, assetShares, isORGUser,
+					address, shareCerNo, shareCerImg, shareCerHolder, shareAmount, weight, roles, groups, tags,
+					familyNumber, familyMaster);
+
+		} else {
+			// 判断ORGUser是否存在
+			ORGUser existor = orgUserRepository.get(conn, EXP.INS().key("org_id", orgId).andKey("user_id", extUser.id));
+
+			if (null == existor) {
+				// ORGUser用户不存在，直接创建
+
+				// 写入股东信息表
+				insertORGUser(conn, orgId, extUser.id, sex, familyRelations, resourceShares, assetShares, isORGUser,
+						address, shareCerNo, shareCerImg, shareCerHolder, shareAmount, weight, roles, groups, tags,
+						familyNumber, familyMaster);
+			} else {
+				// System.out
+				// .println(StringUtils.join("xxxx>>orgId>", orgId, " - userId>", extUser.id, "
+				// - id=", idNumber));
+				throw new ServerException(BaseRC.ECM_ORG_USER_EXIST);
+			}
+		}
+	}
+
+	// 修改字段后的方法----新建方法
+	private void insertORGUser(DruidPooledConnection conn, Long orgId, Long userId, Byte sex, String familyRelations,
+			Double resourceShares, Double assetShares, Boolean isORGUser, String address, String shareCerNo,
+			String shareCerImg, Boolean shareCerHolder, Double shareAmount, Integer weight, JSONArray roles,
+			JSONArray groups, JSONObject tags, Long familyNumber, String familyMaster) throws Exception {
+		ORGUser or = new ORGUser();
+		// Family fa = new Family();
+		or.orgId = orgId;
+		or.userId = userId;
+
+		or.address = address;
+		or.shareCerNo = shareCerNo;
+		or.shareCerImg = shareCerImg;
+		or.shareCerHolder = shareCerHolder;
+
+		or.shareAmount = shareAmount;
+
+		or.familyRelations = familyRelations;
+		or.resourceShares = resourceShares;
+		or.assetShares = assetShares;
+		or.isORGUser = isORGUser;
+
+		or.weight = weight;
+
+		or.roles = array2JsonString(checkRoles(roles));
+		or.groups = array2JsonString(checkGroups(conn, orgId, groups));
+		or.tags = obj2JsonString(tags);
+
+		or.familyNumber = familyNumber;
+		or.familyMaster = familyMaster;
+
+		orgUserRepository.insert(conn, or);
+	}
+
+	/////////////////////////////////////////////////
+	/////////////////////////////////////////////////
+	/////////////////////////////////////////////////
+	/////////////////////////////////////////////////
+	/////////////////////////////////////////////////
 
 	/**
 	 * 创建组织用户
@@ -1792,26 +1891,34 @@ public class ORGUserService {
 		return orgUserRepository.getOrgUser(conn, orgId, idNumber);
 	}
 
-	public User editUserMobile(DruidPooledConnection conn, Long userId, String mobile)
-			throws ServerException {
+	public User editUserMobile(DruidPooledConnection conn, Long userId, String mobile) throws ServerException {
 		User renew = new User();
-		
-		if(mobile == null) {
+
+		if (mobile == null) {
 			renew.mobile = "";
-		}else {
+		} else {
 			List<User> ulist = userRepository.getList(conn, EXP.INS().key("mobile", mobile), 10, 0, "mobile");
 			if (ulist.size() > 0 && ulist != null) {
 				return null;
 			}
 			renew.mobile = mobile;
 		}
-		
+
 		int ret = userRepository.update(conn, EXP.INS().key("id", userId), renew, true);
-		
-//		System.out.println(ret);
-		
+
+
 		return userRepository.get(conn, EXP.INS().key("id", userId));
-		
+
+	}
+
+	public JSONObject getCountsByRole(DruidPooledConnection conn, Long orgId, JSONArray roles)
+			throws Exception {
+		JSONObject jo = new JSONObject();
+		for(int i = 0; i < roles.size(); i++) {
+			int count = orgUserRepository.getCountByRole(conn, orgId, roles.getLong(i));
+			jo.put(roles.getLong(i).toString(), count);
+		}
+		return jo;
 	}
 
 }

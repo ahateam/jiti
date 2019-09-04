@@ -97,12 +97,9 @@ public class ImportTaskService {
 	/**
 	 * 导入到临时表
 	 * 
-	 * @param importTaskId
-	 *            导入id
-	 * @param skipRowCount
-	 *            第几行开始
-	 * @param colCount
-	 *            总列数
+	 * @param importTaskId 导入id
+	 * @param skipRowCount 第几行开始
+	 * @param colCount     总列数
 	 */
 	public void importRecord(SyncClient client, DruidPooledConnection conn, Long orgId, Long userId, String url,
 			Long importTaskId, Integer skipRowCount, Integer colCount) throws Exception {
@@ -207,8 +204,28 @@ public class ImportTaskService {
 
 						String realName = data.getString(StringUtils.join("Col", co++));
 						String idNumber = data.getString(StringUtils.join("Col", co++));
+
+						// 性别
+						Byte sex = 0;
+						if (data.getString(StringUtils.join("Col", co++)).equals("女")) {
+							sex = 1;
+						}
+
+						// 与户主关系
+						String familyRelations = data.getString(StringUtils.join("Col", co++));
+
 						String mobile = data.getString(StringUtils.join("Col", co++));
 						Double shareAmount = data.getDouble(StringUtils.join("Col", co++));
+
+						// 资源股
+						Double resourceShares = data.getDouble(StringUtils.join("Col", co++));
+						// 资产股
+						Double assetShares = data.getDouble(StringUtils.join("Col", co++));
+						// 是否为组织成员
+						Boolean isORGUser = true;
+						if (data.getString(StringUtils.join("Col", co++)).equals("否")) {
+							isORGUser = false;
+						}
 
 						Integer weight = data.getInteger(StringUtils.join("Col", co++));
 						String address = data.getString(StringUtils.join("Col", co++));
@@ -358,9 +375,9 @@ public class ImportTaskService {
 						}
 
 						try {
-							orgUserService.createORGUser(conn, orgId, mobile, realName, idNumber, address, shareCerNo,
-									"", shareCerHolder, shareAmount, weight, roles, arrGroups, joTags, familyNumber,
-									familyMaster);
+							orgUserService.createORGUser(conn, orgId, mobile, realName, idNumber, sex, familyRelations,
+									resourceShares, assetShares, isORGUser, address, shareCerNo, "", shareCerHolder,
+									shareAmount, weight, roles, arrGroups, joTags, familyNumber, familyMaster);
 							// 修改资产状态为成功
 							PrimaryKey pk = new PrimaryKeyBuilder().add("taskId", importTaskId)
 									.add("recordId", recordId).build();
@@ -375,7 +392,7 @@ public class ImportTaskService {
 									.add("recordId", recordId).build();
 							ColumnBuilder cb = new ColumnBuilder();
 							cb.add("status", (long) ImportTempRecord.STATUS.FAILURE.v());
-							cb.add("result", e.getLocalizedMessage());
+							cb.add("result", e.getMessage());
 							List<Column> columns = cb.build();
 							TSRepository.nativeUpdate(client, tempRecordRepository.getTableName(), pk, true, columns);
 							taskRepository.countORGUserImportNotCompletionTask(conn, importTaskId);

@@ -5,12 +5,14 @@ import java.util.List;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 
 import zyxhj.core.domain.User;
 import zyxhj.jiti.controller.ORGController;
 import zyxhj.jiti.domain.ORGUser;
 import zyxhj.jiti.repository.ORGUserRepository;
 import zyxhj.jiti.service.ORGService;
+import zyxhj.jiti.service.ORGUserService;
 import zyxhj.utils.api.ServerException;
 import zyxhj.utils.data.DataSource;
 import zyxhj.utils.data.EXP;
@@ -91,12 +93,26 @@ public class Test {
 		return tag;
 	}
 
-	@org.junit.Test
+	
 	public void testEditUserMobile() throws Exception {
 		
 		ORGController c = new ORGController("node");
 		
 		c.editUserMobile(400987736416750L, null);
 		System.out.println();
+	}
+	
+	
+	@org.junit.Test
+	public void testgetCountsByRoles() throws Exception {
+		ORGUserService userService = new ORGUserService();
+		JSONArray ja = new JSONArray();
+		ja.add(101L);
+		ja.add(102L);
+		ja.add(103L);
+		ja.add(104L);
+		ja.add(107L);
+		JSONObject jo = userService.getCountsByRole(conn,11L,ja);
+		System.out.println(jo.toString());
 	}
 }

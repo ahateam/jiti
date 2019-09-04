@@ -304,7 +304,7 @@ public class ORGController extends Controller {
 			return APIResponse.getNewSuccessResp(ret);
 		}
 	}
-	
+
 	/**
 	 * 
 	 */
@@ -313,13 +313,12 @@ public class ORGController extends Controller {
 			des = "用户绑定/解绑手机号", //
 			ret = "更新影响记录的行数"//
 	)
-	public APIResponse editUserMobile(
-			@P(t = "用户编号") Long userId, //
+	public APIResponse editUserMobile(@P(t = "用户编号") Long userId, //
 			@P(t = "手机号,当手机号为null时为解除绑定", r = false) String mobile //
-			) throws Exception {
+	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
 			User u = orgUserService.editUserMobile(conn, userId, mobile);
-			if(u!=null) {
+			if (u != null) {
 				return APIResponse.getNewSuccessResp(u);
 			}
 			return APIResponse.getNewSuccessResp(0);
@@ -1856,6 +1855,21 @@ public class ORGController extends Controller {
 	public APIResponse delSubOrg(@P(t = "组织id") Long orgId) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.delSubOrg(conn, orgId));
+		}
+	}
+
+	@POSTAPI(//
+			path = "getCountsByRoles", //
+			des = "获取组织每个职位的人员总数", //
+			ret = "JSONObject<'roleId', count>"//
+	)
+	public APIResponse getCountsByRoles(//
+			@P(t = "组织id") Long orgId,//
+			@P(t = "职务编号数组") JSONArray roles//
+	) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			
+			return APIResponse.getNewSuccessResp(orgUserService.getCountsByRole(conn, orgId, roles));
 		}
 	}
 

@@ -16,9 +16,8 @@ import com.alibaba.fastjson.JSONObject;
 import zyxhj.jiti.domain.Asset;
 import zyxhj.jiti.domain.ORGUserTagGroup;
 import zyxhj.utils.api.ServerException;
+import zyxhj.utils.data.EXP;
 import zyxhj.utils.data.rds.RDSRepository;
-import zyxhj.utils.data.rds.SQL;
-import zyxhj.utils.data.rds.SQLEx;
 
 public class AssetRepository extends RDSRepository<Asset> {
 
@@ -29,86 +28,114 @@ public class AssetRepository extends RDSRepository<Asset> {
 	public List<Asset> queryAssets(DruidPooledConnection conn, Long orgId, String assetType, JSONArray groups,
 			JSONObject tags, Integer count, Integer offset) throws ServerException {
 
-		SQL sql = new SQL();
-		sql.addEx("org_id=? ", orgId);
+//		SQL sql = new SQL();
+//		sql.addEx("org_id=? ", orgId);
+
+		EXP sql = EXP.INS().key("org_id", orgId);
 
 		StringBuffer sb = new StringBuffer();
+		List<Object> params = new ArrayList<Object>();
 		if (null != assetType) {
-			sql.AND("asset_type= ? ", assetType);
+//			sql.AND("asset_type= ? ", assetType);
+			sql.andKey("asset_type", assetType);
 		}
 
 		if ((groups != null && groups.size() > 0) || (tags != null && tags.entrySet().size() > 0)) {
 			if (groups != null && groups.size() > 0) {
-				SQL sq = new SQL();
-				for (int i = 0; i < groups.size(); i++) {
-					sq.OR(StringUtils.join("JSON_CONTAINS(groups, '", groups.getLong(i), "', '$') "));
-				}
-				sql.AND(sq);
+//				SQL sq = new SQL();
+
+				EXP sq = EXP.INS();
+
+				sq.or(EXP.JSON_CONTAINS_KEYS(groups, "groups", null));
+//				for (int i = 0; i < groups.size(); i++) {
+//					sq.OR(StringUtils.join("JSON_CONTAINS(groups, '", groups.getLong(i), "', '$') "));
+//					JSONArray ja = new JSONArray();
+//					ja.add(groups.getLong(i));
+//				}
+//				sql.AND(sq);
+				sql.and(sq);
 			}
 
 			if (tags != null && tags.entrySet().size() > 0) {
-				SQL sq = new SQL();
+//				SQL sq = new SQL();
+				EXP sq = EXP.INS();
 
-				Iterator<Entry<String, Object>> it = tags.entrySet().iterator();
-				while (it.hasNext()) {
-					Entry<String, Object> entry = it.next();
-					String key = entry.getKey();
-					JSONArray arr = (JSONArray) entry.getValue();
-
-					if (arr != null && arr.size() > 0) {
-						for (int i = 0; i < arr.size(); i++) {
-							sq.OR(StringUtils.join("JSON_CONTAINS(tags, '", arr.getString(i), "', '$.", key, "') "));
-						}
-					}
-				}
-				sql.AND(sq);
+				sq.and(EXP.JSON_CONTAINS_JSONOBJECT(tags, "tags"));
+//				Iterator<Entry<String, Object>> it = tags.entrySet().iterator();
+//				while (it.hasNext()) {
+//					Entry<String, Object> entry = it.next();
+//					String key = entry.getKey();
+//					JSONArray arr = (JSONArray) entry.getValue();
+//
+//					if (arr != null && arr.size() > 0) {
+//						for (int i = 0; i < arr.size(); i++) {
+//							sq.OR(StringUtils.join("JSON_CONTAINS(tags, '", arr.getString(i), "', '$.", key, "') "));
+//						}
+//					}
+//				}
+				sql.and(sq);
 			}
 		}
-		sql.fillSQL(sb);
-		return getList(conn, sb.toString(), sql.getParams(), count, offset);
+//		sql.fillSQL(sb);
+		sql.toSQL(sb, params);
+//		return getList(conn, sb.toString(), sql.getParams(), count, offset);
+		return getList(conn, sb.toString(), params, count, offset);
 	}
 
-	public List<Asset> getAssetsByGroups(DruidPooledConnection conn, Long orgId, String[] groups, Integer count,
+	public List<Asset> getAssetsByGroups(DruidPooledConnection conn, Long orgId, JSONArray groups, Integer count,
 			Integer offset) throws ServerException {
-		return getListByTagsJSONArray(conn, "groups", "", groups, "org_id=? ", Arrays.asList(orgId), count, offset);
+//		return getListByTagsJSONArray(conn, "groups", "", groups, "org_id=? ", Arrays.asList(orgId), count, offset);
+
+		EXP exp = EXP.INS().key("org_id", orgId).and(EXP.JSON_CONTAINS_KEYS(groups, "groups", null));
+		return getList(conn, exp, count, offset);
 	}
 
 	public List<Asset> getAssetsByTags(DruidPooledConnection conn, Long orgId, JSONObject tags, Integer count,
 			Integer offset) throws ServerException {
-		return getListByTagsJSONObject(conn, "groups", tags, "org_id=? ", Arrays.asList(orgId), count, offset);
+//		return getListByTagsJSONObject(conn, "groups", tags, "org_id=? ", Arrays.asList(orgId), count, offset);
+
+		EXP exp = EXP.INS().key("org_id", orgId).and(EXP.JSON_CONTAINS_JSONOBJECT(tags, "groups"));
+		return getList(conn, exp, count, offset);
+
 	}
 
 	public int batchEditAssetsGroups(DruidPooledConnection conn, Long orgId, JSONArray assetIds, JSONArray groups)
 			throws ServerException {
 
 		// SET groups="[123,456,345]"
-		StringBuffer sbset = new StringBuffer(" SET ");
-		ArrayList<Object> pset = new ArrayList<>();
-		SQL sqlset = new SQL();
-
+//		StringBuffer sbset = new StringBuffer(" SET ");
+//		ArrayList<Object> pset = new ArrayList<>();
+//		SQL sqlset = new SQL();
+		EXP set = EXP.INS();
 		// 不能为空，为空需要填写默认分组
 		if (groups == null || groups.size() <= 0) {
 			// 填入未分组，避免空
 			groups = new JSONArray();
 			groups.add(ORGUserTagGroup.group_undefine.groupId);
 		}
-		sqlset.addEx("groups=? ");
-		pset.add(JSON.toJSONString(groups));
-		sqlset.fillSQL(sbset);
+//		sqlset.addEx("groups=? ");
+//		pset.add(JSON.toJSONString(groups));
+//		sqlset.fillSQL(sbset);
+		set.key("groups", groups.toJSONString());
 
 		// WHERE org_id=? AND id IN (1,2,3)
-		StringBuffer sbwhere = new StringBuffer(" ");
+//		StringBuffer sbwhere = new StringBuffer(" ");
+//		SQL sqlWhere = new SQL();
 
-		SQL sqlWhere = new SQL();
-		sqlWhere.addEx("org_id= ? ", orgId);
+		EXP where = EXP.INS();
+//		sqlWhere.addEx("org_id= ? ", orgId);
+		where.key("org_id", orgId);
 
 		if (assetIds != null && assetIds.size() > 0) {
-			sqlWhere.AND(SQLEx.exIn("id", assetIds.toArray()));
+//			sqlWhere.AND(SQLEx.exIn("id", assetIds.toArray()));
+			where.and(EXP.IN_ORDERED("id", assetIds.toArray()));
 
-			sqlWhere.fillSQL(sbwhere);
+//			sqlWhere.fillSQL(sbwhere);
 
-			System.out.println(StringUtils.join(sbset.toString(), " ", sbwhere.toString()));
-			return update(conn, sbset.toString(), pset , sbwhere.toString(), sqlWhere.getParams());
+//			System.out.println(StringUtils.join(sbset.toString(), " ", sbwhere.toString()));
+//			return update(conn, sbset.toString(), pset , sbwhere.toString(), sqlWhere.getParams());
+
+			return update(conn, set, where);
 		} else {
 			return 0;
 		}
@@ -119,8 +146,8 @@ public class AssetRepository extends RDSRepository<Asset> {
 		// SELECT * FROM tb_ecm_org_user WHERE family_master LIKE '%文%' OR user_id LIKE
 		// "3755%"
 		// 按编号模糊查询
-		return this.getList(conn, StringUtils.join("org_id = ? AND sn LIKE '%", assetNum, "%'"),
-				Arrays.asList(orgId), count, offset);
+		return this.getList(conn, StringUtils.join("org_id = ? AND sn LIKE '%", assetNum, "%'"), Arrays.asList(orgId),
+				count, offset);
 	}
 
 	public List<Asset> getAssetsByName(DruidPooledConnection conn, Long orgId, String assetNum, Integer count,
@@ -134,8 +161,7 @@ public class AssetRepository extends RDSRepository<Asset> {
 
 	public List<Asset> getAssetByYear(DruidPooledConnection conn, Long orgId, String buildTime, Integer count,
 			Integer offset) throws Exception {
-		return this.getList(conn, "org_id = ? AND build_time = ? ", Arrays.asList(orgId, buildTime), count,
-				offset);
+		return this.getList(conn, "org_id = ? AND build_time = ? ", Arrays.asList(orgId, buildTime), count, offset);
 	}
 
 	// 组织统计某一年报表
@@ -171,52 +197,88 @@ public class AssetRepository extends RDSRepository<Asset> {
 
 		// SELECT sum FROM table WHERE org_id=? AND build_time=? AND(...)
 		// (groups) AND (resType) AND (xxx) AND (yyy)
-		SQL sql = new SQL();
+//		SQL sql = new SQL();
+		EXP sql = EXP.INS();
 		StringBuffer sb = new StringBuffer(
 				" SELECT build_time,sum(origin_price) originPrice , sum(yearly_income) yearlyIncome FROM tb_ecm_asset WHERE ");
-		sql.addEx(" org_id = ? ", orgId);
-		sql.AND("build_time = ? ", buildTime);
+//		sql.addEx(" org_id = ? ", orgId);
+//		sql.AND("build_time = ? ", buildTime);
+		sql.key("org_id", orgId).andKey("build_time", buildTime);
 		if ((groups != null && groups.size() > 0) || (resTypes != null && resTypes.size() > 0)
 				|| (assetTypes != null && assetTypes.size() > 0)
 				|| (businessModes != null && businessModes.size() > 0)) {
-			SQL subEx = new SQL();
+//			SQL subEx = new SQL();
+//			if (groups != null && groups.size() > 0) {
+//				SQL sqlGroup = new SQL();
+//				for (int i = 0; i < groups.size(); i++) {
+//					sqlGroup.OR(StringUtils.join("JSON_CONTAINS(groups, '", groups.getString(i), "', '$')"));
+//				}
+//				subEx.AND(sqlGroup);
+//			}
+			
+//			if (resTypes != null && resTypes.size() > 0) {
+//				SQL sqlResType = new SQL();
+//				for (int i = 0; i < resTypes.size(); i++) {
+//					sqlResType.OR(StringUtils.join("res_type= '", resTypes.getString(i), "'"));
+//				}
+//				subEx.AND(sqlResType);
+//			}
+//			if (assetTypes != null && assetTypes.size() > 0) {
+//				SQL sqlAssetTypes = new SQL();
+//				for (int i = 0; i < assetTypes.size(); i++) {
+//					sqlAssetTypes.OR(StringUtils.join("asset_type= '", assetTypes.getString(i), "'"));
+//				}
+//				subEx.AND(sqlAssetTypes);
+//			}
+			
+//			if (businessModes != null && businessModes.size() > 0) {
+//				SQL sqlBusinessModes = new SQL();
+//				for (int i = 0; i < businessModes.size(); i++) {
+//					sqlBusinessModes.OR(StringUtils.join("business_mode= '", businessModes.getString(i), "'"));
+//				}
+//				subEx.AND(sqlBusinessModes);
+//			}
+			
+			EXP subEx = EXP.INS();
 			if (groups != null && groups.size() > 0) {
-				SQL sqlGroup = new SQL();
+				EXP sqlGroup = EXP.INS();
 				for (int i = 0; i < groups.size(); i++) {
-					sqlGroup.OR(StringUtils.join("JSON_CONTAINS(groups, '", groups.getString(i), "', '$')"));
+					JSONArray ja = new JSONArray();
+					ja.add(groups.getString(i));
+					sqlGroup.or(EXP.JSON_CONTAINS_KEYS(ja, "groups", null));
 				}
-				subEx.AND(sqlGroup);
+				subEx.and(sqlGroup);
 			}
 
 			if (resTypes != null && resTypes.size() > 0) {
-				SQL sqlResType = new SQL();
+				EXP sqlResType = EXP.INS();
 				for (int i = 0; i < resTypes.size(); i++) {
-					sqlResType.OR(StringUtils.join("res_type= '", resTypes.getString(i), "'"));
+					sqlResType.or(EXP.INS().key("res_type", resTypes.getString(i)));
 				}
-				subEx.AND(sqlResType);
+				subEx.and(sqlResType);
 			}
 
 			if (assetTypes != null && assetTypes.size() > 0) {
-				SQL sqlAssetTypes = new SQL();
+				EXP sqlAssetTypes = EXP.INS();
 				for (int i = 0; i < assetTypes.size(); i++) {
-					sqlAssetTypes.OR(StringUtils.join("asset_type= '", assetTypes.getString(i), "'"));
+					sqlAssetTypes.or(EXP.INS().key("asset_type", assetTypes.getString(i)));
 				}
-				subEx.AND(sqlAssetTypes);
+				subEx.and(sqlAssetTypes);
 			}
 
 			if (businessModes != null && businessModes.size() > 0) {
-				SQL sqlBusinessModes = new SQL();
+				EXP sqlBusinessModes = EXP.INS();
 				for (int i = 0; i < businessModes.size(); i++) {
-					sqlBusinessModes.OR(StringUtils.join("business_mode= '", businessModes.getString(i), "'"));
+					sqlBusinessModes.or(EXP.INS().key("business_mode", businessModes.getString(i)));
 				}
-				subEx.AND(sqlBusinessModes);
+				subEx.and(sqlBusinessModes);
 			}
-			sql.AND(subEx);
+			sql.and(subEx);
 		}
-
-		sql.fillSQL(sb);
+		List<Object> params = new ArrayList<Object>();
+		sql.toSQL(sb, params);
 		System.out.println(sb.toString());
-		return sqlGetJSONArray(conn, sb.toString(), sql.getParams(), 1, 0);
+		return sqlGetJSONArray(conn, sb.toString(), params, 1, 0);
 	}
 
 	// 区管理员统计某一年报表
@@ -256,60 +318,107 @@ public class AssetRepository extends RDSRepository<Asset> {
 		// SELECT sum FROM table WHERE build_time=? AND(...)
 		// (groups) AND (resType) AND (xxx) AND (yyy)
 
-		SQL sql = new SQL();
-		sql.addEx("build_time = ?", buildTime);
+//		SQL sql = new SQL();
+//		sql.addEx("build_time = ?", buildTime);
+		EXP sql = EXP.INS().key("build_time", buildTime);
 		if ((orgIds != null && orgIds.size() > 0) || (groups != null && groups.size() > 0)
 				|| (resTypes != null && resTypes.size() > 0) || (assetTypes != null && assetTypes.size() > 0)
+				
 				|| (businessModes != null && businessModes.size() > 0)) {
-			SQL sqlEx = new SQL();
+			
+//			SQL sqlEx = new SQL();
+//			if (orgIds != null && orgIds.size() > 0) {
+//				SQL sqlOrgIds = new SQL();
+//				for (int i = 0; i < orgIds.size(); i++) {
+//					sqlOrgIds.OR(StringUtils.join("org_id =", orgIds.getString(i)));
+//				}
+//				sqlEx.AND(sqlOrgIds);
+//			}
+			
+//			if (groups != null && groups.size() > 0) {
+//				SQL sqlGroups = new SQL();
+//				for (int i = 0; i < groups.size(); i++) {
+//					sqlGroups.OR(StringUtils.join("JSON_CONTAINS(groups, '", groups.getString(i), "', '$')"));
+//				}
+//				sqlEx.AND(sqlGroups);
+//			}
+			
+//			if (resTypes != null && resTypes.size() > 0) {
+//				SQL sqlresTypes = new SQL();
+//				for (int i = 0; i < resTypes.size(); i++) {
+//					sqlresTypes.OR(StringUtils.join("res_type='", resTypes.getString(i), "'"));
+//				}
+//				sqlEx.AND(sqlresTypes);
+//			}
+			
+//			if (assetTypes != null && assetTypes.size() > 0) {
+//			SQL sqlassetTypes = new SQL();
+//			for (int i = 0; i < assetTypes.size(); i++) {
+//				sqlassetTypes.OR(StringUtils.join("asset_type='", assetTypes.getString(i), "'"));
+//			}
+//			sqlEx.AND(sqlassetTypes);
+//		}
+			
+//			if (businessModes != null && businessModes.size() > 0) {
+//			SQL sqlbusinessModes = new SQL();
+//			for (int i = 0; i < businessModes.size(); i++) {
+//				sqlbusinessModes.OR(StringUtils.join("business_mode='", businessModes.getString(i), "' "));
+//			}
+//
+//			sqlEx.AND(sqlbusinessModes);
+//		}
+
+			EXP sqlEx = EXP.INS();
 			if (orgIds != null && orgIds.size() > 0) {
-
-				SQL sqlOrgIds = new SQL();
+				EXP sqlOrgIds = EXP.INS();
 				for (int i = 0; i < orgIds.size(); i++) {
-					sqlOrgIds.OR(StringUtils.join("org_id =", orgIds.getString(i)));
+					sqlOrgIds.or(EXP.INS().key("org_id",  orgIds.getString(i)));
 				}
-				sqlEx.AND(sqlOrgIds);
+				sqlEx.and(sqlOrgIds);
 			}
-
+			
 			if (groups != null && groups.size() > 0) {
-				SQL sqlGroups = new SQL();
+				EXP sqlGroup = EXP.INS();
 				for (int i = 0; i < groups.size(); i++) {
-					sqlGroups.OR(StringUtils.join("JSON_CONTAINS(groups, '", groups.getString(i), "', '$')"));
+					JSONArray ja = new JSONArray();
+					ja.add(groups.getString(i));
+					sqlGroup.or(EXP.JSON_CONTAINS_KEYS(ja, "groups", null));
 				}
-				sqlEx.AND(sqlGroups);
+				sqlEx.and(sqlGroup);
 			}
-
+			
 			if (resTypes != null && resTypes.size() > 0) {
-				SQL sqlresTypes = new SQL();
+				EXP sqlResType = EXP.INS();
 				for (int i = 0; i < resTypes.size(); i++) {
-					sqlresTypes.OR(StringUtils.join("res_type='", resTypes.getString(i), "'"));
+					sqlResType.or(EXP.INS().key("res_type", resTypes.getString(i)));
 				}
-				sqlEx.AND(sqlresTypes);
+				sqlEx.and(sqlResType);
 			}
-
+			
 			if (assetTypes != null && assetTypes.size() > 0) {
-				SQL sqlassetTypes = new SQL();
+				EXP sqlAssetTypes = EXP.INS();
 				for (int i = 0; i < assetTypes.size(); i++) {
-					sqlassetTypes.OR(StringUtils.join("asset_type='", assetTypes.getString(i), "'"));
+					sqlAssetTypes.or(EXP.INS().key("asset_type", assetTypes.getString(i)));
 				}
-				sqlEx.AND(sqlassetTypes);
+				sqlEx.and(sqlAssetTypes);
 			}
 
+
+			
 			if (businessModes != null && businessModes.size() > 0) {
-				SQL sqlbusinessModes = new SQL();
+				EXP sqlBusinessModes = EXP.INS();
 				for (int i = 0; i < businessModes.size(); i++) {
-					sqlbusinessModes.OR(StringUtils.join("business_mode='", businessModes.getString(i), "' "));
+					sqlBusinessModes.or(EXP.INS().key("business_mode", businessModes.getString(i)));
 				}
-
-				sqlEx.AND(sqlbusinessModes);
+				sqlEx.and(sqlBusinessModes);
 			}
-			sql.AND(sqlEx);
+			sql.and(sqlEx);
 		}
 		StringBuffer sb = new StringBuffer(" SELECT build_time,sum(origin_price) originPrice , "
 				+ "sum(yearly_income) yearlyIncome FROM tb_ecm_asset WHERE ");
-		sql.fillSQL(sb);
-
-		return sqlGetJSONArray(conn, sb.toString(), sql.getParams(), 1, 0);
+		List<Object> params = new ArrayList<Object>();
+		sql.toSQL(sb, params);
+		return sqlGetJSONArray(conn, sb.toString(), params, 1, 0);
 	}
 
 	// 根据类型获取资产列表
@@ -322,8 +431,7 @@ public class AssetRepository extends RDSRepository<Asset> {
 		// (build_time) And (org_id) AND (xxx)
 
 		StringBuffer sb = new StringBuffer();
-		SQL sql = new SQL();
-
+		EXP sql = EXP.INS();
 		// 如果有条件进入 则插入条件进行查询 如果没有 则返回所有列表
 		if ((buildTimes != null && buildTimes.size() > 0) || (orgIds != null && orgIds.size() > 0)
 				|| (groups != null && groups.size() > 0) || (resTypes != null && resTypes.size() > 0)
@@ -331,61 +439,65 @@ public class AssetRepository extends RDSRepository<Asset> {
 				|| (businessModes != null && businessModes.size() > 0)) {
 
 //			sb.append(" WHERE "); // TODO 此处where在添加区级管理以后 放到上面去
-			SQL sqlEx = new SQL();
+			EXP sqlEx = EXP.INS();
 
 			if (buildTimes != null && buildTimes.size() > 0) {
-				SQL sqlbuildTimes = new SQL();
+				EXP sqlbuildTimes = EXP.INS();
 				for (int i = 0; i < buildTimes.size(); i++) {
-					sqlbuildTimes.OR(StringUtils.join("build_time ='", buildTimes.getString(i), "'"));
+					sqlbuildTimes.or(EXP.INS().key("build_time", buildTimes.getString(i)));
 				}
-				sqlEx.AND(sqlbuildTimes);
+				sqlEx.and(sqlbuildTimes);
 			}
 
 			if (orgIds != null && orgIds.size() > 0) {
-				SQL sqlorgIds = new SQL();
-				for (int i = 0; i < orgIds.size(); i++) {
-					sqlorgIds.OR(StringUtils.join("org_id =", orgIds.getString(i)));
-				}
-				sqlEx.AND(sqlorgIds);
-			}
 
-			if (groups != null && groups.size() > 0) {
-				SQL sqlgroups = new SQL();
-				for (int i = 0; i < groups.size(); i++) {
-					sqlgroups.OR(StringUtils.join("JSON_CONTAINS(groups, '", groups.getString(i), "', '$')"));
+				EXP sqlOrgIds = EXP.INS();
+				for (int i = 0; i < orgIds.size(); i++) {
+					sqlOrgIds.or(EXP.INS().key("org_id",  orgIds.getString(i)));
 				}
-				sqlEx.AND(sqlgroups);
+				sqlEx.and(sqlOrgIds);
+			}
+			
+			if (groups != null && groups.size() > 0) {
+				EXP sqlGroup = EXP.INS();
+				for (int i = 0; i < groups.size(); i++) {
+					JSONArray ja = new JSONArray();
+					ja.add(groups.getString(i));
+					sqlGroup.or(EXP.JSON_CONTAINS_KEYS(ja, "groups", null));
+				}
+				sqlEx.and(sqlGroup);
 			}
 
 			if (resTypes != null && resTypes.size() > 0) {
-				SQL sqlresTypes = new SQL();
+				EXP sqlResType = EXP.INS();
 				for (int i = 0; i < resTypes.size(); i++) {
-					sqlresTypes.OR(StringUtils.join("res_type ='", resTypes.getString(i), "'"));
+					sqlResType.or(EXP.INS().key("res_type", resTypes.getString(i)));
 				}
-				sqlEx.AND(sqlresTypes);
+				sqlEx.and(sqlResType);
 			}
 
 			if (assetTypes != null && assetTypes.size() > 0) {
-				SQL sqlassetTypes = new SQL();
+				EXP sqlAssetTypes = EXP.INS();
 				for (int i = 0; i < assetTypes.size(); i++) {
-					sqlassetTypes.OR(StringUtils.join("asset_type ='", assetTypes.getString(i), "'"));
+					sqlAssetTypes.or(EXP.INS().key("asset_type", assetTypes.getString(i)));
 				}
-				sqlEx.AND(sqlassetTypes);
+				sqlEx.and(sqlAssetTypes);
 			}
-
+			
 			if (businessModes != null && businessModes.size() > 0) {
-				SQL sqlbusinessModes = new SQL();
+				EXP sqlBusinessModes = EXP.INS();
 				for (int i = 0; i < businessModes.size(); i++) {
-					sqlbusinessModes.OR(StringUtils.join("business_mode ='", businessModes.getString(i), "'"));
+					sqlBusinessModes.or(EXP.INS().key("business_mode", businessModes.getString(i)));
 				}
-				sqlEx.AND(sqlbusinessModes);
+				sqlEx.and(sqlBusinessModes);
 			}
-			sql.AND(sqlEx);
+			sql.and(sqlEx);
 		}
-		sql.fillSQL(sb);
 
-		 System.out.println(sb.toString());
-		return getList(conn, sb.toString(), sql.getParams(), count, offset);
+		List<Object> params = new ArrayList<Object>();
+		sql.toSQL(sb, params);
+		System.out.println(sb.toString());
+		return getList(conn, sb.toString(), params, count, offset);
 
 	}
 

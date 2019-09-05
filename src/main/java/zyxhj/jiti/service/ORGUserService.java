@@ -275,6 +275,7 @@ public class ORGUserService {
 		if (null == extUser) {
 			// 用户完全不存在，则User和ORGUser记录都创建
 
+			System.out.println(sex);
 			User newUser = new User();
 			newUser.id = IDUtils.getSimpleId();
 			newUser.createDate = new Date();
@@ -334,7 +335,7 @@ public class ORGUserService {
 		or.familyRelations = familyRelations;
 		or.resourceShares = resourceShares;
 		or.assetShares = assetShares;
-		or.isORGUser = isORGUser;
+		or.isOrgUser = isORGUser;
 
 		or.weight = weight;
 

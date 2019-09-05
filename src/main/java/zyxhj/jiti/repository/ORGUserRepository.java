@@ -26,8 +26,6 @@ import zyxhj.utils.api.BaseRC;
 import zyxhj.utils.api.ServerException;
 import zyxhj.utils.data.EXP;
 import zyxhj.utils.data.rds.RDSRepository;
-import zyxhj.utils.data.rds.SQL;
-import zyxhj.utils.data.rds.SQLEx;
 
 public class ORGUserRepository extends RDSRepository<ORGUser> {
 
@@ -78,48 +76,49 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		JSONArray groups = crowd.getJSONArray("groups");
 		JSONObject tags = crowd.getJSONObject("tags");
 
-		SQL sql = new SQL();
-
-		sql.addEx("org_id = ? ");
+		EXP sql = EXP.INS().key("org_id",orgId);
 		if ((roles != null && roles.size() > 0) || (groups != null && groups.size() > 0) || (tags != null)) {
-			SQL sqlEx = new SQL();
-
+			EXP sqlEx = EXP.INS();
 			if (roles != null && roles.size() > 0) {
-				for (int i = 0; i < roles.size(); i++) {
-					sqlEx.OR(StringUtils.join("JSON_CONTAINS(roles, '", roles.getString(i), "', '$') "));
-				}
+				sqlEx.and(EXP.JSON_CONTAINS_KEYS(roles, "roles", null));
+//				for (int i = 0; i < roles.size(); i++) {
+//					sqlEx.OR(StringUtils.join("JSON_CONTAINS(roles, '", roles.getString(i), "', '$') "));
+//					
+//				}
 			}
 
 			if (groups != null && groups.size() > 0) {
-				for (int i = 0; i < groups.size(); i++) {
-					sqlEx.OR(StringUtils.join("JSON_CONTAINS(group, '", groups.getString(i), "', '$') "));
-				}
+				sqlEx.and(EXP.JSON_CONTAINS_KEYS(groups, "groups", null));
+//				for (int i = 0; i < groups.size(); i++) {
+//					sqlEx.OR(StringUtils.join("JSON_CONTAINS(group, '", groups.getString(i), "', '$') "));
+//				}
 			}
 
 			if (tags != null) {
-				Iterator<Entry<String, Object>> it = tags.entrySet().iterator();
-				while (it.hasNext()) {
-					Entry<String, Object> entry = it.next();
-					String key = entry.getKey();
-					JSONArray arr = (JSONArray) entry.getValue();
-
-					if (arr != null && arr.size() > 0) {
-						for (int i = 0; i < arr.size(); i++) {
-							// JSON_CONTAINS(tags, '"tag1"', '$.groups')
-							// JSON_CONTAINS(tags, '"tag3"', '$.tags')
-							sqlEx.OR(StringUtils.join("JSON_CONTAINS(tags, '\"", arr.getString(i), "\"', '$.", key,
-									"') "));
-						}
-					}
-				}
+				sqlEx.and(EXP.JSON_CONTAINS_JSONOBJECT(tags, "tags"));
+//				Iterator<Entry<String, Object>> it = tags.entrySet().iterator();
+//				while (it.hasNext()) {
+//					Entry<String, Object> entry = it.next();
+//					String key = entry.getKey();
+//					JSONArray arr = (JSONArray) entry.getValue();
+//
+//					if (arr != null && arr.size() > 0) {
+//						for (int i = 0; i < arr.size(); i++) {
+//							// JSON_CONTAINS(tags, '"tag1"', '$.groups')
+//							// JSON_CONTAINS(tags, '"tag3"', '$.tags')
+//							sqlEx.OR(StringUtils.join("JSON_CONTAINS(tags, '\"", arr.getString(i), "\"', '$.", key,
+//									"') "));
+//						}
+//					}
+//				}
 			}
-			sql.AND(sqlEx);
+			sql.and(sqlEx);
 		}
 
-		StringBuffer s = new StringBuffer("SELECT COUNT(*) FROM tb_ecm_org_user WHERE ");
-
-		sql.fillSQL(s);
-		Object[] getObj = sqlGetObjects(conn, s.toString(), Arrays.asList(orgId));
+		StringBuffer sb = new StringBuffer("SELECT COUNT(*) FROM tb_ecm_org_user WHERE ");
+		List<Object> params = new ArrayList<Object>();
+		sql.toSQL(sb,params);
+		Object[] getObj = sqlGetObjects(conn, sb.toString(), params);
 		return Integer.parseInt(getObj[0].toString());
 
 	}
@@ -143,7 +142,13 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 //		for(int i = 0 ; i < roles.size() ; i++) {
 //			a[i] = roles.getString(i);
 //		}
-		return getListByTagsJSONArray(conn, "roles", "", roles, " org_id=? ", Arrays.asList(orgId), count, offset);
+//		return getListByTagsJSONArray(conn, "roles", "", roles, " org_id=? ", Arrays.asList(orgId), count, offset);
+		JSONArray ja = new JSONArray();
+		for(int i = 0; i < roles.length; i++) {
+			ja.add(roles[i]);
+		}
+		EXP exp = EXP.INS().key("org_id", orgId).and(EXP.JSON_CONTAINS_KEYS(ja, "roles", null));
+		return getList(conn, exp, count, offset);
 	}
 
 	public List<ORGUser> getORGUsersByGroups(DruidPooledConnection conn, Long orgId, String[] groups, Integer count,
@@ -165,7 +170,10 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 	public List<ORGUser> getORGUsersByTags(DruidPooledConnection conn, Long orgId, JSONObject tags, Integer count,
 			Integer offset) throws ServerException {
 
-		return getListByTagsJSONObject(conn, "tags", tags, " org_id=? ", Arrays.asList(orgId), count, offset);
+//		return getListByTagsJSONObject(conn, "tags", tags, " org_id=? ", Arrays.asList(orgId), count, offset);
+		
+		EXP exp = EXP.INS().key("org_id", orgId).and(EXP.JSON_CONTAINS_JSONOBJECT(tags, "tags"));
+		return getList(conn, exp, count, offset);
 	}
 
 	public List<User> getORGUsersLikeIDNumber(DruidPooledConnection conn, Long orgId, String idNumber, Integer count,
@@ -265,33 +273,40 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 	public List<ORGUser> getORGUsersInfoByUsers(DruidPooledConnection conn, Long orgId, Object[] values)
 			throws Exception {
 		StringBuffer sb = new StringBuffer();
-		SQL sql = new SQL();
-		sql.addEx("org_id = ?", orgId);
-		sql.AND(SQLEx.exIn("user_id", values));
-		sql.fillSQL(sb);
+//		SQL sql = new SQL();
+//		sql.addEx("org_id = ?", orgId);
+//		sql.AND(SQLEx.exIn("user_id", values));
+//		sql.fillSQL(sb);
 		// System.out.println(sb.toString());
-		return getList(conn, sb.toString(), sql.getParams(), null, null);
+		return getList(conn, EXP.INS().key("org_id", orgId).and(EXP.IN("user_id", values)), null, null);
 	}
 
 	public JSONArray getORGAdmin(DruidPooledConnection conn, Long orgId, Byte level, Integer count, Integer offset)
 			throws Exception {
-		SQL sql = new SQL();
+//		SQL sql = new SQL();
+		EXP sql = EXP.INS().key("org_id", orgId);
 		// SELECT u.* FROM tb_ecm_org_user oru LEFT JOIN tb_user u ON oru.user_id = u.id
 		// WHERE org_id = 397652553337218 AND JSON_CONTAINS(oru.roles, "102",'$')
 		StringBuffer sb = new StringBuffer(
 				"SELECT u.* FROM tb_ecm_org_user oru LEFT JOIN tb_user u ON oru.user_id = u.id WHERE ");
-		sql.addEx("org_id = ?", orgId);
-		SQL sqlAnd = new SQL();
+//		sql.addEx("org_id = ?", orgId);
+		EXP sqlAnd = EXP.INS();
+		JSONArray ja = new JSONArray();
 		if (level == ORG.LEVEL.COOPERATIVE.v()) {
-			sqlAnd.AND(StringUtils.join("JSON_CONTAINS(oru.roles, \"102\",'$')"));
+//			sqlAnd.AND(StringUtils.join("JSON_CONTAINS(oru.roles, \"102\",'$')"));
+			ja.add(102);
+			sqlAnd.and(EXP.JSON_CONTAINS_KEYS(ja, "oru.roles", null));
 		}
 		if (level != ORG.LEVEL.COOPERATIVE.v()) {
-			sqlAnd.OR(StringUtils.join("JSON_CONTAINS(oru.roles, \"112\",'$')"));
+//			sqlAnd.OR(StringUtils.join("JSON_CONTAINS(oru.roles, \"112\",'$')"));
+			ja.add(112);
+			sqlAnd.or(EXP.JSON_CONTAINS_KEYS(ja, "oru.roles", null));
 		}
-		sql.AND(sqlAnd);
-		sql.fillSQL(sb);
+		sql.and(sqlAnd);
+		List<Object> params = new ArrayList<Object>();
+		sql.toSQL(sb,params);
 		System.out.println(sb.toString());
-		return sqlGetJSONArray(conn, sb.toString(), sql.getParams(), count, offset);
+		return sqlGetJSONArray(conn, sb.toString(),params, count, offset);
 	}
 
 	public JSONArray getFamilyUserBYFamilyId(DruidPooledConnection conn, Long orgId, Long familyNumber)
@@ -301,45 +316,55 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		// oru.org_id = 398977803603065 AND oru.family_number = 1475
 		StringBuffer sb = new StringBuffer(
 				"SELECT * FROM tb_user user  RIGHT JOIN tb_ecm_org_user oru ON oru.user_id = user.id WHERE ");
-		SQL sql = new SQL();
-		sql.addEx("oru.org_id = ? ", orgId);
-		sql.AND("oru.family_number = ? ", familyNumber);
-		sql.fillSQL(sb);
-		return sqlGetJSONArray(conn, sb.toString(), sql.getParams(), 512, 0);
+//		SQL sql = new SQL();
+		EXP sql = EXP.INS().key("oru.org_id",orgId).andKey("oru.family_number",familyNumber);
+//		sql.addEx("oru.org_id = ? ", orgId);
+//		sql.AND("oru.family_number = ? ", familyNumber);
+
+		List<Object> params = new ArrayList<Object>();
+		sql.toSQL(sb,params);
+		return sqlGetJSONArray(conn, sb.toString(), params, 512, 0);
 	}
 
 	public List<ORGUser> getFamilyByFamilyMaster(DruidPooledConnection conn, Long orgId, String master, Integer count,
 			Integer offset) throws Exception {
-		StringBuffer sb = new StringBuffer();
-		SQL sql = new SQL();
-		sql.addEx("org_id = ? ", orgId);
-		sql.AND(StringUtils.join("family_master LIKE '%", master, "%'"));
-		sql.addEx("GROUP BY family_number");
-		sql.fillSQL(sb);
-		System.out.println(sb.toString());
-		return getList(conn, sb.toString(), sql.getParams(), count, offset);
+//		StringBuffer sb = new StringBuffer();
+		
+//		sql.addEx("org_id = ? ", orgId);
+//		sql.AND(StringUtils.join("family_master LIKE '%", master, "%'"));
+//		sql.addEx("GROUP BY family_number");
+//		sql.fillSQL(sb);
+//		System.out.println(sb.toString());
+		EXP sql = EXP.INS().key("org_id", orgId).and(EXP.INS().LIKE("family_master", master)).append("GROUP BY family_number");
+		return getList(conn,sql, count, offset);
 	}
 
 	public List<ORGUser> getFamilyByshare(DruidPooledConnection conn, Long orgId, String share, Integer count,
 			Integer offset) throws Exception {
-		StringBuffer sb = new StringBuffer();
-		SQL sql = new SQL();
-		sql.addEx("org_id = ? ", orgId);
-		sql.AND(StringUtils.join("share_cer_no LIKE '%", share, "%'"));
-		sql.addEx("GROUP BY family_number");
-		sql.fillSQL(sb);
-		return getList(conn, sb.toString(), sql.getParams(), count, offset);
+//		StringBuffer sb = new StringBuffer();
+//		SQL sql = new SQL();
+//		sql.addEx("org_id = ? ", orgId);
+//		sql.AND(StringUtils.join("share_cer_no LIKE '%", share, "%'"));
+//		sql.addEx("GROUP BY family_number");
+//		sql.fillSQL(sb);
+//		return getList(conn, sb.toString(), sql.getParams(), count, offset);
+		
+		EXP sql = EXP.INS().key("org_id", orgId).and(EXP.INS().LIKE("share_cer_no", share)).append("GROUP BY family_number");
+		return getList(conn,sql, count, offset);
 	}
 
 	public List<ORGUser> getFamilyByFamilyNumber(DruidPooledConnection conn, Long orgId, Long number, Integer count,
 			Integer offset) throws Exception {
-		StringBuffer sb = new StringBuffer();
-		SQL sql = new SQL();
-		sql.addEx("org_id = ? ", orgId);
-		sql.AND("family_number = ? ", number);
-		sql.addEx("GROUP BY family_number");
-		sql.fillSQL(sb);
-		return getList(conn, sb.toString(), sql.getParams(), count, offset);
+//		StringBuffer sb = new StringBuffer();
+//		SQL sql = new SQL();
+//		sql.addEx("org_id = ? ", orgId);
+//		sql.AND("family_number = ? ", number);
+//		sql.addEx("GROUP BY family_number");
+//		sql.fillSQL(sb);
+//		return getList(conn, sb.toString(), sql.getParams(), count, offset);
+		
+		EXP sql = EXP.INS().key("org_id", orgId).andKey("family_number", number).append("GROUP BY family_number");
+		return getList(conn,sql, count, offset);
 	}
 
 	public ORGUser maxFamilyNumber(DruidPooledConnection conn, Long orgId) throws Exception {
@@ -355,12 +380,13 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 
 		StringBuffer sb = new StringBuffer(
 				"SELECT * FROM tb_user user RIGHT JOIN tb_ecm_org_user oru ON user.id = oru.user_id WHERE ");
-		SQL sql = new SQL();
-		sql.addEx("oru.org_id = ? ", orgId);
-		sql.AND("user.id_number = ? ", idNumber);
-		sql.fillSQL(sb);
+		EXP sql = EXP.INS();
+		sql.key("oru.org_id", orgId);
+		sql.andKey("user.id_number", idNumber);
+		List<Object> params = new ArrayList<Object>();
+		sql.toSQL(sb, params);
 		System.out.println(sb.toString());
-		JSONObject oru = sqlGetJSONObject(conn, sb.toString(), sql.getParams());
+		JSONObject oru = sqlGetJSONObject(conn, sb.toString(), params);
 		if (oru == null) {
 			return 0;
 		} else {
@@ -374,16 +400,18 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		// oru.org_id = 397652553337218 AND JSON_CONTAINS(oru.roles, '104')
 		StringBuffer sb = new StringBuffer(
 				"SELECT * FROM tb_ecm_org_user oru LEFT JOIN tb_user user ON oru.user_id = user.id WHERE ");
-		SQL sql = new SQL();
-		sql.addEx("oru.org_id = ? ", orgId);
-		SQL sqlEx = new SQL();
-		for (int i = 0; i < json.size(); i++) {
-			sqlEx.OR(StringUtils.join("JSON_CONTAINS(oru.roles, '", json.getLong(i), "','$')"));
-		}
-		sql.AND(sqlEx);
-		sql.fillSQL(sb);
+		EXP sql = EXP.INS().key("oru.org_id", orgId);
+//		sql.addEx("oru.org_id = ? ", orgId);
+//		SQL sqlEx = new SQL();
+		sql.and(EXP.JSON_CONTAINS_KEYS(json, "oru.roles", null));
+//		for (int i = 0; i < json.size(); i++) {
+//			sqlEx.OR(StringUtils.join("JSON_CONTAINS(oru.roles, '", json.getLong(i), "','$')"));
+//		}
+//		sql.AND(sqlEx);
+		List<Object> params = new ArrayList<Object>();
+		sql.toSQL(sb, params);
 
-		return sqlGetJSONArray(conn, sb.toString(), sql.getParams(), 512, 0);
+		return sqlGetJSONArray(conn, sb.toString(), params, 512, 0);
 	}
 
 	public JSONArray getORGUsersByRole(DruidPooledConnection conn, Long orgId, JSONArray json, Integer count,
@@ -393,28 +421,31 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		// WHERE JSON_CONTAINS(oru.roles, '104','$') AND user.wx_open_id IS NOT NULL
 		StringBuffer sb = new StringBuffer(
 				"SELECT user.* FROM tb_ecm_org_user oru LEFT JOIN tb_user user ON oru.user_id = user.id WHERE ");
-		SQL sql = new SQL();
-		sql.addEx("oru.org_id = ? ", orgId);
-		sql.AND(" user.wx_open_id IS NOT NULL ");
-		SQL sqlEx = new SQL();
-		for (int i = 0; i < json.size(); i++) {
-			sqlEx.OR(StringUtils.join("JSON_CONTAINS(oru.roles, '", json.getLong(i), "','$')"));
-		}
-		sql.AND(sqlEx);
-		sql.fillSQL(sb);
+		EXP sql = EXP.INS().key("oru.org_id", orgId).and("user.wx_open_id IS NOT NULL", null, null);
+//		sql.addEx("oru.org_id = ? ", orgId);
+//		sql.AND(" user.wx_open_id IS NOT NULL ");
+//		SQL sqlEx = new SQL();
+//		for (int i = 0; i < json.size(); i++) {
+//			sqlEx.OR(StringUtils.join("JSON_CONTAINS(oru.roles, '", json.getLong(i), "','$')"));
+//		}
+//		sql.AND(sqlEx);
+		sql.and(EXP.JSON_CONTAINS_KEYS(json, "oru.roles", null));
+		List<Object> params = new ArrayList<Object>();
+		sql.toSQL(sb, params);
 
-		return sqlGetJSONArray(conn, sb.toString(), sql.getParams(), count, offset);
+		return sqlGetJSONArray(conn, sb.toString(), params, count, offset);
 	}
 
 	public JSONArray getFamilyAll(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)
 			throws Exception {
 		StringBuffer sb = new StringBuffer("SELECT * FROM tb_ecm_org_user  WHERE ");
-		SQL sql = new SQL();
-		sql.addEx("org_id = ? ", orgId);
-		sql.AND(" family_number IS NOT NULL ");
-		sql.addEx("GROUP BY family_master");
-		sql.fillSQL(sb);
-		return sqlGetJSONArray(conn, sb.toString(), sql.getParams(), count, offset);
+		EXP sql = EXP.INS().key("org_id", orgId).and("family_number IS NOT NULL", null, null).append("GROUP BY family_master");
+//		sql.addEx("org_id = ? ", orgId);
+//		sql.AND(" family_number IS NOT NULL ");
+//		sql.addEx("GROUP BY family_master");
+		List<Object> params = new ArrayList<Object>();
+		sql.toSQL(sb, params);
+		return sqlGetJSONArray(conn, sb.toString(), params, count, offset);
 	}
 	
 	

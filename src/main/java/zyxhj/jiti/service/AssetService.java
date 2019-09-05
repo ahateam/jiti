@@ -262,7 +262,11 @@ public class AssetService {
 	 */
 	public List<Asset> getAssetsByGroups(DruidPooledConnection conn, Long orgId, String[] groups, Integer count,
 			Integer offset) throws Exception {
-		return assetRepository.getAssetsByGroups(conn, orgId, groups, count, offset);
+		JSONArray ja = new JSONArray();
+		for(String s:groups) {
+			ja.add(s);
+		}
+		return assetRepository.getAssetsByGroups(conn, orgId, ja, count, offset);
 	}
 
 	/**

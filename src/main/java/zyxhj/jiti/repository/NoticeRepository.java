@@ -3,7 +3,6 @@ package zyxhj.jiti.repository;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
@@ -11,8 +10,8 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
 import zyxhj.jiti.domain.Notice;
+import zyxhj.utils.data.EXP;
 import zyxhj.utils.data.rds.RDSRepository;
-import zyxhj.utils.data.rds.SQL;
 
 public class NoticeRepository extends RDSRepository<Notice> {
 
@@ -38,34 +37,24 @@ public class NoticeRepository extends RDSRepository<Notice> {
 
 	private List<Notice> getNoticeByRG(DruidPooledConnection conn, Long orgId, JSONArray role, JSONArray group)
 			throws Exception {
-		StringBuffer sb = new StringBuffer();
-		SQL sql = new SQL();
-		sql.addEx(StringUtils.join("JSON_CONTAINS(crowd,'", orgId, "','$.orgId')"));
-		SQL roleEx = new SQL();
-		for (int i = 0; i < role.size(); i++) {
-			roleEx.OR(StringUtils.join("JSON_CONTAINS(crowd,'", role.getLong(i), "','$.roles')"));
+		JSONArray ja = new JSONArray();
+		ja.add(orgId);
+		EXP sql = EXP.INS().and(EXP.JSON_CONTAINS_KEYS(ja, "crowd", "orgId"));
+		
+		EXP roleEx =EXP.JSON_CONTAINS_KEYS(role, "crowd", "roles");
+		sql.and(roleEx);
+		
+		if (group != null && group.size() > 0) {
+			EXP groupEx = EXP.JSON_CONTAINS_KEYS(group, "crowd", "groups");
+			sql.and(groupEx);
 		}
-		sql.AND(roleEx);
-		if (group != null) {
-			SQL groupEx = new SQL();
-			if (group != null && group.size() > 0) {
-				for (int j = 0; j < group.size(); j++) {
-					groupEx.OR(StringUtils.join("JSON_CONTAINS(crowd,'", group.getLong(j), "','$.groups')"));
-				}
-			}
-			sql.AND(groupEx);
-		}
-		sql.fillSQL(sb);
-		return getList(conn, sb.toString(), null, 512, 0);
+		return getList(conn, sql, 512, 0);
 	}
 
 	public List<Notice> getNotice(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)
 			throws Exception {
-		StringBuffer sb = new StringBuffer();
-		SQL sql = new SQL();
-		sql.addEx("org_id = ?", orgId);
-		sql.addEx(" ORDER BY create_time DESC");
-		sql.fillSQL(sb);
-		return getList(conn, sb.toString(), sql.getParams(), count, offset);
+		EXP sql = EXP.INS().key("org_id", orgId).append("ORDER BY create_time DESC");
+		
+		return getList(conn,sql, count, offset);
 	}
 }

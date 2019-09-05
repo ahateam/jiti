@@ -76,7 +76,7 @@ public class ORGUser {
 	 * 是否组织成员
 	 */
 	@RDSAnnField(column = RDSAnnField.BOOLEAN)
-	public Boolean isORGUser;
+	public Boolean isOrgUser;
 	
 	/**
 	 * 组织用户角色

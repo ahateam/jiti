@@ -210,6 +210,7 @@ public class ImportTaskService {
 						if (data.getString(StringUtils.join("Col", co++)).equals("女")) {
 							sex = 1;
 						}
+						System.out.println(sex);
 
 						// 与户主关系
 						String familyRelations = data.getString(StringUtils.join("Col", co++));

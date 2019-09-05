@@ -31,10 +31,16 @@ public class PrintingType {
 	public static final PrintingType family_master = buildSysRole(temp1++, "familyMaster", "持证人");
 	public static final PrintingType org_user_address = buildSysRole(temp1++, "address", "家庭住址");
 	public static final PrintingType org_user_name = buildSysRole(temp1++, "realName", "用户姓名");
-	public static final PrintingType org_user = buildSysRole(temp1++, "orgUser", "是否成员");
+//	public static final PrintingType org_user = buildSysRole(temp1++, "orgUser", "是否成员");
+	public static final PrintingType is_org_user = buildSysRole(temp1++, "isOrgUser", "是否组织成员 ");
 	public static final PrintingType id_number = buildSysRole(temp1++, "idNumber", "身份证号");
 	public static final PrintingType share_amount = buildSysRole(temp1++, "shareAmount", "股份数");
 	public static final PrintingType remark = buildSysRole(temp1++, "remark", "备注");
+	
+	public static final PrintingType org_resource_shares = buildSysRole(temp1++, "resourceShares", "资源股");
+	public static final PrintingType org_asset_shares = buildSysRole(temp1++, "assetShares", "资源股");
+	public static final PrintingType org_family_relations = buildSysRole(temp1++, "familyRelations", "与户主关系");
+	
 
 	@RDSAnnID
 	@RDSAnnField(column = RDSAnnField.ID)

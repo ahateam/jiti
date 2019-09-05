@@ -1,15 +1,14 @@
 package zyxhj.jiti.repository;
 
+import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
 
 import zyxhj.jiti.domain.ORGPermission;
+import zyxhj.utils.data.EXP;
 import zyxhj.utils.data.rds.RDSRepository;
-import zyxhj.utils.data.rds.SQL;
 
 public class ORGPermissionRepository extends RDSRepository<ORGPermission> {
 
@@ -20,13 +19,13 @@ public class ORGPermissionRepository extends RDSRepository<ORGPermission> {
 	public List<ORGPermission> getPermissions(DruidPooledConnection conn, JSONArray json) throws Exception {
 		if (json != null && json.size() > 0) {
 			StringBuffer sb = new StringBuffer();
-			SQL sql = new SQL();
+			EXP sql = EXP.INS();
 			for (int i = 0; i < json.size(); i++) {
-				sql.OR(StringUtils.join("id = ", json.getLong(i)));
+				sql.or(EXP.INS().key("id", json.getLong(i)));
 			}
-			sql.fillSQL(sb);
-			System.out.println(sb.toString());
-			return getList(conn, sb.toString(), null, 512, 0);
+			List<Object> params = new ArrayList<Object>();
+			sql.toSQL(sb, params);
+			return getList(conn, sql, 512, 0);
 		} else {
 			return null;
 		}
@@ -34,12 +33,13 @@ public class ORGPermissionRepository extends RDSRepository<ORGPermission> {
 
 	public List<ORGPermission> getPermissionById(DruidPooledConnection conn, JSONArray json) throws Exception {
 		StringBuffer sb = new StringBuffer();
-		SQL sql = new SQL();
+		EXP sql = EXP.INS();
 		for (int i = 0; i < json.size(); i++) {
-			sql.OR(StringUtils.join("id = ", json.getLong(i)));
+			sql.or(EXP.INS().key("id", json.get(i)));
 		}
-		sql.fillSQL(sb);
-		return getList(conn, sb.toString(), null, 512, 0);
+		List<Object> params = new ArrayList<Object>();
+		sql.toSQL(sb, params);
+		return getList(conn, sql, 512, 0);
 	}
 
 }

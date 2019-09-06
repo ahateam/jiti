@@ -72,7 +72,8 @@ public class ExamineService {
 //			ORGPermissionRel orgPer = orgPermissionRelaRepository.getByANDKeys(conn,
 //					new String[] { "org_id", "permission_id" },
 //					new Object[] { orgId, ORGPermission.per_feparate_family.id });
-			ORGPermissionRel orgPer = orgPermissionRelaRepository.get(conn, EXP.INS().key("org_id", orgId).andKey("permission_id", ORGPermission.per_feparate_family.id ));
+			ORGPermissionRel orgPer = orgPermissionRelaRepository.get(conn,
+					EXP.INS().key("org_id", orgId).andKey("permission_id", ORGPermission.per_feparate_family.id));
 			if (orgPer != null) {
 				cb.add("status", (long) Examine.STATUS.NOEXAMINE.v());
 				// 给审核人员发送通知
@@ -90,7 +91,8 @@ public class ExamineService {
 //			ORGPermissionRel orgPer = orgPermissionRelaRepository.getByANDKeys(conn,
 //					new String[] { "org_id", "permission_id" },
 //					new Object[] { orgId, ORGPermission.per_share_change.id });
-			ORGPermissionRel orgPer = orgPermissionRelaRepository.get(conn, EXP.INS().key("org_id", orgId).andKey("permission_id", ORGPermission.per_share_change.id));
+			ORGPermissionRel orgPer = orgPermissionRelaRepository.get(conn,
+					EXP.INS().key("org_id", orgId).andKey("permission_id", ORGPermission.per_share_change.id));
 			if (orgPer != null) {
 				cb.add("status", (long) Examine.STATUS.NOEXAMINE.v());
 				// 给审核人员发送通知
@@ -123,9 +125,10 @@ public class ExamineService {
 		if (status == Examine.STATUS.NOEXAMINE.v()) {
 //			List<ORGPermissionRel> orgPermission = orgPermissionRelaRepository.getListByANDKeys(conn,
 //					new String[] { "org_id", "permission_id" }, new Object[] { orgId, permissionId }, 64, 0);
-			List<ORGPermissionRel> orgPermission = orgPermissionRelaRepository.getList(conn, EXP.INS().key("org_id", orgId).andKey("permission_id", permissionId), 64, 0);
+			List<ORGPermissionRel> orgPermission = orgPermissionRelaRepository.getList(conn,
+					EXP.INS().key("org_id", orgId).andKey("permission_id", permissionId), 64, 0);
 			for (ORGPermissionRel orgPermissionRel : orgPermission) {
-				
+
 				json.add(orgPermissionRel.roleId);
 			}
 
@@ -302,7 +305,7 @@ public class ExamineService {
 					// 移除户成员
 					Long or = jo.getLong("orgId");
 					Long userId = jo.getLong("userId");
-					orgUserRepository.delete(conn,EXP.INS().key("org_id", or).andKey("user_id", userId));
+					orgUserRepository.delete(conn, EXP.INS().key("org_id", or).andKey("user_id", userId));
 				} else {
 					continue;
 				}
@@ -333,8 +336,21 @@ public class ExamineService {
 					Long familyNumber = jo.getLong("familyNumber");
 					String familyMaster = jo.getString("familyMaster");
 					JSONObject tags = jo.getJSONObject("tags");
-					orgUserService.createORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo, shareCerImg,
-							shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+					
+					Double resourceShares = jo.getDouble("resourceShares");
+					Double assetShares = jo.getDouble("assetShares");
+					Boolean isOrgUser = jo.getBoolean("isOrgUser");
+					Byte sex = jo.getByte("sex");
+					String familyRelations = jo.getString("familyRelations");
+					
+//					orgUserService.oldcreateORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo,
+//							shareCerImg, shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber,
+//							familyMaster);
+					
+
+					orgUserService.createORGUser(conn, or, mobile, realName, idNumber, sex, familyRelations,
+							resourceShares, assetShares, isOrgUser, address, shareCerNo, shareCerImg, shareCerHolder,
+							shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
 				} else {
 					continue;
 				}
@@ -352,8 +368,9 @@ public class ExamineService {
 				String familyMaster = jo.getString("familyMaster");
 				ORGUser orgUser = new ORGUser();
 				orgUser.familyMaster = familyMaster;
-				orgUserRepository.update(conn,EXP.INS().key("org_id", or).andKey("family_number", familyNumber), orgUser, true);
-				
+				orgUserRepository.update(conn, EXP.INS().key("org_id", or).andKey("family_number", familyNumber),
+						orgUser, true);
+
 			}
 		}
 
@@ -386,15 +403,31 @@ public class ExamineService {
 					Long familyNumber = json.getLong("familyNumber");
 					String familyMaster = json.getString("familyMaster");
 					JSONObject tags = json.getJSONObject("tags");
-					orgUserService.createORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo, shareCerImg,
-							shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+					
+					Double resourceShares = json.getDouble("resourceShares");
+					Double assetShares = json.getDouble("assetShares");
+					Boolean isOrgUser = json.getBoolean("isOrgUser");
+					Byte sex = json.getByte("sex");
+					String familyRelations = json.getString("familyRelations");
+					
+//					orgUserService.oldcreateORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo,
+//							shareCerImg, shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber,
+//							familyMaster);
+					
+					orgUserService.createORGUser(conn, or, mobile, realName, idNumber, sex, familyRelations,
+							resourceShares, assetShares, isOrgUser, address, shareCerNo, shareCerImg, shareCerHolder,
+							shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+
+					
+					
+					
 				} else if (userTab != null && userTab == Examine.TAB.REMOVE.v()) {
 					// 移除户成员
 					Long or = json.getLong("orgId");
 					Long userId = json.getLong("userId");
 //					orgUserRepository.deleteByANDKeys(conn, new String[] { "org_id", "user_id" },
 //							new Object[] { or, userId });
-					orgUserRepository.delete(conn,EXP.INS().key("org_id", or).andKey("user_id", userId));
+					orgUserRepository.delete(conn, EXP.INS().key("org_id", or).andKey("user_id", userId));
 				} else {
 					continue;
 				}
@@ -410,8 +443,9 @@ public class ExamineService {
 			String familyMaster = jo.getString("familyMaster");
 			ORGUser orgUser = new ORGUser();
 			orgUser.familyMaster = familyMaster;
-			orgUserRepository.update(conn,EXP.INS().key("org_id", or).andKey("family_number", familyNumber), orgUser, true);
-			
+			orgUserRepository.update(conn, EXP.INS().key("org_id", or).andKey("family_number", familyNumber), orgUser,
+					true);
+
 		}
 
 	}
@@ -463,8 +497,24 @@ public class ExamineService {
 						}
 					}
 					JSONObject tags = jo.getJSONObject("tags");
-					orgUserService.createORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo, shareCerImg,
-							shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+					
+
+					Double resourceShares = jo.getDouble("resourceShares");
+					Double assetShares = jo.getDouble("assetShares");
+					Boolean isOrgUser = jo.getBoolean("isOrgUser");
+					Byte sex = jo.getByte("sex");
+					String familyRelations = jo.getString("familyRelations");
+					
+					
+//					orgUserService.oldcreateORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo,
+//							shareCerImg, shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber,
+//							familyMaster);
+					
+					orgUserService.createORGUser(conn, or, mobile, realName, idNumber, sex, familyRelations,
+							resourceShares, assetShares, isOrgUser, address, shareCerNo, shareCerImg, shareCerHolder,
+							shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+
+					
 					jo.put("familyNumber", familyNumber);
 					js.add(jo);
 				} else if (userTab != null && userTab == Examine.TAB.REMOVE.v()) {
@@ -473,7 +523,7 @@ public class ExamineService {
 					Long userId = jo.getLong("userId");
 //					orgUserRepository.deleteByANDKeys(conn, new String[] { "org_id", "user_id" },
 //							new Object[] { or, userId });
-					orgUserRepository.delete(conn,EXP.INS().key("org_id", or).andKey("user_id", userId));
+					orgUserRepository.delete(conn, EXP.INS().key("org_id", or).andKey("user_id", userId));
 					js.add(jo);
 				} else {
 					js.add(jo);
@@ -500,8 +550,9 @@ public class ExamineService {
 			String familyMaster = jo.getString("familyMaster");
 			ORGUser orgUser = new ORGUser();
 			orgUser.familyMaster = familyMaster;
-			orgUserRepository.update(conn,EXP.INS().key("org_id", or).andKey("family_number", familyNumber), orgUser, true);
-			
+			orgUserRepository.update(conn, EXP.INS().key("org_id", or).andKey("family_number", familyNumber), orgUser,
+					true);
+
 		}
 		return editData;
 
@@ -535,9 +586,21 @@ public class ExamineService {
 				Long familyNumber = maxNum;
 				String familyMaster = json.getString("familyMaster");
 				JSONObject tags = json.getJSONObject("tags");
+
+				Double resourceShares = json.getDouble("resourceShares");
+				Double assetShares = json.getDouble("assetShares");
+				Boolean isOrgUser = json.getBoolean("isOrgUser");
+				Byte sex = json.getByte("sex");
+				String familyRelations = json.getString("familyRelations");
+
 				json.put("familyNumber", maxNum);
-				orgUserService.createORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo, shareCerImg,
-						shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+//				orgUserService.oldcreateORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo, shareCerImg,
+//						shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+
+				orgUserService.createORGUser(conn, or, mobile, realName, idNumber, sex, familyRelations,
+						resourceShares, assetShares, isOrgUser, address, shareCerNo, shareCerImg, shareCerHolder,
+						shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+
 				addFamily.add(json);
 			}
 			addNewData.add(addFamily);

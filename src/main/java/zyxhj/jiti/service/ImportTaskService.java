@@ -224,7 +224,7 @@ public class ImportTaskService {
 						Double assetShares = data.getDouble(StringUtils.join("Col", co++));
 						// 是否为组织成员
 						Boolean isORGUser = true;
-						if (data.getString(StringUtils.join("Col", co++)).equals("否")) {
+						if(data.getString(StringUtils.join("Col", co++)).equals("否")) {
 							isORGUser = false;
 						}
 
@@ -241,7 +241,7 @@ public class ImportTaskService {
 						String dutyDirectors = data.getString(StringUtils.join("Col", co++));
 						String dutyVisors = data.getString(StringUtils.join("Col", co++));
 						String dutyOthers = data.getString(StringUtils.join("Col", co++));
-						String dutyAdmins = data.getString(StringUtils.join("Col", co++));
+//						String dutyAdmins = data.getString(StringUtils.join("Col", co++));
 
 						String groups = data.getString(StringUtils.join("Col", co++));
 						String tags = data.getString(StringUtils.join("Col", co++));
@@ -291,24 +291,24 @@ public class ImportTaskService {
 							}
 						}
 
-						{
-							// 其它管理角色
-							temp = CodecUtils.convertCommaStringList2JSONArray(dutyAdmins);
-							for (int j = 0; j < temp.size(); j++) {
-								String ts = StringUtils.trim(temp.getString(j));
-
-								if (ts.equals(ORGUserRole.role_user.name)) {
-									roles.add(ORGUserRole.role_user.roleId);// 用户
-								} else if (ts.equals(ORGUserRole.role_outuser.name)) {
-									roles.add(ORGUserRole.role_outuser.roleId);// 外部人员
-								} else if (ts.equals(ORGUserRole.role_admin.name)) {
-									roles.add(ORGUserRole.role_admin.roleId);// 管理员
-								} else {
-									// 无，不填默认当作用户
-									roles.add(ORGUserRole.role_user.roleId);// 用户
-								}
-							}
-						}
+//						{
+//							// 其它管理角色
+//							temp = CodecUtils.convertCommaStringList2JSONArray(dutyAdmins);
+//							for (int j = 0; j < temp.size(); j++) {
+//								String ts = StringUtils.trim(temp.getString(j));
+//
+//								if (ts.equals(ORGUserRole.role_user.name)) {
+//									roles.add(ORGUserRole.role_user.roleId);// 用户
+//								} else if (ts.equals(ORGUserRole.role_outuser.name)) {
+//									roles.add(ORGUserRole.role_outuser.roleId);// 外部人员
+//								} else if (ts.equals(ORGUserRole.role_admin.name)) {
+//									roles.add(ORGUserRole.role_admin.roleId);// 管理员
+//								} else {
+//									// 无，不填默认当作用户
+//									roles.add(ORGUserRole.role_user.roleId);// 用户
+//								}
+//							}
+//						}
 
 						{
 

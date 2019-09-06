@@ -136,7 +136,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		}
 	}
 
-	public List<ORGUser> getORGUsersByRoles(DruidPooledConnection conn, Long orgId, String[] roles, Integer count,
+	public List<ORGUser> getORGUsersByRoles(DruidPooledConnection conn, Long orgId, Long[] roles, Integer count,
 			Integer offset) throws ServerException {
 //		String[] a = new String[roles.size()];
 //		for(int i = 0 ; i < roles.size() ; i++) {
@@ -147,6 +147,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		for(int i = 0; i < roles.length; i++) {
 			ja.add(roles[i]);
 		}
+		System.out.println(ja.toString());
 		EXP exp = EXP.INS().key("org_id", orgId).and(EXP.JSON_CONTAINS_KEYS(ja, "roles", null));
 		return getList(conn, exp, count, offset);
 	}
@@ -439,12 +440,13 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 	public JSONArray getFamilyAll(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)
 			throws Exception {
 		StringBuffer sb = new StringBuffer("SELECT * FROM tb_ecm_org_user  WHERE ");
-		EXP sql = EXP.INS().key("org_id", orgId).and("family_number IS NOT NULL", null, null).append("GROUP BY family_master");
+		EXP sql = EXP.INS().key("org_id", orgId).and("family_number IS NOT NULL", null, null);
 //		sql.addEx("org_id = ? ", orgId);
 //		sql.AND(" family_number IS NOT NULL ");
 //		sql.addEx("GROUP BY family_master");
 		List<Object> params = new ArrayList<Object>();
 		sql.toSQL(sb, params);
+		sb.append(" GROUP BY family_master");
 		return sqlGetJSONArray(conn, sb.toString(), params, count, offset);
 	}
 	
@@ -456,6 +458,26 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		
 		StringBuffer sql = new StringBuffer("SELECT COUNT(*) FROM tb_ecm_org_user WHERE ");
 		StringBuffer sb = new StringBuffer();
+		List<Object> params = new ArrayList<Object>();
+		where.toSQL(sb, params);
+		sql.append(sb);
+		System.out.println(sql.toString());
+		
+		Object[] s = this.sqlGetObjects(conn, sql.toString(), params);
+		
+		int count = Integer.parseInt(s[0].toString());
+		return count;
+	}
+	
+	
+	//统计内部或外部成员总数
+	public int getCount(DruidPooledConnection conn, Long orgId,Boolean isOrgUser) throws Exception {
+		
+		EXP where = EXP.INS().key("org_id", orgId).andKey("is_org_user", isOrgUser);
+		
+		StringBuffer sql = new StringBuffer("SELECT COUNT(*) FROM tb_ecm_org_user WHERE ");
+		StringBuffer sb = new StringBuffer();
+		
 		List<Object> params = new ArrayList<Object>();
 		where.toSQL(sb, params);
 		sql.append(sb);

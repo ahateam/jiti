@@ -193,28 +193,28 @@ public class ORGUserService {
 			.maximumSize(100)//
 			.build();
 
-	private void insertORGUser(DruidPooledConnection conn, Long orgId, Long userId, String address, String shareCerNo,
-			String shareCerImg, Boolean shareCerHolder, Double shareAmount, Integer weight, JSONArray roles,
-			JSONArray groups, JSONObject tags, Long familyNumber, String familyMaster) throws Exception {
-		ORGUser or = new ORGUser();
-		// Family fa = new Family();
-		or.orgId = orgId;
-		or.userId = userId;
-
-		or.address = address;
-		or.shareCerNo = shareCerNo;
-		or.shareCerImg = shareCerImg;
-		or.shareCerHolder = shareCerHolder;
-
-		or.shareAmount = shareAmount;
-		or.weight = weight;
-
-		or.roles = array2JsonString(checkRoles(roles));
-		or.groups = array2JsonString(checkGroups(conn, orgId, groups));
-		or.tags = obj2JsonString(tags);
-
-		or.familyNumber = familyNumber;
-		or.familyMaster = familyMaster;
+//	private void insertORGUser(DruidPooledConnection conn, Long orgId, Long userId, String address, String shareCerNo,
+//			String shareCerImg, Boolean shareCerHolder, Double shareAmount, Integer weight, JSONArray roles,
+//			JSONArray groups, JSONObject tags, Long familyNumber, String familyMaster) throws Exception {
+//		ORGUser or = new ORGUser();
+//		// Family fa = new Family();
+//		or.orgId = orgId;
+//		or.userId = userId;
+//
+//		or.address = address;
+//		or.shareCerNo = shareCerNo;
+//		or.shareCerImg = shareCerImg;
+//		or.shareCerHolder = shareCerHolder;
+//
+//		or.shareAmount = shareAmount;
+//		or.weight = weight;
+//
+//		or.roles = array2JsonString(checkRoles(roles));
+//		or.groups = array2JsonString(checkGroups(conn, orgId, groups));
+//		or.tags = obj2JsonString(tags);
+//
+//		or.familyNumber = familyNumber;
+//		or.familyMaster = familyMaster;
 
 		// if (familyNumber != null) {
 		// // 查询户序号在family表里是否拥有 有则把usreid插入到户成员下 无则添加户
@@ -256,8 +256,8 @@ public class ORGUserService {
 		// }
 		//
 		// }
-		orgUserRepository.insert(conn, or);
-	}
+//		orgUserRepository.insert(conn, or);
+//	}
 
 	/////////////////////////////////////////////////
 	/////////////////////////////////////////////////
@@ -266,7 +266,7 @@ public class ORGUserService {
 
 	// 修改字段后的方法----新建方法
 	public void createORGUser(DruidPooledConnection conn, Long orgId, String mobile, String realName, String idNumber,
-			Byte sex, String familyRelations, Double resourceShares, Double assetShares, Boolean isORGUser,
+			Byte sex, String familyRelations, Double resourceShares, Double assetShares, Boolean isOrgUser,
 			String address, String shareCerNo, String shareCerImg, Boolean shareCerHolder, Double shareAmount,
 			Integer weight, JSONArray roles, JSONArray groups, JSONObject tags, Long familyNumber, String familyMaster)
 			throws Exception {
@@ -291,7 +291,7 @@ public class ORGUserService {
 			userRepository.insert(conn, newUser);
 
 			// 写入股东信息表
-			insertORGUser(conn, orgId, newUser.id, sex, familyRelations, resourceShares, assetShares, isORGUser,
+			insertORGUser(conn, orgId, newUser.id, sex, familyRelations, resourceShares, assetShares, isOrgUser,
 					address, shareCerNo, shareCerImg, shareCerHolder, shareAmount, weight, roles, groups, tags,
 					familyNumber, familyMaster);
 
@@ -303,7 +303,7 @@ public class ORGUserService {
 				// ORGUser用户不存在，直接创建
 
 				// 写入股东信息表
-				insertORGUser(conn, orgId, extUser.id, sex, familyRelations, resourceShares, assetShares, isORGUser,
+				insertORGUser(conn, orgId, extUser.id, sex, familyRelations, resourceShares, assetShares, isOrgUser,
 						address, shareCerNo, shareCerImg, shareCerHolder, shareAmount, weight, roles, groups, tags,
 						familyNumber, familyMaster);
 			} else {
@@ -315,7 +315,7 @@ public class ORGUserService {
 		}
 	}
 
-	// 修改字段后的方法----新建方法
+	// 修改字段后的方法----插入方法
 	private void insertORGUser(DruidPooledConnection conn, Long orgId, Long userId, Byte sex, String familyRelations,
 			Double resourceShares, Double assetShares, Boolean isORGUser, String address, String shareCerNo,
 			String shareCerImg, Boolean shareCerHolder, Double shareAmount, Integer weight, JSONArray roles,
@@ -358,7 +358,8 @@ public class ORGUserService {
 	/**
 	 * 创建组织用户
 	 */
-	public void createORGUser(DruidPooledConnection conn, Long orgId, String mobile, String realName, String idNumber,
+	/**
+	public void oldcreateORGUser(DruidPooledConnection conn, Long orgId, String mobile, String realName, String idNumber,
 			String address, String shareCerNo, String shareCerImg, Boolean shareCerHolder, Double shareAmount,
 			Integer weight, JSONArray roles, JSONArray groups, JSONObject tags, Long familyNumber, String familyMaster)
 			throws Exception {
@@ -402,7 +403,7 @@ public class ORGUserService {
 				throw new ServerException(BaseRC.ECM_ORG_USER_EXIST);
 			}
 		}
-	}
+	}*/
 
 	/**
 	 * 修改用户信息，身份证信息不能修改
@@ -430,10 +431,15 @@ public class ORGUserService {
 	/**
 	 * 修改组织的用户</br>
 	 * 只修改ORGUser表，不变动user本身。
+	 * 
+	 * @param resourceShares
+	 * @param assetShares
+	 * @param isOrgUser 
 	 */
 	public int editORGUser(DruidPooledConnection conn, Long orgId, Long userId, String address, String shareCerNo,
 			String shareCerImg, Boolean shareCerHolder, Double shareAmount, Integer weight, JSONArray roles,
-			JSONArray groups, JSONObject tags, Long familyNumber, String familyMaster) throws Exception {
+			JSONArray groups, JSONObject tags, Long familyNumber, String familyMaster, Double assetShares,
+			Double resourceShares, Boolean isOrgUser) throws Exception {
 		ORGUser renew = new ORGUser();
 		renew.address = address;
 		renew.shareCerNo = shareCerNo;
@@ -448,6 +454,10 @@ public class ORGUserService {
 
 		renew.familyNumber = familyNumber;
 		renew.familyMaster = familyMaster;
+		
+		renew.assetShares = assetShares;
+		renew.resourceShares = resourceShares;
+		renew.isOrgUser = isOrgUser;
 
 		return orgUserRepository.update(conn, EXP.INS().key("org_id", orgId).andKey("user_id", userId), renew, true);
 
@@ -469,7 +479,7 @@ public class ORGUserService {
 	}
 
 	/**
-	 * 根据组织编号和身份证号片段（生日），模糊查询
+	 * 根据组织编号和真实姓名，模糊查询
 	 */
 	public JSONArray getORGUsersLikeRealName(DruidPooledConnection conn, Long orgId, String realName, Integer count,
 			Integer offset) throws Exception {
@@ -496,9 +506,26 @@ public class ORGUserService {
 
 				String realName = ExcelUtils.getString(row.get(tt++));
 				String idNumber = ExcelUtils.getString(row.get(tt++));
+				Byte sex = 0;
+				if (ExcelUtils.getString(row.get(tt++)).equals("女")) {
+					sex = 1;
+				}
+				// 与户主关系
+				String familyRelations = ExcelUtils.getString(row.get(tt++));
+				
 				String mobile = ExcelUtils.getString(row.get(tt++));
 				Double shareAmount = ExcelUtils.parseDouble(row.get(tt++));
 
+				// 资源股
+				Double resourceShares = ExcelUtils.parseDouble(row.get(tt++));
+				// 资产股
+				Double assetShares = ExcelUtils.parseDouble(row.get(tt++));
+				// 是否为组织成员
+				Boolean isOrgUser = true;
+				if(ExcelUtils.parseDouble(row.get(tt++)).equals("否")) {
+					isOrgUser = false;
+				}
+				
 				Integer weight = ExcelUtils.parseInt(row.get(tt++));
 				String address = ExcelUtils.getString(row.get(tt++));
 				String familyMaster = ExcelUtils.getString(row.get(tt++));
@@ -643,9 +670,12 @@ public class ORGUserService {
 				if (StringUtils.isBlank(mobile)) {
 					mobile = StringUtils.join(orgId, "-", familyNumber, "-", IDUtils.getHexSimpleId());
 				}
-
-				createORGUser(conn, orgId, mobile, realName, idNumber, address, shareCerNo, "", shareCerHolder,
+				createORGUser(conn, orgId, mobile, realName, idNumber, sex, familyRelations,
+						resourceShares, assetShares, isOrgUser, address, shareCerNo, "", shareCerHolder,
 						shareAmount, weight, roles, arrGroups, joTags, familyNumber, familyMaster);
+				
+//				oldcreateORGUser(conn, orgId, mobile, realName, idNumber, address, shareCerNo, "", shareCerHolder,
+//						shareAmount, weight, roles, arrGroups, joTags, familyNumber, familyMaster);
 				Thread.sleep(5L);
 			} catch (Exception e) {
 				log.error(e.getMessage());
@@ -696,10 +726,11 @@ public class ORGUserService {
 	/**
 	 * 根据权限查询用户
 	 */
-	public JSONArray getORGUsersByRoles(DruidPooledConnection conn, Long orgId, String[] roles, Integer count,
+	public JSONArray getORGUsersByRoles(DruidPooledConnection conn, Long orgId, Long[] roles, Integer count,
 			Integer offset) throws Exception {
 		List<ORGUser> ors = orgUserRepository.getORGUsersByRoles(conn, orgId, roles, count, offset);
 
+//		getCountsByRoles(conn, orgId, roles);
 		return getORGUsersInfo(conn, ors);
 	}
 
@@ -1531,8 +1562,19 @@ public class ORGUserService {
 					Long familyNumber = jo.getLong("familyNumber");
 					String familyMaster = jo.getString("familyMaster");
 					JSONObject tags = jo.getJSONObject("tags");
-					createORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo, shareCerImg,
-							shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+//					oldcreateORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo, shareCerImg,
+//							shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+
+					Double resourceShares = jo.getDouble("resourceShares");
+					Double assetShares = jo.getDouble("assetShares");
+					Boolean isOrgUser = jo.getBoolean("isOrgUser");
+					Byte sex = jo.getByte("sex");
+					String familyRelations = jo.getString("familyRelations");
+
+					createORGUser(conn, or, mobile, realName, idNumber, sex, familyRelations,
+							resourceShares, assetShares, isOrgUser, address, shareCerNo, shareCerImg, shareCerHolder,
+							shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+
 				} else {
 					continue;
 				}
@@ -1585,8 +1627,20 @@ public class ORGUserService {
 					Long familyNumber = json.getLong("familyNumber");
 					String familyMaster = json.getString("familyMaster");
 					JSONObject tags = json.getJSONObject("tags");
-					createORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo, shareCerImg,
-							shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+					
+					Double resourceShares = json.getDouble("resourceShares");
+					Double assetShares = json.getDouble("assetShares");
+					Boolean isOrgUser = json.getBoolean("isOrgUser");
+					Byte sex = json.getByte("sex");
+					String familyRelations = json.getString("familyRelations");
+
+					createORGUser(conn, or, mobile, realName, idNumber, sex, familyRelations,
+							resourceShares, assetShares, isOrgUser, address, shareCerNo, shareCerImg, shareCerHolder,
+							shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+
+					
+//					oldcreateORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo, shareCerImg,
+//							shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
 				} else if (userTab != null && userTab == Examine.TAB.REMOVE.v()) {
 					// 移除户成员
 					Long or = json.getLong("orgId");
@@ -1660,8 +1714,20 @@ public class ORGUserService {
 						}
 					}
 					JSONObject tags = jo.getJSONObject("tags");
-					createORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo, shareCerImg,
-							shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+					Double resourceShares = jo.getDouble("resourceShares");
+					Double assetShares = jo.getDouble("assetShares");
+					Boolean isOrgUser = jo.getBoolean("isOrgUser");
+					Byte sex = jo.getByte("sex");
+					String familyRelations = jo.getString("familyRelations");
+
+					createORGUser(conn, or, mobile, realName, idNumber, sex, familyRelations,
+							resourceShares, assetShares, isOrgUser, address, shareCerNo, shareCerImg, shareCerHolder,
+							shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+
+					
+//					oldcreateORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo, shareCerImg,
+//							shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+
 					jo.put("familyNumber", familyNumber);
 					js.add(jo);
 				} else if (userTab != null && userTab == Examine.TAB.REMOVE.v()) {
@@ -1729,8 +1795,19 @@ public class ORGUserService {
 				String familyMaster = json.getString("familyMaster");
 				JSONObject tags = json.getJSONObject("tags");
 				json.put("familyNumber", maxNum);
-				createORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo, shareCerImg, shareCerHolder,
+//				oldcreateORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo, shareCerImg, shareCerHolder,
+//						shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+
+				Double resourceShares = json.getDouble("resourceShares");
+				Double assetShares = json.getDouble("assetShares");
+				Boolean isOrgUser = json.getBoolean("isOrgUser");
+				Byte sex = json.getByte("sex");
+				String familyRelations = json.getString("familyRelations");
+
+				createORGUser(conn, or, mobile, realName, idNumber, sex, familyRelations,
+						resourceShares, assetShares, isOrgUser, address, shareCerNo, shareCerImg, shareCerHolder,
 						shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+
 				addFamily.add(json);
 			}
 			addNewData.add(addFamily);
@@ -1907,19 +1984,37 @@ public class ORGUserService {
 
 		int ret = userRepository.update(conn, EXP.INS().key("id", userId), renew, true);
 
-
 		return userRepository.get(conn, EXP.INS().key("id", userId));
 
 	}
 
-	public JSONObject getCountsByRole(DruidPooledConnection conn, Long orgId, JSONArray roles)
-			throws Exception {
+	public JSONObject getCountsByRole(DruidPooledConnection conn, Long orgId, JSONArray roles) throws Exception {
 		JSONObject jo = new JSONObject();
-		for(int i = 0; i < roles.size(); i++) {
+		for (int i = 0; i < roles.size(); i++) {
 			int count = orgUserRepository.getCountByRole(conn, orgId, roles.getLong(i));
 			jo.put(roles.getLong(i).toString(), count);
 		}
 		return jo;
+	}
+
+	public JSONObject getOrgUserListByIsOrgUser(DruidPooledConnection conn, Long orgId, Boolean isOrgUser,
+			Integer count, Integer offset) throws Exception {
+		List<ORGUser> list = orgUserRepository.getList(conn,
+				EXP.INS().key("org_id", orgId).andKey("is_org_user", isOrgUser), count, offset);
+		
+		JSONArray ja =  getORGUsersInfo(conn, list);
+		
+		int size = orgUserRepository.getCount(conn, orgId, isOrgUser);
+		JSONObject jo = new JSONObject();
+		jo.put("ORGUser", ja);
+		jo.put("size", size);
+		return jo;
+	}
+
+	public int editIsOutUser(DruidPooledConnection conn, Long orgId, Long userId, Boolean isOrgUser) throws Exception {
+		EXP set = EXP.INS().key("is_org_user", isOrgUser);
+		EXP where = EXP.INS().key("org_id", orgId).andKey("user_id", userId);
+		return orgUserRepository.update(conn, set, where);
 	}
 
 }

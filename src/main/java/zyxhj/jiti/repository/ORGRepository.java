@@ -26,18 +26,19 @@ public class ORGRepository extends RDSRepository<ORG> {
 
 		StringBuffer sb = new StringBuffer(
 				"SELECT org.* FROM tb_ecm_org_user user LEFT JOIN tb_ecm_org org ON user.org_id = org.id WHERE  ");
-		EXP sql = EXP.INS();
-		sql.key("user_id",userId);
+		EXP sql = EXP.INS().key("user_id",userId);
+		
 		if (level == ORG.LEVEL.DISTRICT.v()) {
 //			sql.AND(StringUtils.join("(level = ", ORG.LEVEL.PRO.v(), " OR level = ", ORG.LEVEL.CITY.v(), " OR level = ",
 //					ORG.LEVEL.DISTRICT.v(), ")"));
-			sql.IN("level", ORG.LEVEL.PRO.v(),ORG.LEVEL.CITY.v(),ORG.LEVEL.DISTRICT.v());
+			sql.and(EXP.INS().orKey("level", ORG.LEVEL.PRO.v()).orKey("level",ORG.LEVEL.CITY.v()).orKey("level",ORG.LEVEL.DISTRICT.v()));
 		} else {
 //			sql.AND("level = ? ", level);
-			sql.key("level", level);
+			sql.andKey("level", level);
 		}
 		List<Object> params = new ArrayList<Object>();
 		sql.toSQL(sb,params);
+		System.out.println(sb.toString());
 		return sqlGetJSONArray(conn, sb.toString(), params, count, offset);
 	}
 
@@ -47,7 +48,7 @@ public class ORGRepository extends RDSRepository<ORG> {
 	}
 
 	public List<ORG> getORGs(DruidPooledConnection conn, JSONArray json, int count, int offset) throws Exception {
-		StringBuffer sb = new StringBuffer();
+//		StringBuffer sb = new StringBuffer();
 		EXP sql = EXP.INS();
 		for (int i = 0; i < json.size(); i++) {
 //			sql.OR(StringUtils.join("id = ", json.getLong(i)));
@@ -69,7 +70,7 @@ public class ORGRepository extends RDSRepository<ORG> {
 		if (json != null && json.size() > 0) {
 			EXP sqlOR = EXP.INS();
 			for (int i = 0; i < json.size(); i++) {
-				sqlOR.or(EXP.INS().key("id",json.getLong(i)));
+				sqlOR.or(EXP.INS().key("id", json.getLong(i)));
 			}
 			sql.and(sqlOR);
 		}

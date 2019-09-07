@@ -540,6 +540,8 @@ public class ORGService {
 			newORG.imgAuth = imgAuth;
 			newORG.shareAmount = shareAmount;
 			newORG.level = level;
+			newORG.assetShares = assetShares;
+			newORG.resourceShares = resourceShares;
 			newORG.examine = ORGExamine.STATUS.VOTING.v();
 
 			if (superiorId == null) {
@@ -663,10 +665,13 @@ public class ORGService {
 		}
 	}
 
+	/**
+	 *  TODO 未使用
+	 */
 	// 再次提交组织申请
 	public int upORGApplyAgain(DruidPooledConnection conn, Long orgExamineId, Long userId, String name, String code,
 			Long province, Long city, Long district, String address, String imgOrg, String imgAuth, Integer shareAmount,
-			Byte level, Long superiorId, Long orgId, Boolean updateDistrict) throws Exception {
+			Byte level, Long superiorId, Long orgId, Boolean updateDistrict,Double assetShares,Double resourceShares) throws Exception {
 		ORGExamine newORG = new ORGExamine();
 
 		newORG.createTime = new Date();
@@ -682,6 +687,8 @@ public class ORGService {
 		newORG.level = level;
 		newORG.shareAmount = shareAmount;
 		newORG.updateDistrict = updateDistrict;
+		newORG.assetShares = assetShares;
+		newORG.resourceShares = resourceShares;
 
 		if (orgId != null) {
 			newORG.orgId = orgId;

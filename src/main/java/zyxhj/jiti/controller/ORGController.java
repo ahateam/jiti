@@ -867,12 +867,14 @@ public class ORGController extends Controller {
 			@P(t = "等级") Byte level, //
 			@P(t = "上级组织id", r = false) Long superiorId, //
 			@P(t = "组织id", r = false) Long orgId, //
-			@P(t = "是否修改地址") Boolean updateDistrict //
+			@P(t = "是否修改地址") Boolean updateDistrict, //
+			@P(t = "资源股", r = false) Double resourceShares, //
+			@P(t = "资产股", r = false) Double assetShares //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(
 					orgService.upORGApplyAgain(conn, orgExamineId, userId, name, code, province, city, district,
-							address, imgOrg, imgAuth, shareAmount, level, superiorId, orgId, updateDistrict));
+							address, imgOrg, imgAuth, shareAmount, level, superiorId, orgId, updateDistrict, assetShares, resourceShares));
 		}
 	}
 

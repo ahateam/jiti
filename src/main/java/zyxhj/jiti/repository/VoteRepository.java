@@ -24,10 +24,18 @@ public class VoteRepository extends RDSRepository<Vote> {
 			return getList(conn, EXP.INS().key("org_id", orgId).append("ORDER BY create_time DESC"), count, offset);
 
 		} else {
-			return getList(conn,
-					EXP.INS().key("org_id", orgId).andKey("status", status).append("ORDER BY create_time DESC"), count,
-					offset);
+//			return getList(conn,
+//					EXP.INS().key("org_id", orgId).andKey("status", status).append("ORDER BY create_time DESC"), count,
+//					offset);
 
+			EXP sql = EXP.INS().key("org_id", orgId).andKey("status", status);
+			StringBuffer sb = new StringBuffer();
+			List<Object> params = new ArrayList<Object>();
+			sql.toSQL(sb, params);
+			sb.append(" ORDER BY create_time DESC");
+			return getList(conn, sb.toString(), params, count, offset);
+			
+			
 		}
 	}
 
@@ -35,9 +43,13 @@ public class VoteRepository extends RDSRepository<Vote> {
 			throws ServerException {
 //		return getList(conn, " org_id=? AND user_id=? ORDER BY create_time DESC", Arrays.asList(orgId, userId), count,
 //				offset);
-		return getList(conn,
-				EXP.INS().key("org_id", orgId).andKey("user_id", userId).append("ORDER BY create_time DESC"), count,
-				offset);
+		EXP sql = EXP.INS().key("org_id", orgId).andKey("user_id", userId);
+		StringBuffer sb = new StringBuffer();
+		List<Object> params = new ArrayList<Object>();
+		sql.toSQL(sb, params);
+		sb.append(" ORDER BY create_time DESC");
+
+		return getList(conn, sb.toString(), params, count, offset);
 	}
 
 	public List<Vote> getVotesByOrgId(DruidPooledConnection conn, JSONArray orgIds, Byte status, Integer count,
@@ -108,8 +120,8 @@ public class VoteRepository extends RDSRepository<Vote> {
 //		SQL sql = new SQL();
 //		sql.addEx("vo.org_id = ? ", orgId);
 //		sql.AND("tk.user_id = ? ", userId);
-		EXP sql =EXP.INS().key("vo.org_id", orgId).andKey("tk.user_id", userId);
-		
+		EXP sql = EXP.INS().key("vo.org_id", orgId).andKey("tk.user_id", userId);
+
 //		EXP sqlEx = EXP.INS();
 		sql.and(EXP.JSON_CONTAINS_KEYS(json, "crowd", null));
 //		for (int i = 0; i < json.size(); i++) {
@@ -117,7 +129,7 @@ public class VoteRepository extends RDSRepository<Vote> {
 //		}
 //		sql.AND(sqlEx);
 		List<Object> params = new ArrayList<Object>();
-		sql.toSQL(sb,params);
+		sql.toSQL(sb, params);
 
 		return sqlGetJSONArray(conn, sb.toString(), params, count, offset);
 

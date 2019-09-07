@@ -47,7 +47,11 @@ public class ORGUserImportTaskRepository extends RDSRepository<ORGUserImportTask
 	public List<ORGUserImportTask> getORGUserImportTasks(DruidPooledConnection conn, Long orgId, Long userId,
 			Integer count, Integer offset) throws Exception {
 		EXP sql = EXP.INS().key("org_id", orgId).andKey("user_id", userId).append("ORDER BY create_time DESC");
-		return this.getList(conn, sql, count, offset);
+		StringBuffer sb = new StringBuffer();
+		List<Object> params = new ArrayList<Object>();
+		sql.toSQL(sb, params);
+		sb.append(" ORDER BY create_time DESC");
+		return this.getList(conn, sb.toString(), params, count, offset);
 	}
 
 }

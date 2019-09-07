@@ -872,9 +872,9 @@ public class ORGController extends Controller {
 			@P(t = "资产股", r = false) Double assetShares //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(
-					orgService.upORGApplyAgain(conn, orgExamineId, userId, name, code, province, city, district,
-							address, imgOrg, imgAuth, shareAmount, level, superiorId, orgId, updateDistrict, assetShares, resourceShares));
+			return APIResponse.getNewSuccessResp(orgService.upORGApplyAgain(conn, orgExamineId, userId, name, code,
+					province, city, district, address, imgOrg, imgAuth, shareAmount, level, superiorId, orgId,
+					updateDistrict, assetShares, resourceShares));
 		}
 	}
 

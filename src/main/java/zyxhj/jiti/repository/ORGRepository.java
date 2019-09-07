@@ -25,7 +25,7 @@ public class ORGRepository extends RDSRepository<ORG> {
 		// ON a.org_id = b.id WHERE user_id = 397912180277668
 
 		StringBuffer sb = new StringBuffer(
-				"SELECT org.* FROM tb_ecm_org_user user LEFT JOIN tb_ecm_org org ON user.org_id = org.id WHERE  ");
+				"SELECT org.* FROM tb_ecm_org_user user LEFT JOIN tb_ecm_org org ON user.org_id = org.id WHERE ");
 		EXP sql = EXP.INS().key("user_id",userId);
 		
 		if (level == ORG.LEVEL.DISTRICT.v()) {
@@ -49,11 +49,13 @@ public class ORGRepository extends RDSRepository<ORG> {
 
 	public List<ORG> getORGs(DruidPooledConnection conn, JSONArray json, int count, int offset) throws Exception {
 //		StringBuffer sb = new StringBuffer();
-		EXP sql = EXP.INS();
-		for (int i = 0; i < json.size(); i++) {
+		EXP sql = EXP.INS().IN("id", json);
+//		for (int i = 0; i < json.size(); i++) {
 //			sql.OR(StringUtils.join("id = ", json.getLong(i)));
-			sql.or(EXP.INS().key("id", json.getLong(i)));
-		}
+//			sql.or(EXP.INS().key("id", json.getLong(i)));
+			
+//		}
+		
 		return getList(conn, sql, count, offset);
 	}
 

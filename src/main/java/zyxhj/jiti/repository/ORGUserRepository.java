@@ -449,13 +449,12 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 	public JSONArray getFamilyAll(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)
 			throws Exception {
 		StringBuffer sb = new StringBuffer("SELECT * FROM tb_ecm_org_user  WHERE ");
-		EXP sql = EXP.INS().key("org_id", orgId).and("family_number IS NOT NULL", null, null);
+		EXP sql = EXP.INS().key("org_id", orgId).and("family_number IS NOT NULL", null, null).append("GROUP BY family_master");
 //		sql.addEx("org_id = ? ", orgId);
 //		sql.AND(" family_number IS NOT NULL ");
 //		sql.addEx("GROUP BY family_master");
 		List<Object> params = new ArrayList<Object>();
 		sql.toSQL(sb, params);
-		sb.append(" GROUP BY family_master");
 		return sqlGetJSONArray(conn, sb.toString(), params, count, offset);
 	}
 

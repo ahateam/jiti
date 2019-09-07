@@ -38,8 +38,12 @@ public class PrintingType {
 	public static final PrintingType remark = buildSysRole(temp1++, "remark", "备注");
 	
 	public static final PrintingType org_resource_shares = buildSysRole(temp1++, "resourceShares", "资源股");
-	public static final PrintingType org_asset_shares = buildSysRole(temp1++, "assetShares", "资源股");
+	public static final PrintingType org_asset_shares = buildSysRole(temp1++, "assetShares", "资产股");
 	public static final PrintingType org_family_relations = buildSysRole(temp1++, "familyRelations", "与户主关系");
+	
+
+	public static final PrintingType org_user_resource_shares = buildSysRole(temp1++, "resourceShares", "资源股");
+	public static final PrintingType org_user_asset_shares = buildSysRole(temp1++, "assetShares", "资产股");
 	
 
 	@RDSAnnID

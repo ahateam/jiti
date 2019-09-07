@@ -37,29 +37,38 @@ public class PrintingTypeService {
 		ORG_PRINTING_TYPE_MAP.put(PrintingType.org_code.printingId, PrintingType.org_code);
 		ORG_PRINTING_TYPE_MAP.put(PrintingType.org_resource_shares.printingId, PrintingType.org_resource_shares);
 		ORG_PRINTING_TYPE_MAP.put(PrintingType.org_asset_shares.printingId, PrintingType.org_asset_shares);
-		ORG_PRINTING_TYPE_MAP.put(PrintingType.org_family_relations.printingId, PrintingType.org_family_relations);
 
 		USER_PRINTING_TYPE_MAP.put(PrintingType.share_cer_no.printingId, PrintingType.share_cer_no);
 		USER_PRINTING_TYPE_MAP.put(PrintingType.family_master.printingId, PrintingType.family_master);
 		USER_PRINTING_TYPE_MAP.put(PrintingType.org_user_address.printingId, PrintingType.org_user_address);
 		USER_PRINTING_TYPE_MAP.put(PrintingType.org_user_name.printingId, PrintingType.org_user_name);
-//		USER_PRINTING_TYPE_MAP.put(PrintingType.org_user.printingId, PrintingType.org_user);
 		USER_PRINTING_TYPE_MAP.put(PrintingType.id_number.printingId, PrintingType.id_number);
 		USER_PRINTING_TYPE_MAP.put(PrintingType.share_amount.printingId, PrintingType.share_amount);
 		USER_PRINTING_TYPE_MAP.put(PrintingType.remark.printingId, PrintingType.remark);
 		USER_PRINTING_TYPE_MAP.put(PrintingType.is_org_user.printingId, PrintingType.is_org_user);
+		
+		USER_PRINTING_TYPE_MAP.put(PrintingType.org_user_resource_shares.printingId, PrintingType.org_user_resource_shares);
+		USER_PRINTING_TYPE_MAP.put(PrintingType.org_user_asset_shares.printingId, PrintingType.org_user_asset_shares);
+		USER_PRINTING_TYPE_MAP.put(PrintingType.org_family_relations.printingId, PrintingType.org_family_relations);
 
 		Iterator<PrintingType> orgPrinting = ORG_PRINTING_TYPE_MAP.values().iterator();
 		while (orgPrinting.hasNext()) {
 			ORG_PRINTING_TYPE_LIST.add(orgPrinting.next());
 		}
 		data.put("orgInfo", ORG_PRINTING_TYPE_LIST);
+		
+		
 		Iterator<PrintingType> userPrinting = USER_PRINTING_TYPE_MAP.values().iterator();
 		while (userPrinting.hasNext()) {
 			USER_PRINTING_TYPE_LIST.add(userPrinting.next());
 		}
 		data.put("userInfo", USER_PRINTING_TYPE_LIST);
-
+		System.out.println("--------------------------------------------------------------------------------");
+		System.out.println("--------------------------------------------------------------------------------");
+		System.out.println("--------------------------------------------------------------------------------");
+		System.out.println("--------------------------------------------------------------------------------");
+		System.out.println("--------------------------------------------------------------------------------");
+		System.out.println(data.toJSONString());
 	}
 
 }

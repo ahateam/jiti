@@ -52,8 +52,8 @@ public class ORGUserRole {
 
 	private static Long temp = 100L;// 自增编号
 
-	public static final ORGUserRole role_outuser = buildSysRole(temp++, "外部人员", null);// 非本组织成员
-	public static final ORGUserRole role_user = buildSysRole(temp++, "组织成员", null);
+	public static final ORGUserRole role_outuser = buildSysRole(temp++, "外部人员", null);// 非本组织成员100
+	public static final ORGUserRole role_user = buildSysRole(temp++, "组织成员", null);//101
 	public static final ORGUserRole role_admin = buildSysRole(temp++, "管理员", null);
 	public static final ORGUserRole role_shareHolder = buildSysRole(temp++, "股东", null);
 	public static final ORGUserRole role_shareDeputy = buildSysRole(temp++, "股东代表", null);

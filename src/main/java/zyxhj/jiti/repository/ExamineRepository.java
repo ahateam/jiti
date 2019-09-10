@@ -1,5 +1,6 @@
 package zyxhj.jiti.repository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -19,13 +20,13 @@ public class ExamineRepository extends RDSRepository<Examine> {
 
 	public List<Examine> getExamineByORGIds(DruidPooledConnection conn, List<ORG> orgs, Byte type, Byte status,
 			Integer count, Integer offset) throws Exception {
-		EXP sql = EXP.INS();
-		EXP sqlEx = EXP.INS();
+		
+		//TODO 添加倒序
+		List<Long> args = new ArrayList<Long>();
 		for (ORG org : orgs) {
-			sqlEx.or(EXP.INS().key("org_id", org.id));
+			args.add(org.id);
 		}
-		sql.exp(sqlEx).andKey("type", type).andKey("status", status);
-
+		EXP sql = EXP.INS().andKey("type", type).andKey("status", status).and(EXP.IN("org_id", args.toArray())).append(" ORDER BY create_date DESC ");
 		return getList(conn, sql, count, offset);
 	}
 

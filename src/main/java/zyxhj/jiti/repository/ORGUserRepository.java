@@ -231,28 +231,21 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		// SELECT * FROM tb_ecm_org_user WHERE org_id = 397652553337218 and user_id =
 		// 397652692024985
 		// AND JSON_CONTAINS(groups,'397652645549447','$')
-
+		int count = 0;
 		for (int i = 0; i < userIds.size(); i++) {
 			// 查询用户
 			EXP ta = EXP.INS().key("org_id", orgId).andKey("user_id", userIds.getLong(i));
 
 			ORGUser getORGUser = get(conn, ta);
-
 			// 等于-1表示不存在
 			if (getORGUser != null) {
 				// 不存在分组 给组织用户添加分组
-				JSONArray json = JSONArray.parseArray(getORGUser.groups);
-				json.add(groups);
-				ORGUser or = new ORGUser();
-				or.groups = json.toString();
-
 				EXP where = EXP.INS().andKey("org_id", orgId).andKey("user_id", userIds.getLong(i));
 				EXP set = EXP.JSON_ARRAY_APPEND("groups", groups, true);
 				update(conn, set, where);
 			}
-
+			count++;
 		}
-
 	}
 
 	public Map<String, Integer> countRole(DruidPooledConnection conn, Long orgId, JSONArray roles) throws Exception {

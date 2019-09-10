@@ -1,6 +1,7 @@
 package zyxhj.jiti.service;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -394,9 +395,9 @@ public class ORGService {
 		List<Superior> superior = superiorRepository.getList(conn, EXP.INS().key("superior_id", superiorId), 512, 0);
 
 		for (Superior sup : superior) {
-			json.add(sup.orgId);
+				json.add(sup.orgId);
 		}
-		return orgRepository.getORGs(conn, json, count, offset);
+		return orgRepository.getList(conn, EXP.IN("id", json.toArray()), count, offset);
 	}
 
 	/**

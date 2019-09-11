@@ -80,37 +80,41 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		if ((roles != null && roles.size() > 0) || (groups != null && groups.size() > 0) || (tags != null)) {
 			EXP sqlEx = EXP.INS();
 			if (roles != null && roles.size() > 0) {
-				sqlEx.and(EXP.JSON_CONTAINS_KEYS(roles, "roles", null));
-//				for (int i = 0; i < roles.size(); i++) {
-//					sqlEx.OR(StringUtils.join("JSON_CONTAINS(roles, '", roles.getString(i), "', '$') "));
-//					
-//				}
+//				sqlEx.and(EXP.JSON_CONTAINS_KEYS(roles, "roles", null));
+				for (int i = 0; i < roles.size(); i++) {
+//					sqlEx.or(StringUtils.join("JSON_CONTAINS(roles, '", roles.getString(i), "', '$') "));
+					sqlEx.or(EXP.JSON_CONTAINS("roles", "$", roles.get(i)));
+				}
 			}
 
 			if (groups != null && groups.size() > 0) {
-				sqlEx.and(EXP.JSON_CONTAINS_KEYS(groups, "groups", null));
-//				for (int i = 0; i < groups.size(); i++) {
+//				sqlEx.and(EXP.JSON_CONTAINS_KEYS(groups, "groups", null));
+				for (int i = 0; i < groups.size(); i++) {
 //					sqlEx.OR(StringUtils.join("JSON_CONTAINS(group, '", groups.getString(i), "', '$') "));
-//				}
+
+					sqlEx.or(EXP.JSON_CONTAINS("group", "$", groups.get(i)));
+				}
 			}
 
 			if (tags != null) {
-				sqlEx.and(EXP.JSON_CONTAINS_JSONOBJECT(tags, "tags"));
-//				Iterator<Entry<String, Object>> it = tags.entrySet().iterator();
-//				while (it.hasNext()) {
-//					Entry<String, Object> entry = it.next();
-//					String key = entry.getKey();
-//					JSONArray arr = (JSONArray) entry.getValue();
-//
-//					if (arr != null && arr.size() > 0) {
-//						for (int i = 0; i < arr.size(); i++) {
-//							// JSON_CONTAINS(tags, '"tag1"', '$.groups')
-//							// JSON_CONTAINS(tags, '"tag3"', '$.tags')
+//				sqlEx.and(EXP.JSON_CONTAINS_JSONOBJECT(tags, "tags"));
+				Iterator<Entry<String, Object>> it = tags.entrySet().iterator();
+				while (it.hasNext()) {
+					Entry<String, Object> entry = it.next();
+					String key = entry.getKey();
+					JSONArray arr = (JSONArray) entry.getValue();
+
+					if (arr != null && arr.size() > 0) {
+						for (int i = 0; i < arr.size(); i++) {
+							// JSON_CONTAINS(tags, '"tag1"', '$.groups')
+							// JSON_CONTAINS(tags, '"tag3"', '$.tags')
 //							sqlEx.OR(StringUtils.join("JSON_CONTAINS(tags, '\"", arr.getString(i), "\"', '$.", key,
 //									"') "));
-//						}
-//					}
-//				}
+
+							sqlEx.or(EXP.JSON_CONTAINS("tags", "$."+key, arr.getString(i)));
+						}
+					}
+				}
 			}
 			sql.and(sqlEx);
 		}

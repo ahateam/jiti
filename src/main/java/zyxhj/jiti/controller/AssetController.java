@@ -227,7 +227,7 @@ public class AssetController extends Controller {
 	)
 	public APIResponse getAssetsByGroups(//
 			@P(t = "组织编号") Long orgId, //
-			@P(t = "分组,String[]格式", r = false) String[] groups, //
+			@P(t = "分组,String[]格式", r = false) JSONArray groups, //
 			Integer count, //
 			Integer offset//
 	) throws Exception {

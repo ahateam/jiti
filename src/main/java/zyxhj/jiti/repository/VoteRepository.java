@@ -117,17 +117,13 @@ public class VoteRepository extends RDSRepository<Vote> {
 		StringBuffer sb = new StringBuffer(
 				"SELECT vo.* FROM tb_ecm_vote vo LEFT JOIN tb_ecm_vote_ticket tk ON vo.id = tk.vote_id WHERE ");
 		JSONArray json = JSONArray.parseArray(roles);
-//		SQL sql = new SQL();
-//		sql.addEx("vo.org_id = ? ", orgId);
-//		sql.AND("tk.user_id = ? ", userId);
 		EXP sql = EXP.INS().key("vo.org_id", orgId).andKey("tk.user_id", userId);
 
-//		EXP sqlEx = EXP.INS();
-		sql.and(EXP.JSON_CONTAINS_KEYS(json, "crowd", null));
-//		for (int i = 0; i < json.size(); i++) {
+//		sql.and(EXP.JSON_CONTAINS_KEYS(json, "crowd", null));
+		for (int i = 0; i < json.size(); i++) {
 //			sqlEx.OR(StringUtils.join("JSON_CONTAINS(crowd, '", json.getLong(i), "','$.roles')"));
-//		}
-//		sql.AND(sqlEx);
+			sql.or(EXP.JSON_CONTAINS("crowd", "$.roles", json.getLong(i)));
+		}
 		List<Object> params = new ArrayList<Object>();
 		sql.toSQL(sb, params);
 

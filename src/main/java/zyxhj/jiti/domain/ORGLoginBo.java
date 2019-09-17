@@ -39,6 +39,8 @@ public class ORGLoginBo {
 
 	public Double shareAmount;
 	public Integer weight;
+	public Double resourceShares;
+	public Double assetShares;
 
 	public JSONArray orgRoles;
 	public JSONArray groups;

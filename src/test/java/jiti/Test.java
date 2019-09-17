@@ -12,10 +12,12 @@ import com.alibaba.fastjson.JSONObject;
 import zyxhj.core.domain.User;
 import zyxhj.core.repository.UserRepository;
 import zyxhj.jiti.controller.ORGController;
+import zyxhj.jiti.controller.VoteController;
 import zyxhj.jiti.domain.ORGUser;
 import zyxhj.jiti.repository.ORGUserRepository;
 import zyxhj.jiti.service.ORGService;
 import zyxhj.jiti.service.ORGUserService;
+import zyxhj.jiti.service.VoteService;
 import zyxhj.utils.api.ServerException;
 import zyxhj.utils.data.DataSource;
 import zyxhj.utils.data.EXP;
@@ -106,21 +108,17 @@ public class Test {
 	@org.junit.Test
 	public void testgetCountsByRoles() throws Exception {
 
-		ORGUserRepository userRepository = new ORGUserRepository();
-		UserRepository ur = new UserRepository();
-		List<User> ulist = ur.getList(conn, null, null, null);
-		ORGUser t = new ORGUser();
-		t.isOrgUser = false;
-		int i = 0;
-		for (User u : ulist) {
-			if (u.id != null && u.id != 0) {
-				if (StringUtils.isBlank(u.idNumber) || u.idNumber.length() < 15 || u.idNumber.length() > 19) {
-					userRepository.update(conn, EXP.INS().key("user_id", u.id), t, true);
-					i++;
-				}
-			}
-		}
-		System.out.println("===========================" + i);
-
+		Long orgId = 397652553337218L;
+		Long userId = 397652721987284L;
+		JSONArray roles = new JSONArray();
+		roles.add(101);
+		roles.add(107);
+		roles.add(106);
+		roles.add(104);
+		Integer count = 10;
+		Integer offset = 0;
+		VoteService vs = new VoteService();
+		JSONArray ja = vs.getNotVoteByUserRoles(conn, orgId, userId, roles.toJSONString(), count, offset);
+		System.out.println(ja.toJSONString());
 	}
 }

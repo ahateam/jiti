@@ -176,10 +176,12 @@ public class ORGService {
 		ret.shareCerNo = orgUser.shareCerNo;
 		ret.shareCerImg = orgUser.shareCerImg;
 		ret.shareCerHolder = orgUser.shareCerHolder;
-
+		
 		ret.shareAmount = orgUser.shareAmount;
 		ret.weight = orgUser.weight;
-
+		ret.resourceShares = orgUser.resourceShares;
+		ret.assetShares = orgUser.assetShares;
+		
 		ret.orgRoles = JSON.parseArray(orgUser.roles);
 		ret.groups = JSON.parseArray(orgUser.groups);
 		ret.permissions = orgPermissionService.getPermissionsByRoles(conn, orgUser.orgId, ret.orgRoles);

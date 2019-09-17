@@ -718,17 +718,16 @@ public class VoteService {
 		// 根据orgId以及roles获取用户的可投票列表 select * from aa where org_id = ? And
 		// (JSON_CONTAINS(role,101,'$') OR JSON_CON.... )
 		List<Vote> vote = voteRepository.getNotVoteByUserRoles(conn, orgId, roles, count, offset); // 获取到了vote
-		System.out.println("vote.szie = =   "+vote.size());
 		// 再去根据用户id去查询当前用户是否已经投了此票 如果用户id+投票id为空 则表示未投 不为空 则表示已经投了票
 		JSONArray json = new JSONArray();
 		for (Vote v : vote) {
 			VoteTicket voteTicket = ticketRepository.get(conn,
 					EXP.INS().key("vote_id", v.id).andKey("user_id", userId));
 			if (voteTicket == null) {
-				System.out.println("000000000000000000000000000000000000000000000000000000000000000000000");
 				json.add(v);
 			}
 		}
+		System.out.println(json.toJSONString());
 		return json;
 	}
 
@@ -749,6 +748,30 @@ public class VoteService {
 				json.add(v);
 			}
 		}
+		System.out.println(json.toJSONString());
+		return json;
+
+	}
+
+	
+
+	public JSONArray getVoteByUserRoles(DruidPooledConnection conn, Long orgId, Long userId, JSONArray roles,
+			Integer count, Integer offset) throws Exception {
+		//获取当前职务所有投票
+		List<Vote> vote = voteRepository.getVoteByUserRoles(conn, orgId, roles); // 获取到了vote
+		JSONArray json = new JSONArray();
+		for (Vote v : vote) {
+			VoteTicket voteTicket = ticketRepository.get(conn,
+					EXP.INS().key("vote_id", v.id).andKey("user_id", userId));
+			if (voteTicket != null) {
+				json.add(v);
+			}
+		}
+		System.out.println(json.toJSONString());
 		return json;
 	}
+	
 }
+
+
+

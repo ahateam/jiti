@@ -94,6 +94,7 @@ public class VoteRepository extends RDSRepository<Vote> {
 
 //		StringBuffer sb = new StringBuffer();
 		JSONArray json = JSONArray.parseArray(roles);
+		System.out.println(json.toJSONString());
 		EXP exp = EXP.INS().exp("org_id", "=", orgId);
 		EXP subExp = EXP.INS();
 		for (int i = 0; i < json.size(); i++) {
@@ -106,6 +107,25 @@ public class VoteRepository extends RDSRepository<Vote> {
 		return getList(conn, exp, count, offset);
 
 	}
+	
+	/**
+	 *  修改获取投票方法
+	 */
+	public List<Vote> getVoteByUserRoles(DruidPooledConnection conn, Long orgId, JSONArray roles) throws Exception {
+		EXP exp = EXP.INS().exp("org_id", "=", orgId);
+		EXP subExp = EXP.INS();
+		for (int i = 0; i < roles.size(); i++) {
+			subExp.or(EXP.JSON_CONTAINS("crowd", "$.roles", roles.get(i)));
+		}
+		exp.and(subExp);
+
+		return getList(conn, exp, null, null);
+
+	}
+	
+	
+	
+	
 
 	public JSONArray getVoteByUserRoles(DruidPooledConnection conn, Long orgId, Long userId, String roles,
 			Integer count, Integer offset) throws Exception {

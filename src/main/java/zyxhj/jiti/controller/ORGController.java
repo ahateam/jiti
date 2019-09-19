@@ -3,6 +3,7 @@ package zyxhj.jiti.controller;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +14,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 import zyxhj.core.domain.User;
+import zyxhj.core.service.UserService;
 import zyxhj.jiti.domain.Examine;
 import zyxhj.jiti.domain.Notice;
 import zyxhj.jiti.domain.ORG;
@@ -41,6 +43,7 @@ public class ORGController extends Controller {
 	private ORGPermissionService orgPermissionService;
 	private ORGUserRoleService orgUserRoleService;
 	private MessageService messageService;
+	private UserService userService;
 
 	public ORGController(String node) {
 		super(node);
@@ -50,10 +53,10 @@ public class ORGController extends Controller {
 			orgService = Singleton.ins(ORGService.class);
 			orgUserService = Singleton.ins(ORGUserService.class);
 
-			orgUserGroupService = Singleton.ins(ORGUserGroupService.class);
-			orgPermissionService = Singleton.ins(ORGPermissionService.class);
+			orgUserGroupService = Singleton.ins(ORGUserGroupService.class);			orgPermissionService = Singleton.ins(ORGPermissionService.class);
 			orgUserRoleService = Singleton.ins(ORGUserRoleService.class);
 			messageService = Singleton.ins(MessageService.class);
+			userService = Singleton.ins(UserService.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -326,11 +329,16 @@ public class ORGController extends Controller {
 			des = "用户绑定/解绑手机号", //
 			ret = "更新影响记录的行数"//
 	)
-	public APIResponse editUserMobile(@P(t = "用户编号") Long userId, //
-			@P(t = "手机号,当手机号为null时为解除绑定", r = false) String mobile //
+	public APIResponse editUserMobile(//
+			@P(t = "用户编号") Long userId, //
+			@P(t = "手机号,当手机号为null时为解除绑定", r = false) String mobile, //
+			@P(t = "用户密码") String password//
 	) throws Exception {
+		if(StringUtils.isBlank(password)) {
+			return APIResponse.getNewSuccessResp(0);
+		}
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			User u = orgUserService.editUserMobile(conn, userId, mobile);
+			User u = orgUserService.editUserMobile(conn, userId, mobile,password);
 			if (u != null) {
 				return APIResponse.getNewSuccessResp(u);
 			}
@@ -870,12 +878,15 @@ public class ORGController extends Controller {
 			@P(t = "是否修改地址") Boolean updateDistrict, //
 			@P(t = "资源股", r = false) Double resourceShares, //
 			@P(t = "资产股", r = false) Double assetShares //
-	) throws Exception {
+	) {
 		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.upORGApplyAgain(conn, orgExamineId, userId, name, code,
 					province, city, district, address, imgOrg, imgAuth, shareAmount, level, superiorId, orgId,
 					updateDistrict, assetShares, resourceShares));
+		}catch(Exception e){
+			e.printStackTrace();
 		}
+		return null;
 	}
 
 	/**
@@ -1915,5 +1926,22 @@ public class ORGController extends Controller {
 					.getNewSuccessResp(orgUserService.getOrgUserListByIsOrgUser(conn, orgId, isOrgUser, count, offset));
 		}
 	}
+	
+	@POSTAPI(//
+			path = "editUserPassword", //
+			des = "修改用戶密碼", //
+			ret = "受影响行数"//
+	)
+	public APIResponse editUserPassword(//
+			@P(t = "用户id") Long userId, //
+			@P(t = "旧密码") String oldPassword, //
+			@P(t = "新密码") String newPassword//
+	) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse.getNewSuccessResp(orgUserService.eidtUserPassword(conn, userId,oldPassword,newPassword));
+		}
+	}
+	
+	
 
 }

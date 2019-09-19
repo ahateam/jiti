@@ -1969,23 +1969,26 @@ public class ORGUserService {
 		return orgUserRepository.getOrgUser(conn, orgId, idNumber);
 	}
 
-	public User editUserMobile(DruidPooledConnection conn, Long userId, String mobile) throws ServerException {
+	public User editUserMobile(DruidPooledConnection conn, Long userId, String mobile, String password) throws ServerException {
 		User renew = new User();
-
-		if (mobile == null) {
-			renew.mobile = "";
-		} else {
-			List<User> ulist = userRepository.getList(conn, EXP.INS().key("mobile", mobile), 10, 0, "mobile");
-			if (ulist.size() > 0 && ulist != null) {
-				return null;
+		User user = userRepository.get(conn, EXP.INS().key("id", userId));
+		if((user.pwd).equals(password)) {
+			if (mobile == null) {
+				renew.mobile = "";
+			} else {
+				List<User> ulist = userRepository.getList(conn, EXP.INS().key("mobile", mobile), 10, 0, "mobile");
+				if (ulist.size() > 0 && ulist != null) {
+					return null;
+				}
+				renew.mobile = mobile;
 			}
-			renew.mobile = mobile;
+			int ret = userRepository.update(conn, EXP.INS().key("id", userId), renew, true);
+
+			return userRepository.get(conn, EXP.INS().key("id", userId));
+		}else {
+			return null;
 		}
-
-		int ret = userRepository.update(conn, EXP.INS().key("id", userId), renew, true);
-
-		return userRepository.get(conn, EXP.INS().key("id", userId));
-
+		
 	}
 
 	public JSONObject getCountsByRole(DruidPooledConnection conn, Long orgId, JSONArray roles) throws Exception {
@@ -2015,6 +2018,18 @@ public class ORGUserService {
 		EXP set = EXP.INS().key("is_org_user", isOrgUser);
 		EXP where = EXP.INS().key("org_id", orgId).andKey("user_id", userId);
 		return orgUserRepository.update(conn, set, where);
+	}
+
+	
+	
+	public int eidtUserPassword(DruidPooledConnection conn, Long userId, String oldPassword, String newPassword) throws Exception {
+		User u = userRepository.get(conn, EXP.INS().key("id", userId));
+		if(u.pwd.equals(oldPassword)) {
+			u.pwd = newPassword;
+			return userRepository.update(conn, EXP.INS().key("id", userId), u,true);
+		}else {
+			return 0;
+		}
 	}
 
 }

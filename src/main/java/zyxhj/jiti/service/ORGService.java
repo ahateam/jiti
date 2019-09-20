@@ -1005,9 +1005,9 @@ public class ORGService {
 	}
 
 	// 用户查看公告
-	public List<Notice> getNoticeByRoleGroup(DruidPooledConnection conn, Long orgId, String roles, String groups)
+	public List<Notice> getNoticeByRoleGroup(DruidPooledConnection conn, Long orgId, String roles, String groups, Integer count, Integer offset)
 			throws Exception {
-		return noticeRepository.getNoticeByRoleGroup(conn, orgId, roles, groups);
+		return noticeRepository.getNoticeByRoleGroup(conn, orgId, roles, groups, count, offset);
 	}
 
 	// 绑定微信openid

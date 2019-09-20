@@ -24,18 +24,18 @@ public class NoticeRepository extends RDSRepository<Notice> {
 			.maximumSize(100)//
 			.build();
 
-	public List<Notice> getNoticeByRoleGroup(DruidPooledConnection conn, Long orgId, String roles, String groups)
+	public List<Notice> getNoticeByRoleGroup(DruidPooledConnection conn, Long orgId, String roles, String groups, Integer count, Integer offset)
 			throws Exception {
 		JSONArray role = JSONArray.parseArray(roles);
 		JSONArray group = JSONArray.parseArray(groups);
 		// 先从缓存里面取
 		// 缓存为空 需要从数据库中获取
-		List<Notice> notice = getNoticeByRG(conn, orgId, role, group);
+		List<Notice> notice = getNoticeByRG(conn, orgId, role, group, count, offset);
 		return notice;
 
 	}
 
-	private List<Notice> getNoticeByRG(DruidPooledConnection conn, Long orgId, JSONArray role, JSONArray group)
+	private List<Notice> getNoticeByRG(DruidPooledConnection conn, Long orgId, JSONArray role, JSONArray group, Integer count, Integer offset)
 			throws Exception {
 		JSONArray ja = new JSONArray();
 		ja.add(orgId);
@@ -46,9 +46,10 @@ public class NoticeRepository extends RDSRepository<Notice> {
 		
 		if (group != null && group.size() > 0) {
 			EXP groupEx = EXP.JSON_CONTAINS_KEYS(group, "crowd", "groups");
-			sql.and(groupEx);
+			sql.or(groupEx);
 		}
-		return getList(conn, sql, 512, 0);
+		sql.append("ORDER BY create_time DESC");
+		return getList(conn, sql, count, offset);
 	}
 
 	public List<Notice> getNotice(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)

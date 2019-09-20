@@ -1727,10 +1727,12 @@ public class ORGController extends Controller {
 	public APIResponse getNoticeByRoleGroup(//
 			@P(t = "组织编号") Long orgId, //
 			@P(t = "角色编号 [102,103,104]") String roles, //
-			@P(t = "分组编号 [1111111,555555,111]") String groups //
+			@P(t = "分组编号 [1111111,555555,111]") String groups, //
+			Integer count, //
+			Integer offset //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.getNoticeByRoleGroup(conn, orgId, roles, groups));
+			return APIResponse.getNewSuccessResp(orgService.getNoticeByRoleGroup(conn, orgId, roles, groups, count, offset));
 		}
 	}
 

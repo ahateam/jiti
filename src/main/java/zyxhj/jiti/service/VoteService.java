@@ -187,7 +187,7 @@ public class VoteService {
 		}
 	}
 
-	public int editVote(DruidPooledConnection conn, Long orgId, Long voteId, Byte type, Byte choiceCount,
+	public Vote editVote(DruidPooledConnection conn, Long orgId, Long voteId, Byte type, Byte choiceCount,
 			JSONObject crowd, Boolean reeditable, Boolean realName, Boolean isInternal, Boolean isAbstain,
 			Byte effectiveRatio, Byte failureRatio, String title, String remark, String ext, //
 			Date startTime, Date expiryTime) throws Exception {
@@ -230,7 +230,11 @@ public class VoteService {
 				delVoteOption(conn, voteId, op.id);
 			}
 		}
-		return ret;
+		if(ret>0) {
+			return voteRepository.get(conn, EXP.INS().key("org_id", orgId).andKey("id",voteId));
+		}else {
+			return null;
+		}
 	}
 
 	public int setVoteActivation(DruidPooledConnection conn, Long voteId, Boolean activation) throws Exception {

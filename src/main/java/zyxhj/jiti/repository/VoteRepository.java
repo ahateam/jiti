@@ -85,22 +85,17 @@ public class VoteRepository extends RDSRepository<Vote> {
 				Arrays.asList(userId, orgId), count, offset);
 	}
 
-	public List<Vote> getNotVoteByUserRoles(DruidPooledConnection conn, Long orgId, String roles, Integer count,
+	public List<Vote> getVoteByUserRoles(DruidPooledConnection conn, Long orgId, JSONArray roles, Integer count,
 			Integer offset) throws Exception {
 		// 根据orgId以及roles获取用户的可投票列表
 		// SELECT * FROM tb_ecm_vote WHERE org_id = a AND (...)
 		// (JSON_CONTAINS(crowd, '104','$.roles') OR JSON_CONTAINS(crowd,
 		// '106','$.roles'))
 
-//		StringBuffer sb = new StringBuffer();
-		JSONArray json = JSONArray.parseArray(roles);
-		System.out.println(json.toJSONString());
 		EXP exp = EXP.INS().exp("org_id", "=", orgId);
 		EXP subExp = EXP.INS();
-		for (int i = 0; i < json.size(); i++) {
-//			String temp = StringUtils.join("JSON_CONTAINS(crowd, '", json.getLong(i), "','$.roles')");
-//			subExp.or(temp, null);
-			subExp.or(EXP.JSON_CONTAINS("crowd", "$.roles", json.get(i)));
+		for (int i = 0; i < roles.size(); i++) {
+			subExp.or(EXP.JSON_CONTAINS("crowd", "$.roles", roles.get(i)));
 		}
 		exp.and(subExp);
 
@@ -149,6 +144,25 @@ public class VoteRepository extends RDSRepository<Vote> {
 
 		return sqlGetJSONArray(conn, sb.toString(), params, count, offset);
 
+	}
+
+	public int getVoteCount(DruidPooledConnection conn, Long orgId, JSONArray roles) throws Exception {
+		EXP exp = EXP.INS().exp("org_id", "=", orgId);
+		EXP subExp = EXP.INS();
+		for (int i = 0; i < roles.size(); i++) {
+//			String temp = StringUtils.join("JSON_CONTAINS(crowd, '", json.getLong(i), "','$.roles')");
+//			subExp.or(temp, null);
+			subExp.or(EXP.JSON_CONTAINS("crowd", "$.roles", roles.get(i)));
+		}
+		exp.and(subExp);
+		StringBuffer sb = new StringBuffer("select count(*) from tb_ecm_vote where ");
+		List<Object> params = new ArrayList<Object>();
+		exp.toSQL(sb, params);
+		
+		Object[] count = this.sqlGetObjects(conn, sb.toString(), params);
+		int size = Integer.parseInt(count[0].toString());
+		
+		return size;
 	}
 
 	// //统计组织下可投票人数

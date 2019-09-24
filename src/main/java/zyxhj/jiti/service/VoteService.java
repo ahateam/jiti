@@ -229,9 +229,9 @@ public class VoteService {
 				delVoteOption(conn, voteId, op.id);
 			}
 		}
-		if(ret>0) {
-			return voteRepository.get(conn, EXP.INS().key("org_id", orgId).andKey("id",voteId));
-		}else {
+		if (ret > 0) {
+			return voteRepository.get(conn, EXP.INS().key("org_id", orgId).andKey("id", voteId));
+		} else {
 			return null;
 		}
 	}
@@ -715,66 +715,43 @@ public class VoteService {
 		}
 	}
 
-	// 未投票列表
-	public JSONArray getNotVoteByUserRoles(DruidPooledConnection conn, Long orgId, Long userId, String roles,
-			Integer count, Integer offset) throws Exception {
+	// 是否投票列表
+	public JSONObject getVoteByUserRoles(DruidPooledConnection conn, Long orgId, Long userId, JSONArray roles,
+			Integer count, Integer offset,Boolean bool) throws Exception {
 		// 根据orgId以及roles获取用户的可投票列表 select * from aa where org_id = ? And
 		// (JSON_CONTAINS(role,101,'$') OR JSON_CON.... )
-		List<Vote> vote = voteRepository.getNotVoteByUserRoles(conn, orgId, roles, count, offset); // 获取到了vote
-		// 再去根据用户id去查询当前用户是否已经投了此票 如果用户id+投票id为空 则表示未投 不为空 则表示已经投了票
+		JSONObject jo = new JSONObject();
 		JSONArray json = new JSONArray();
-		for (Vote v : vote) {
-			VoteTicket voteTicket = ticketRepository.get(conn,
-					EXP.INS().key("vote_id", v.id).andKey("user_id", userId));
-			if (voteTicket == null) {
-				json.add(v);
+		//得到该组织的投票总数
+		int size = voteRepository.getVoteCount(conn, orgId, roles);
+		while (true) {
+			//判断循环是否超出范围
+			if (offset < size) {
+				List<Vote> vote = voteRepository.getVoteByUserRoles(conn, orgId, roles, count, offset); // 获取到了vote
+				// 再去根据用户id去查询当前用户是否已经投了此票 如果用户id+投票id为空 则表示未投 不为空 则表示已经投了票
+				for (Vote v : vote) {
+					VoteTicket voteTicket = ticketRepository.get(conn,
+							EXP.INS().key("vote_id", v.id).andKey("user_id", userId));
+					if(bool) {//已投票
+						if (voteTicket != null) {
+							json.add(v);
+						}
+					}else {//未投票
+						if (voteTicket == null) {
+							json.add(v);
+						}
+					}
+					offset++;
+				}
+				if (json.size() == 10) {
+					break;
+				}
+			} else {
+				break;
 			}
 		}
-		System.out.println(json.toJSONString());
-		return json;
+		jo.put("data", json);
+		jo.put("offset", offset);
+		return jo;
 	}
-
-	// 已投票列表
-//	public JSONArray getVoteByUserRoles(DruidPooledConnection conn, Long orgId, Long userId, String roles,
-//			Integer count, Integer offset) throws Exception {
-//		return voteRepository.getVoteByUserRoles(conn, orgId, userId, roles, count, offset);
-//	}
-
-	public JSONArray getVoteByUserRoles(DruidPooledConnection conn, Long orgId, Long userId, String roles,
-			Integer count, Integer offset) throws Exception {
-		List<Vote> vote = voteRepository.getNotVoteByUserRoles(conn, orgId, roles, count, offset); // 获取到了vote
-		JSONArray json = new JSONArray();
-		for (Vote v : vote) {
-			VoteTicket voteTicket = ticketRepository.get(conn,
-					EXP.INS().key("vote_id", v.id).andKey("user_id", userId));
-			if (voteTicket != null) {
-				json.add(v);
-			}
-		}
-		System.out.println(json.toJSONString());
-		return json;
-
-	}
-
-	
-
-	public JSONArray getVoteByUserRoles(DruidPooledConnection conn, Long orgId, Long userId, JSONArray roles,
-			Integer count, Integer offset) throws Exception {
-		//获取当前职务所有投票
-		List<Vote> vote = voteRepository.getVoteByUserRoles(conn, orgId, roles); // 获取到了vote
-		JSONArray json = new JSONArray();
-		for (Vote v : vote) {
-			VoteTicket voteTicket = ticketRepository.get(conn,
-					EXP.INS().key("vote_id", v.id).andKey("user_id", userId));
-			if (voteTicket != null) {
-				json.add(v);
-			}
-		}
-		System.out.println(json.toJSONString());
-		return json;
-	}
-	
 }
-
-
-

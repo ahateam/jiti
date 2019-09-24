@@ -1,6 +1,5 @@
 package zyxhj.jiti.service;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -17,8 +16,6 @@ import com.alicloud.openservices.tablestore.model.PrimaryKey;
 
 import zyxhj.core.domain.Examine;
 import zyxhj.core.repository.ExamineRepository;
-import zyxhj.custom.service.WxDataService;
-import zyxhj.custom.service.WxFuncService;
 import zyxhj.jiti.domain.ORG;
 import zyxhj.jiti.domain.ORGPermission;
 import zyxhj.jiti.domain.ORGPermissionRel;
@@ -37,8 +34,8 @@ public class ExamineService {
 	private ORGUserRepository orgUserRepository;
 	private ORGService orgService;
 	private ORGPermissionRelaRepository orgPermissionRelaRepository;
-	private WxDataService wxDataService;
-	private WxFuncService wxFuncService;
+//	private WxDataService wxDataService;
+	// private WxFuncService wxFuncService;
 	private MessageService messageService;
 	private ExamineRepository examineRepository;
 	private ORGUserService orgUserService;
@@ -48,8 +45,8 @@ public class ExamineService {
 			orgUserRepository = Singleton.ins(ORGUserRepository.class);
 			orgService = Singleton.ins(ORGService.class);
 			orgPermissionRelaRepository = Singleton.ins(ORGPermissionRelaRepository.class);
-			wxDataService = Singleton.ins(WxDataService.class);
-			wxFuncService = Singleton.ins(WxFuncService.class);
+//			wxDataService = Singleton.ins(WxDataService.class);
+			// wxFuncService = Singleton.ins(WxFuncService.class);
 			messageService = Singleton.ins(MessageService.class);
 			examineRepository = Singleton.ins(ExamineRepository.class);
 			orgUserService = Singleton.ins(ORGUserService.class);
@@ -69,9 +66,9 @@ public class ExamineService {
 		cb.add("type", (long) type);
 
 		if (type == Examine.TYPE.FAMILY.v()) {
-//			ORGPermissionRel orgPer = orgPermissionRelaRepository.getByANDKeys(conn,
-//					new String[] { "org_id", "permission_id" },
-//					new Object[] { orgId, ORGPermission.per_feparate_family.id });
+			// ORGPermissionRel orgPer = orgPermissionRelaRepository.getByANDKeys(conn,
+			// new String[] { "org_id", "permission_id" },
+			// new Object[] { orgId, ORGPermission.per_feparate_family.id });
 			ORGPermissionRel orgPer = orgPermissionRelaRepository.get(conn,
 					EXP.INS().key("org_id", orgId).andKey("permission_id", ORGPermission.per_feparate_family.id));
 			if (orgPer != null) {
@@ -88,9 +85,9 @@ public class ExamineService {
 			}
 
 		} else if (type == Examine.TYPE.SHARE.v()) {
-//			ORGPermissionRel orgPer = orgPermissionRelaRepository.getByANDKeys(conn,
-//					new String[] { "org_id", "permission_id" },
-//					new Object[] { orgId, ORGPermission.per_share_change.id });
+			// ORGPermissionRel orgPer = orgPermissionRelaRepository.getByANDKeys(conn,
+			// new String[] { "org_id", "permission_id" },
+			// new Object[] { orgId, ORGPermission.per_share_change.id });
 			ORGPermissionRel orgPer = orgPermissionRelaRepository.get(conn,
 					EXP.INS().key("org_id", orgId).andKey("permission_id", ORGPermission.per_share_change.id));
 			if (orgPer != null) {
@@ -123,8 +120,10 @@ public class ExamineService {
 		// 获取org信息
 		ORG or = orgService.getORGById(conn, orgId);
 		if (status == Examine.STATUS.NOEXAMINE.v()) {
-//			List<ORGPermissionRel> orgPermission = orgPermissionRelaRepository.getListByANDKeys(conn,
-//					new String[] { "org_id", "permission_id" }, new Object[] { orgId, permissionId }, 64, 0);
+			// List<ORGPermissionRel> orgPermission =
+			// orgPermissionRelaRepository.getListByANDKeys(conn,
+			// new String[] { "org_id", "permission_id" }, new Object[] { orgId,
+			// permissionId }, 64, 0);
 			List<ORGPermissionRel> orgPermission = orgPermissionRelaRepository.getList(conn,
 					EXP.INS().key("org_id", orgId).andKey("permission_id", permissionId), 64, 0);
 			for (ORGPermissionRel orgPermissionRel : orgPermission) {
@@ -177,8 +176,9 @@ public class ExamineService {
 					JSONObject orgUserInfo = newData.getJSONObject("user");
 					familyMaster = orgUserInfo.getString("realName");
 				}
-				wxFuncService.examineMessage(wxDataService.getWxMpService(), openId, or.name, familyMaster, type,
-						new Date());
+				// wxFuncService.examineMessage(wxDataService.getWxMpService(), openId, or.name,
+				// familyMaster, type,
+				// new Date());
 			}
 			messageService.createExamineMessages(conn, user, type, da, status);
 		}
@@ -425,8 +425,8 @@ public class ExamineService {
 					// 移除户成员
 					Long or = json.getLong("orgId");
 					Long userId = json.getLong("userId");
-//					orgUserRepository.deleteByANDKeys(conn, new String[] { "org_id", "user_id" },
-//							new Object[] { or, userId });
+					// orgUserRepository.deleteByANDKeys(conn, new String[] { "org_id", "user_id" },
+					// new Object[] { or, userId });
 					orgUserRepository.delete(conn, EXP.INS().key("org_id", or).andKey("user_id", userId));
 				} else {
 					continue;
@@ -521,8 +521,8 @@ public class ExamineService {
 					// 移除户成员
 					Long or = jo.getLong("orgId");
 					Long userId = jo.getLong("userId");
-//					orgUserRepository.deleteByANDKeys(conn, new String[] { "org_id", "user_id" },
-//							new Object[] { or, userId });
+					// orgUserRepository.deleteByANDKeys(conn, new String[] { "org_id", "user_id" },
+					// new Object[] { or, userId });
 					orgUserRepository.delete(conn, EXP.INS().key("org_id", or).andKey("user_id", userId));
 					js.add(jo);
 				} else {

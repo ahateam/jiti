@@ -17,8 +17,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
-import zyxhj.custom.service.WxDataService;
-import zyxhj.custom.service.WxFuncService;
 import zyxhj.jiti.domain.ORGUser;
 import zyxhj.jiti.domain.Vote;
 import zyxhj.jiti.domain.VoteOption;
@@ -41,8 +39,8 @@ public class VoteService {
 	private VoteOptionRepository optionRepository;
 	private VoteTicketRepository ticketRepository;
 	private ORGUserRepository orgUserRepository;
-	private WxDataService wxDataService;
-	private WxFuncService wxFuncService;
+//	private WxDataService wxDataService;
+	// private WxFuncService wxFuncService;
 	private MessageService messageService;
 
 	public VoteService() {
@@ -51,8 +49,8 @@ public class VoteService {
 			optionRepository = Singleton.ins(VoteOptionRepository.class);
 			ticketRepository = Singleton.ins(VoteTicketRepository.class);
 			orgUserRepository = Singleton.ins(ORGUserRepository.class);
-			wxDataService = Singleton.ins(WxDataService.class);
-			wxFuncService = Singleton.ins(WxFuncService.class);
+//			wxDataService = Singleton.ins(WxDataService.class);
+			// wxFuncService = Singleton.ins(WxFuncService.class);
 			messageService = Singleton.ins(MessageService.class);
 
 		} catch (Exception e) {
@@ -174,8 +172,9 @@ public class VoteService {
 			for (int j = 0; j < openIds.size(); j++) {
 				JSONObject jo = openIds.getJSONObject(j);
 				// 发送微信通知
-				wxFuncService.voteMessage(wxDataService.getWxMpService(), jo.getString("wxOpenId"), vote.title,
-						options.toJSONString(), vote.startTime, vote.expiryTime);
+				// wxFuncService.voteMessage(wxDataService.getWxMpService(),
+				// jo.getString("wxOpenId"), vote.title,
+				// options.toJSONString(), vote.startTime, vote.expiryTime);
 			}
 			JSONObject data = new JSONObject();
 			data.put("vote", vote);
@@ -460,7 +459,7 @@ public class VoteService {
 					while (it.hasNext()) {
 						Entry<String, Object> entry = it.next();
 						String key = entry.getKey();
-//						JSONArray arr = (JSONArray) entry.getValue();s
+						// JSONArray arr = (JSONArray) entry.getValue();s
 
 						// 逐个判断tags中的权限述求(groups,tags,以及其它标签分组)
 
@@ -552,8 +551,8 @@ public class VoteService {
 					return;
 				}
 
-//				VoteTicket gvt = getVoteTicket(conn, voteId, userId);
-//				JSONArray json = JSONArray.parseArray(gvt.selection);
+				// VoteTicket gvt = getVoteTicket(conn, voteId, userId);
+				// JSONArray json = JSONArray.parseArray(gvt.selection);
 
 				// 删除当前用户的投票
 				delVoteTicket(conn, voteId, userId);

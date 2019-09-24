@@ -110,41 +110,43 @@ public class VoteService {
 	public Vote createVote(DruidPooledConnection conn, Long orgId, Byte template, Byte type, Byte choiceCount,
 			JSONObject crowd, Boolean reeditable, Boolean realName, Boolean isInternal, Boolean isAbstain,
 			Byte effectiveRatio, Byte failureRatio, String title, String remark, String ext, //
-			Date startTime, Date expiryTime) throws Exception {
-
+			Date startTime, Date expiryTime) {
 		Vote v = new Vote();
-		v.id = IDUtils.getSimpleId();
-		v.orgId = orgId;
-		v.template = template;
-		v.type = type;
-		v.choiceCount = choiceCount;
-		v.status = Vote.STATUS.VOTING.v();
+		try {
+			v.id = IDUtils.getSimpleId();
+			v.orgId = orgId;
+			v.template = template;
+			v.type = type;
+			v.choiceCount = choiceCount;
+			v.status = Vote.STATUS.VOTING.v();
 
-		v.crowd = crowd.toJSONString();
-		v.reeditable = reeditable;
-		v.realName = realName;
-		v.isInternal = isInternal;
-		v.isAbstain = isAbstain;
+			v.crowd = crowd.toJSONString();
+			v.reeditable = reeditable;
+			v.realName = realName;
+			v.isInternal = isInternal;
+			v.isAbstain = isAbstain;
 
-		v.effectiveRatio = effectiveRatio;
-		v.failureRatio = failureRatio;
-		v.title = title;
-		v.remark = remark;
-		v.ext = ext;
+			v.effectiveRatio = effectiveRatio;
+			v.failureRatio = failureRatio;
+			v.title = title;
+			v.remark = remark;
+			v.ext = ext;
 
-		v.startTime = startTime;
-		v.expiryTime = expiryTime;
+			v.startTime = startTime;
+			v.expiryTime = expiryTime;
 
-		// 应到人数
-		v.quorum = orgUserRepository.getParticipateCount(conn, orgId, v.id, crowd);
+			// 应到人数
 
-		voteRepository.insert(conn, v);
+			v.quorum = orgUserRepository.getParticipateCount(conn, orgId, v.id, crowd);
+			voteRepository.insert(conn, v);
 
-		if (isAbstain) {
-			// 如果自动带有弃权选项，则默认创建一个VoteOption
-			addVoteOption(conn, v.id, true, "弃权", "", "");
+			if (isAbstain) {
+				// 如果自动带有弃权选项，则默认创建一个VoteOption
+				addVoteOption(conn, v.id, true, "弃权", "", "");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-
 		return v;
 	}
 
@@ -715,7 +717,6 @@ public class VoteService {
 		// 根据orgId以及roles获取用户的可投票列表 select * from aa where org_id = ? And
 		// (JSON_CONTAINS(role,101,'$') OR JSON_CON.... )
 		List<Vote> vote = voteRepository.getNotVoteByUserRoles(conn, orgId, roles, count, offset); // 获取到了vote
-
 		// 再去根据用户id去查询当前用户是否已经投了此票 如果用户id+投票id为空 则表示未投 不为空 则表示已经投了票
 		JSONArray json = new JSONArray();
 		for (Vote v : vote) {
@@ -725,13 +726,51 @@ public class VoteService {
 				json.add(v);
 			}
 		}
+		System.out.println(json.toJSONString());
 		return json;
 	}
 
 	// 已投票列表
+//	public JSONArray getVoteByUserRoles(DruidPooledConnection conn, Long orgId, Long userId, String roles,
+//			Integer count, Integer offset) throws Exception {
+//		return voteRepository.getVoteByUserRoles(conn, orgId, userId, roles, count, offset);
+//	}
+
 	public JSONArray getVoteByUserRoles(DruidPooledConnection conn, Long orgId, Long userId, String roles,
 			Integer count, Integer offset) throws Exception {
-		return voteRepository.getVoteByUserRoles(conn, orgId, userId, roles, count, offset);
+		List<Vote> vote = voteRepository.getNotVoteByUserRoles(conn, orgId, roles, count, offset); // 获取到了vote
+		JSONArray json = new JSONArray();
+		for (Vote v : vote) {
+			VoteTicket voteTicket = ticketRepository.get(conn,
+					EXP.INS().key("vote_id", v.id).andKey("user_id", userId));
+			if (voteTicket != null) {
+				json.add(v);
+			}
+		}
+		System.out.println(json.toJSONString());
+		return json;
+
 	}
 
+	
+
+	public JSONArray getVoteByUserRoles(DruidPooledConnection conn, Long orgId, Long userId, JSONArray roles,
+			Integer count, Integer offset) throws Exception {
+		//获取当前职务所有投票
+		List<Vote> vote = voteRepository.getVoteByUserRoles(conn, orgId, roles); // 获取到了vote
+		JSONArray json = new JSONArray();
+		for (Vote v : vote) {
+			VoteTicket voteTicket = ticketRepository.get(conn,
+					EXP.INS().key("vote_id", v.id).andKey("user_id", userId));
+			if (voteTicket != null) {
+				json.add(v);
+			}
+		}
+		System.out.println(json.toJSONString());
+		return json;
+	}
+	
 }
+
+
+

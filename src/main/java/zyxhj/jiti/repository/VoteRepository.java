@@ -1,9 +1,8 @@
 package zyxhj.jiti.repository;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
@@ -12,7 +11,6 @@ import zyxhj.jiti.domain.Vote;
 import zyxhj.utils.api.ServerException;
 import zyxhj.utils.data.EXP;
 import zyxhj.utils.data.rds.RDSRepository;
-import zyxhj.utils.data.rds.SQL;
 
 public class VoteRepository extends RDSRepository<Vote> {
 
@@ -23,17 +21,35 @@ public class VoteRepository extends RDSRepository<Vote> {
 	public List<Vote> getVotes(DruidPooledConnection conn, Long orgId, Byte status, Integer count, Integer offset)
 			throws ServerException {
 		if (status == null) {
-			return getList(conn, " org_id=? ORDER BY create_time DESC", Arrays.asList( orgId), count, offset);
+			return getList(conn, EXP.INS().key("org_id", orgId).append("ORDER BY create_time DESC"), count, offset);
+
 		} else {
-			return getList(conn, " org_id=? AND status=? ORDER BY create_time DESC",
-					 Arrays.asList( orgId,status), count, offset);
+//			return getList(conn,
+//					EXP.INS().key("org_id", orgId).andKey("status", status).append("ORDER BY create_time DESC"), count,
+//					offset);
+
+			EXP sql = EXP.INS().key("org_id", orgId).andKey("status", status);
+			StringBuffer sb = new StringBuffer();
+			List<Object> params = new ArrayList<Object>();
+			sql.toSQL(sb, params);
+			sb.append(" ORDER BY create_time DESC");
+			return getList(conn, sb.toString(), params, count, offset);
+			
+			
 		}
 	}
 
 	public List<Vote> getUserVotes(DruidPooledConnection conn, Long orgId, Long userId, Integer count, Integer offset)
 			throws ServerException {
-		return getList(conn, " org_id=? AND user_id=? ORDER BY create_time DESC", Arrays.asList( orgId, userId),
-				count, offset);
+//		return getList(conn, " org_id=? AND user_id=? ORDER BY create_time DESC", Arrays.asList(orgId, userId), count,
+//				offset);
+		EXP sql = EXP.INS().key("org_id", orgId).andKey("user_id", userId);
+		StringBuffer sb = new StringBuffer();
+		List<Object> params = new ArrayList<Object>();
+		sql.toSQL(sb, params);
+		sb.append(" ORDER BY create_time DESC");
+
+		return getList(conn, sb.toString(), params, count, offset);
 	}
 
 	public List<Vote> getVotesByOrgId(DruidPooledConnection conn, JSONArray orgIds, Byte status, Integer count,
@@ -43,21 +59,19 @@ public class VoteRepository extends RDSRepository<Vote> {
 		// 再判断status是否为空 if(status == null ) 为空则全查
 		// 为空就添加进条件进行查询 else{ 将status插入到查询中 }
 		// SELECT * from xxx WHERE
-		SQL sql = new SQL();
-		SQL sq = new SQL();
+		EXP sql = EXP.INS();
+		EXP sq = EXP.INS();
 		if (orgIds != null && orgIds.size() > 0) {
 			for (int i = 0; i < orgIds.size(); i++) {
-				sq.OR(StringUtils.join("org_id = ", orgIds.getString(i)));
+//				sq.OR(StringUtils.join("org_id = ", orgIds.getString(i)));
+				sq.or(EXP.INS().key("org_id", orgIds.getString(i)));
 			}
-			sql.AND(sq); // 可能以后会有多个JSONArray
+			sql.and(sq); // 可能以后会有多个JSONArray
 		}
 		if (status != null) {
-			sql.AND("status = ? ", status);
+			sql.andKey("status", status);
 		}
-		StringBuffer sb = new StringBuffer(); // TODO 以后要加上区级id
-		sql.fillSQL(sb);
-		System.out.println(sb.toString());
-		return getList(conn, sb.toString(), sql.getParams(), count, offset);
+		return getList(conn, sql, count, offset);
 
 	}
 
@@ -78,8 +92,9 @@ public class VoteRepository extends RDSRepository<Vote> {
 		// (JSON_CONTAINS(crowd, '104','$.roles') OR JSON_CONTAINS(crowd,
 		// '106','$.roles'))
 
-		StringBuffer sb = new StringBuffer();
+//		StringBuffer sb = new StringBuffer();
 		JSONArray json = JSONArray.parseArray(roles);
+		System.out.println(json.toJSONString());
 		EXP exp = EXP.INS().exp("org_id", "=", orgId);
 		EXP subExp = EXP.INS();
 		for (int i = 0; i < json.size(); i++) {
@@ -92,6 +107,25 @@ public class VoteRepository extends RDSRepository<Vote> {
 		return getList(conn, exp, count, offset);
 
 	}
+	
+	/**
+	 *  修改获取投票方法
+	 */
+	public List<Vote> getVoteByUserRoles(DruidPooledConnection conn, Long orgId, JSONArray roles) throws Exception {
+		EXP exp = EXP.INS().exp("org_id", "=", orgId);
+		EXP subExp = EXP.INS();
+		for (int i = 0; i < roles.size(); i++) {
+			subExp.or(EXP.JSON_CONTAINS("crowd", "$.roles", roles.get(i)));
+		}
+		exp.and(subExp);
+
+		return getList(conn, exp, null, null);
+
+	}
+	
+	
+	
+	
 
 	public JSONArray getVoteByUserRoles(DruidPooledConnection conn, Long orgId, Long userId, String roles,
 			Integer count, Integer offset) throws Exception {
@@ -103,18 +137,17 @@ public class VoteRepository extends RDSRepository<Vote> {
 		StringBuffer sb = new StringBuffer(
 				"SELECT vo.* FROM tb_ecm_vote vo LEFT JOIN tb_ecm_vote_ticket tk ON vo.id = tk.vote_id WHERE ");
 		JSONArray json = JSONArray.parseArray(roles);
-		SQL sql = new SQL();
-		sql.addEx("vo.org_id = ? ", orgId);
-		sql.AND("tk.user_id = ? ", userId);
+		EXP sql = EXP.INS().key("vo.org_id", orgId).andKey("tk.user_id", userId);
 
-		SQL sqlEx = new SQL();
+//		sql.and(EXP.JSON_CONTAINS_KEYS(json, "crowd", null));
 		for (int i = 0; i < json.size(); i++) {
-			sqlEx.OR(StringUtils.join("JSON_CONTAINS(crowd, '", json.getLong(i), "','$.roles')"));
+//			sqlEx.OR(StringUtils.join("JSON_CONTAINS(crowd, '", json.getLong(i), "','$.roles')"));
+			sql.or(EXP.JSON_CONTAINS("crowd", "$.roles", json.getLong(i)));
 		}
-		sql.AND(sqlEx);
-		sql.fillSQL(sb);
+		List<Object> params = new ArrayList<Object>();
+		sql.toSQL(sb, params);
 
-		return sqlGetJSONArray(conn, sb.toString(), sql.getParams(), count, offset);
+		return sqlGetJSONArray(conn, sb.toString(), params, count, offset);
 
 	}
 

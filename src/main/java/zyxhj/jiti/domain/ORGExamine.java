@@ -136,6 +136,18 @@ public class ORGExamine {
 	public Integer shareAmount;
 
 	/**
+	 * 资源股
+	 */
+	@RDSAnnField(column = RDSAnnField.DOUBLE)
+	public Double resourceShares;
+	
+	/**
+	 * 资产股
+	 */
+	@RDSAnnField(column = RDSAnnField.DOUBLE)
+	public Double assetShares;
+	
+	/**
 	 * 资金
 	 */
 	@RDSAnnField(column = RDSAnnField.DOUBLE)

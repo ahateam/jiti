@@ -73,7 +73,18 @@ public class ORGUserImportRecord {
 	 */
 	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
 	public String realName;
-
+	/**
+	 * 性别
+	 */
+	@RDSAnnField(column = RDSAnnField.BYTE)
+	public Byte sex;
+	
+	/**
+	 * 与户主关系
+	 */
+	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
+	public String familyRelations;
+	
 	/**
 	 * 身份证号
 	 */
@@ -92,6 +103,19 @@ public class ORGUserImportRecord {
 	@RDSAnnField(column = RDSAnnField.DOUBLE)
 	public Double shareAmount;
 
+	/**
+	 * 	资源股
+	 */
+	@RDSAnnField(column = RDSAnnField.DOUBLE)
+	public Double resourceShares; 
+	
+	/**
+	 * 	资产股
+	 */
+	@RDSAnnField(column = RDSAnnField.DOUBLE)
+	public Double assetShares; 
+	
+	
 	/**
 	 * 投票权重
 	 */

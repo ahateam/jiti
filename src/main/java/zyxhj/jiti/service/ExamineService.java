@@ -336,8 +336,21 @@ public class ExamineService {
 					Long familyNumber = jo.getLong("familyNumber");
 					String familyMaster = jo.getString("familyMaster");
 					JSONObject tags = jo.getJSONObject("tags");
-					orgUserService.createORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo, shareCerImg,
-							shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+					
+					Double resourceShares = jo.getDouble("resourceShares");
+					Double assetShares = jo.getDouble("assetShares");
+					Boolean isOrgUser = jo.getBoolean("isOrgUser");
+					Byte sex = jo.getByte("sex");
+					String familyRelations = jo.getString("familyRelations");
+					
+//					orgUserService.oldcreateORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo,
+//							shareCerImg, shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber,
+//							familyMaster);
+					
+
+					orgUserService.createORGUser(conn, or, mobile, realName, idNumber, sex, familyRelations,
+							resourceShares, assetShares, isOrgUser, address, shareCerNo, shareCerImg, shareCerHolder,
+							shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
 				} else {
 					continue;
 				}
@@ -390,8 +403,24 @@ public class ExamineService {
 					Long familyNumber = json.getLong("familyNumber");
 					String familyMaster = json.getString("familyMaster");
 					JSONObject tags = json.getJSONObject("tags");
-					orgUserService.createORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo, shareCerImg,
-							shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+					
+					Double resourceShares = json.getDouble("resourceShares");
+					Double assetShares = json.getDouble("assetShares");
+					Boolean isOrgUser = json.getBoolean("isOrgUser");
+					Byte sex = json.getByte("sex");
+					String familyRelations = json.getString("familyRelations");
+					
+//					orgUserService.oldcreateORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo,
+//							shareCerImg, shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber,
+//							familyMaster);
+					
+					orgUserService.createORGUser(conn, or, mobile, realName, idNumber, sex, familyRelations,
+							resourceShares, assetShares, isOrgUser, address, shareCerNo, shareCerImg, shareCerHolder,
+							shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+
+					
+					
+					
 				} else if (userTab != null && userTab == Examine.TAB.REMOVE.v()) {
 					// 移除户成员
 					Long or = json.getLong("orgId");
@@ -468,8 +497,24 @@ public class ExamineService {
 						}
 					}
 					JSONObject tags = jo.getJSONObject("tags");
-					orgUserService.createORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo, shareCerImg,
-							shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+					
+
+					Double resourceShares = jo.getDouble("resourceShares");
+					Double assetShares = jo.getDouble("assetShares");
+					Boolean isOrgUser = jo.getBoolean("isOrgUser");
+					Byte sex = jo.getByte("sex");
+					String familyRelations = jo.getString("familyRelations");
+					
+					
+//					orgUserService.oldcreateORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo,
+//							shareCerImg, shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber,
+//							familyMaster);
+					
+					orgUserService.createORGUser(conn, or, mobile, realName, idNumber, sex, familyRelations,
+							resourceShares, assetShares, isOrgUser, address, shareCerNo, shareCerImg, shareCerHolder,
+							shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+
+					
 					jo.put("familyNumber", familyNumber);
 					js.add(jo);
 				} else if (userTab != null && userTab == Examine.TAB.REMOVE.v()) {
@@ -541,9 +586,21 @@ public class ExamineService {
 				Long familyNumber = maxNum;
 				String familyMaster = json.getString("familyMaster");
 				JSONObject tags = json.getJSONObject("tags");
+
+				Double resourceShares = json.getDouble("resourceShares");
+				Double assetShares = json.getDouble("assetShares");
+				Boolean isOrgUser = json.getBoolean("isOrgUser");
+				Byte sex = json.getByte("sex");
+				String familyRelations = json.getString("familyRelations");
+
 				json.put("familyNumber", maxNum);
-				orgUserService.createORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo, shareCerImg,
-						shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+//				orgUserService.oldcreateORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo, shareCerImg,
+//						shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+
+				orgUserService.createORGUser(conn, or, mobile, realName, idNumber, sex, familyRelations,
+						resourceShares, assetShares, isOrgUser, address, shareCerNo, shareCerImg, shareCerHolder,
+						shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+
 				addFamily.add(json);
 			}
 			addNewData.add(addFamily);

@@ -20,6 +20,7 @@ public class PrintingTemplate {
 		PROSHARE((byte) 5, "股权登记"), //
 		PROSHARECHANGE((byte) 6, "股权变更登记"), //
 		PROINCOMEDISTRIBUTION((byte) 7, "收益分配领取记录"), //
+		INITREG_APAGE((byte) 8, "初始登记附页") //
 		;
 
 		private byte v;

@@ -1,5 +1,6 @@
 package zyxhj.jiti.repository;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -9,8 +10,8 @@ import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
 
 import zyxhj.jiti.domain.ORG;
+import zyxhj.utils.data.EXP;
 import zyxhj.utils.data.rds.RDSRepository;
-import zyxhj.utils.data.rds.SQL;
 
 public class ORGRepository extends RDSRepository<ORG> {
 
@@ -24,17 +25,21 @@ public class ORGRepository extends RDSRepository<ORG> {
 		// ON a.org_id = b.id WHERE user_id = 397912180277668
 
 		StringBuffer sb = new StringBuffer(
-				"SELECT org.* FROM tb_ecm_org_user user LEFT JOIN tb_ecm_org org ON user.org_id = org.id WHERE  ");
-		SQL sql = new SQL();
-		sql.addEx("user_id = ?", userId);
+				"SELECT org.* FROM tb_ecm_org_user user LEFT JOIN tb_ecm_org org ON user.org_id = org.id WHERE ");
+		EXP sql = EXP.INS().key("user_id",userId);
+		
 		if (level == ORG.LEVEL.DISTRICT.v()) {
-			sql.AND(StringUtils.join("(level = ", ORG.LEVEL.PRO.v(), " OR level = ", ORG.LEVEL.CITY.v(), " OR level = ",
-					ORG.LEVEL.DISTRICT.v(), ")"));
+//			sql.AND(StringUtils.join("(level = ", ORG.LEVEL.PRO.v(), " OR level = ", ORG.LEVEL.CITY.v(), " OR level = ",
+//					ORG.LEVEL.DISTRICT.v(), ")"));
+			sql.and(EXP.INS().orKey("level", ORG.LEVEL.PRO.v()).orKey("level",ORG.LEVEL.CITY.v()).orKey("level",ORG.LEVEL.DISTRICT.v()));
 		} else {
-			sql.AND("level = ? ", level);
+//			sql.AND("level = ? ", level);
+			sql.andKey("level", level);
 		}
-		sql.fillSQL(sb);
-		return sqlGetJSONArray(conn, sb.toString(), sql.getParams(), count, offset);
+		List<Object> params = new ArrayList<Object>();
+		sql.toSQL(sb,params);
+		System.out.println(sb.toString());
+		return sqlGetJSONArray(conn, sb.toString(), params, count, offset);
 	}
 
 	public List<ORG> getOrgByNameAndLevel(DruidPooledConnection conn, Byte level, String orgName) throws Exception {
@@ -43,13 +48,15 @@ public class ORGRepository extends RDSRepository<ORG> {
 	}
 
 	public List<ORG> getORGs(DruidPooledConnection conn, JSONArray json, int count, int offset) throws Exception {
-		StringBuffer sb = new StringBuffer();
-		SQL sql = new SQL();
-		for (int i = 0; i < json.size(); i++) {
-			sql.OR(StringUtils.join("id = ", json.getLong(i)));
-		}
-		sql.fillSQL(sb);
-		return getList(conn, sb.toString(), null, count, offset);
+//		StringBuffer sb = new StringBuffer();
+		EXP sql = EXP.INS().IN("id", json);
+//		for (int i = 0; i < json.size(); i++) {
+//			sql.OR(StringUtils.join("id = ", json.getLong(i)));
+//			sql.or(EXP.INS().key("id", json.getLong(i)));
+			
+//		}
+		
+		return getList(conn, sql, count, offset);
 	}
 
 	public List<ORG> getOrgByName(DruidPooledConnection conn, String name, Integer count, Integer offset)
@@ -61,20 +68,18 @@ public class ORGRepository extends RDSRepository<ORG> {
 			Integer offset) throws Exception {
 
 		StringBuffer sb = new StringBuffer();
-		SQL sql = new SQL();
-		sql.AND("type = ? ", type);
+		EXP sql = EXP.INS().key("type", type);
 		if (json != null && json.size() > 0) {
-			SQL sqlOR = new SQL();
+			EXP sqlOR = EXP.INS();
 			for (int i = 0; i < json.size(); i++) {
-				sqlOR.OR(StringUtils.join("id = ", json.getLong(i)));
+				sqlOR.or(EXP.INS().key("id", json.getLong(i)));
 			}
-			sql.AND(sqlOR);
+			sql.and(sqlOR);
 		}
 		if (name != null) {
-			sql.AND(StringUtils.join("name LIKE '%", name, "%'"));
+//			sql.and(StringUtils.join("name LIKE '%", name, "%'"));
+			sql.and(EXP.INS().LIKE("name", name));
 		}
-		sql.fillSQL(sb);
-		System.out.println(sb.toString());
-		return getList(conn, sb.toString(), sql.getParams(), count, offset);
+		return getList(conn, sql, count, offset);
 	}
 }

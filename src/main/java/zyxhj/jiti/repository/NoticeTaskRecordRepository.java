@@ -1,9 +1,7 @@
 package zyxhj.jiti.repository;
 
-import java.util.Arrays;
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -15,8 +13,8 @@ import zyxhj.core.domain.User;
 import zyxhj.core.repository.UserRepository;
 import zyxhj.jiti.domain.NoticeTaskRecord;
 import zyxhj.utils.Singleton;
+import zyxhj.utils.data.EXP;
 import zyxhj.utils.data.rds.RDSRepository;
-import zyxhj.utils.data.rds.SQL;
 
 public class NoticeTaskRecordRepository extends RDSRepository<NoticeTaskRecord> {
 
@@ -32,16 +30,16 @@ public class NoticeTaskRecordRepository extends RDSRepository<NoticeTaskRecord> 
 		// JSON_CONTAINS(orguser.roles, '102')
 		StringBuffer sb = new StringBuffer(
 				"SELECT user.* FROM tb_user user LEFT JOIN tb_ecm_org_user orguser ON user.id = orguser.user_id WHERE ");
-		SQL sql = new SQL();
-		sql.addEx("org_id = ? ", orgId);
-		sql.AND("user.wx_open_id IS NOT NULL ");
-		SQL sqlEx = new SQL();
-		for (int i = 0; i < json.size(); i++) {
-			sqlEx.OR(StringUtils.join(" JSON_CONTAINS(orguser.roles, '", json.getLong(i), "')"));
-		}
-		sql.AND(sqlEx);
-		sql.fillSQL(sb);
-		List<User> us = sqlGetOtherList(conn, Singleton.ins(UserRepository.class), sb.toString(), sql.getParams());
+
+		EXP sql = EXP.INS().key("org_id", orgId).and("user.wx_open_id IS NOT NULL", null, null);
+		EXP sqlEx = EXP.JSON_CONTAINS_KEYS(json, "orguser.roles", null);
+//		for (int i = 0; i < json.size(); i++) {
+//			sqlEx.OR(StringUtils.join(" JSON_CONTAINS(orguser.roles, '", json.getLong(i), "')"));
+//		}
+		sql.and(sqlEx);
+		List<Object> params = new ArrayList<Object>();
+		sql.toSQL(sb, params);
+		List<User> us = sqlGetOtherList(conn, Singleton.ins(UserRepository.class), sb.toString(), params);
 
 		NoticeTaskRecord noti = new NoticeTaskRecord();
 		noti.taskId = noId;
@@ -66,51 +64,51 @@ public class NoticeTaskRecordRepository extends RDSRepository<NoticeTaskRecord> 
 		JSONArray groups = crowd.getJSONArray("groups");
 		JSONObject tags = crowd.getJSONObject("tags");
 
-		SQL sql = new SQL();
+		EXP sql = EXP.INS().key("org_id", orgId).and("user.wx_open_id IS NOT NULL", null, null);
 
-		sql.addEx("org_id = ? ");
-		sql.AND(" user.wx_open_id IS NOT NULL ");
 		if ((roles != null && roles.size() > 0) || (groups != null && groups.size() > 0) || (tags != null)) {
-			SQL sqlEx = new SQL();
-
+			EXP sqlEx = EXP.INS();
 			if (roles != null && roles.size() > 0) {
-				for (int i = 0; i < roles.size(); i++) {
-					sqlEx.OR(StringUtils.join("JSON_CONTAINS(orguser.roles, '", roles.getString(i), "', '$') "));
-				}
+				sqlEx.JSON_CONTAINS_KEYS(roles, "orguser.roles", null);
+//				for (int i = 0; i < roles.size(); i++) {
+//					sqlEx.OR(StringUtils.join("JSON_CONTAINS(orguser.roles, '", roles.getString(i), "', '$') "));
+//				}
 			}
 
 			if (groups != null && groups.size() > 0) {
-				for (int i = 0; i < groups.size(); i++) {
-					sqlEx.OR(StringUtils.join("JSON_CONTAINS(orguser.group, '", groups.getString(i), "', '$') "));
-				}
+				sqlEx.JSON_CONTAINS_KEYS(groups, "orguser.group", null);
+//				for (int i = 0; i < groups.size(); i++) {
+//					sqlEx.OR(StringUtils.join("JSON_CONTAINS(orguser.group, '", groups.getString(i), "', '$') "));
+//				}
 			}
 
 			if (tags != null) {
-				Iterator<Entry<String, Object>> it = tags.entrySet().iterator();
-				while (it.hasNext()) {
-					Entry<String, Object> entry = it.next();
-					String key = entry.getKey();
-					JSONArray arr = (JSONArray) entry.getValue();
-
-					if (arr != null && arr.size() > 0) {
-						for (int i = 0; i < arr.size(); i++) {
-							// JSON_CONTAINS(tags, '"tag1"', '$.groups')
-							// JSON_CONTAINS(tags, '"tag3"', '$.tags')
-							sqlEx.OR(StringUtils.join("JSON_CONTAINS(orguser.tags, '\"", arr.getString(i), "\"', '$.", key,
-									"') "));
-						}
-					}
-				}
+				sqlEx.JSON_CONTAINS_JSONOBJECT(tags, "orguser.tags");
+//				Iterator<Entry<String, Object>> it = tags.entrySet().iterator();
+//				while (it.hasNext()) {
+//					Entry<String, Object> entry = it.next();
+//					String key = entry.getKey();
+//					JSONArray arr = (JSONArray) entry.getValue();
+//
+//					if (arr != null && arr.size() > 0) {
+//						for (int i = 0; i < arr.size(); i++) {
+//							// JSON_CONTAINS(tags, '"tag1"', '$.groups')
+//							// JSON_CONTAINS(tags, '"tag3"', '$.tags')
+//							sqlEx.OR(StringUtils.join("JSON_CONTAINS(orguser.tags, '\"", arr.getString(i), "\"', '$.", key,
+//									"') "));
+//						}
+//					}
+//				}
 			}
-			sql.AND(sqlEx);
+			sql.and(sqlEx);
 		}
 
 		StringBuffer s = new StringBuffer(
 				"SELECT user.* FROM tb_user user LEFT JOIN tb_ecm_org_user orguser ON user.id = orguser.user_id WHERE ");
 
-		sql.fillSQL(s);
-		List<User> us = sqlGetOtherList(conn, Singleton.ins(UserRepository.class), s.toString(),
-				Arrays.asList(orgId));
+		List<Object> params = new ArrayList<Object>();
+		sql.toSQL(s, params);
+		List<User> us = sqlGetOtherList(conn, Singleton.ins(UserRepository.class), s.toString(), params);
 
 		Integer sum = 0;
 		NoticeTaskRecord noti = new NoticeTaskRecord();
@@ -125,7 +123,7 @@ public class NoticeTaskRecordRepository extends RDSRepository<NoticeTaskRecord> 
 			this.insert(conn, noti);
 			sum++;
 		}
-		
+
 		return sum;
 
 	}

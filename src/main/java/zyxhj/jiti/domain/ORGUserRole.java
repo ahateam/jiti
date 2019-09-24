@@ -52,8 +52,8 @@ public class ORGUserRole {
 
 	private static Long temp = 100L;// 自增编号
 
-	public static final ORGUserRole role_outuser = buildSysRole(temp++, "外部人员", null);// 非本组织成员
-	public static final ORGUserRole role_user = buildSysRole(temp++, "用户", null);
+	public static final ORGUserRole role_outuser = buildSysRole(temp++, "外部人员", null);// 非本组织成员100
+	public static final ORGUserRole role_user = buildSysRole(temp++, "组织成员", null);//101
 	public static final ORGUserRole role_admin = buildSysRole(temp++, "管理员", null);
 	public static final ORGUserRole role_shareHolder = buildSysRole(temp++, "股东", null);
 	public static final ORGUserRole role_shareDeputy = buildSysRole(temp++, "股东代表", null);
@@ -77,8 +77,8 @@ public class ORGUserRole {
 
 	static {
 		// 添加admin，member，股东，董事，监事等角色到系统中
-		SYS_ORG_USER_ROLE_MAP.put(role_outuser.roleId, role_outuser);
-		SYS_ORG_USER_ROLE_MAP.put(role_user.roleId, role_user);
+//		SYS_ORG_USER_ROLE_MAP.put(role_outuser.roleId, role_outuser);
+//		SYS_ORG_USER_ROLE_MAP.put(role_user.roleId, role_user);
 		SYS_ORG_USER_ROLE_MAP.put(role_admin.roleId, role_admin);
 		SYS_ORG_USER_ROLE_MAP.put(role_shareHolder.roleId, role_shareHolder);
 		SYS_ORG_USER_ROLE_MAP.put(role_shareDeputy.roleId, role_shareDeputy);

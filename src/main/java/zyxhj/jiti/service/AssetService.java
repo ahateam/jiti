@@ -260,7 +260,7 @@ public class AssetService {
 	/**
 	 * 根据分组查询资产
 	 */
-	public List<Asset> getAssetsByGroups(DruidPooledConnection conn, Long orgId, String[] groups, Integer count,
+	public List<Asset> getAssetsByGroups(DruidPooledConnection conn, Long orgId, JSONArray groups, Integer count,
 			Integer offset) throws Exception {
 		return assetRepository.getAssetsByGroups(conn, orgId, groups, count, offset);
 	}

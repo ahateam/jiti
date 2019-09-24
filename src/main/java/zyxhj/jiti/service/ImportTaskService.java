@@ -33,6 +33,8 @@ import zyxhj.utils.CodecUtils;
 import zyxhj.utils.ExcelUtils;
 import zyxhj.utils.IDUtils;
 import zyxhj.utils.Singleton;
+import zyxhj.utils.api.BaseRC;
+import zyxhj.utils.api.ServerException;
 import zyxhj.utils.data.DataSource;
 import zyxhj.utils.data.EXP;
 import zyxhj.utils.data.ts.ColumnBuilder;
@@ -91,19 +93,15 @@ public class ImportTaskService {
 	// 查询组织导入
 	public List<ImportTask> getListImportTask(DruidPooledConnection conn, Long orgId, Byte type, Integer count,
 			Integer offset) throws Exception {
-		System.out.println("12");
 		return taskRepository.getListImportTask(conn, orgId, type, count, offset);
 	}
 
 	/**
 	 * 导入到临时表
 	 * 
-	 * @param importTaskId
-	 *            导入id
-	 * @param skipRowCount
-	 *            第几行开始
-	 * @param colCount
-	 *            总列数
+	 * @param importTaskId 导入id
+	 * @param skipRowCount 第几行开始
+	 * @param colCount     总列数
 	 */
 	public void importRecord(SyncClient client, DruidPooledConnection conn, Long orgId, Long userId, String url,
 			Long importTaskId, Integer skipRowCount, Integer colCount) throws Exception {
@@ -180,6 +178,12 @@ public class ImportTaskService {
 				ImportTask task = taskRepository.get(conn, EXP.INS().key("id", importTaskId));
 				Integer amount = task.amount;
 				Integer offset = 0;
+
+				// 修改导入任务为正在导入
+				ImportTask ta = new ImportTask();
+				ta.status = ImportTask.STATUS.PROGRESSING.v();
+				taskRepository.update(conn, EXP.INS().key("id", importTaskId), ta, true);
+
 				for (int k = 0; k < amount / 100 + 1; k++) {
 					// 根据taskid去获取导入表
 					JSONArray listImportTemp = getListImportTemp(client, importTaskId, 100, offset);
@@ -187,10 +191,6 @@ public class ImportTaskService {
 					for (int i = 0; i < listImportTemp.size(); i++) {
 						//// 将数据处理后放入到集合中
 						int co = 0;// 定义一个变量来循环
-						// 修改导入任务为正在导入
-						ImportTask ta = new ImportTask();
-						ta.status = ImportTask.STATUS.PROGRESSING.v();
-						taskRepository.update(conn, EXP.INS().key("id", importTaskId), ta, true);
 
 						// 获取导入数据
 						JSONObject data = JSONObject.parseObject(listImportTemp.getString(i));
@@ -208,8 +208,29 @@ public class ImportTaskService {
 
 						String realName = data.getString(StringUtils.join("Col", co++));
 						String idNumber = data.getString(StringUtils.join("Col", co++));
+
+						// 性别
+						Byte sex = 0;
+						if (data.getString(StringUtils.join("Col", co++)).equals("女")) {
+							sex = 1;
+						}
+						System.out.println(sex);
+
+						// 与户主关系
+						String familyRelations = data.getString(StringUtils.join("Col", co++));
+
 						String mobile = data.getString(StringUtils.join("Col", co++));
 						Double shareAmount = data.getDouble(StringUtils.join("Col", co++));
+
+						// 资源股
+						Double resourceShares = data.getDouble(StringUtils.join("Col", co++));
+						// 资产股
+						Double assetShares = data.getDouble(StringUtils.join("Col", co++));
+						// 是否为组织成员
+						Boolean isORGUser = true;
+						if (data.getString(StringUtils.join("Col", co++)).equals("否")) {
+							isORGUser = false;
+						}
 
 						Integer weight = data.getInteger(StringUtils.join("Col", co++));
 						String address = data.getString(StringUtils.join("Col", co++));
@@ -224,7 +245,7 @@ public class ImportTaskService {
 						String dutyDirectors = data.getString(StringUtils.join("Col", co++));
 						String dutyVisors = data.getString(StringUtils.join("Col", co++));
 						String dutyOthers = data.getString(StringUtils.join("Col", co++));
-						String dutyAdmins = data.getString(StringUtils.join("Col", co++));
+//						String dutyAdmins = data.getString(StringUtils.join("Col", co++));
 
 						String groups = data.getString(StringUtils.join("Col", co++));
 						String tags = data.getString(StringUtils.join("Col", co++));
@@ -235,63 +256,70 @@ public class ImportTaskService {
 						{
 							// 股东成员职务
 							String ts = StringUtils.trim(dutyShareholders);
-							if (ts.equals(ORGUserRole.role_shareHolder.name)) {
-								roles.add(ORGUserRole.role_shareHolder.roleId);// 股东
-							} else if (ts.equals(ORGUserRole.role_shareDeputy.name)) {
-								roles.add(ORGUserRole.role_shareDeputy.roleId);// 股东代表
-							} else if (ts.equals(ORGUserRole.role_shareFamily.name)) {
-								roles.add(ORGUserRole.role_shareFamily.roleId);// 股东户代表
-							} else {
-								// 无，不加
+							if (ts != null) {
+								if (ts.equals(ORGUserRole.role_shareHolder.name)) {
+									roles.add(ORGUserRole.role_shareHolder.roleId);// 股东
+								} else if (ts.equals(ORGUserRole.role_shareDeputy.name)) {
+									roles.add(ORGUserRole.role_shareDeputy.roleId);// 股东代表
+								} else if (ts.equals(ORGUserRole.role_shareFamily.name)) {
+									roles.add(ORGUserRole.role_shareFamily.roleId);// 股东户代表
+								} else {
+									// 无，不加
+								}
 							}
 						}
 
 						{
 							// 董事会职务
 							String ts = StringUtils.trim(dutyDirectors);
-							if (ts.equals(ORGUserRole.role_director.name)) {
-								roles.add(ORGUserRole.role_director.roleId);// 董事
-							} else if (ts.equals(ORGUserRole.role_dirChief.name)) {
-								roles.add(ORGUserRole.role_dirChief.roleId);// 董事长
-							} else if (ts.equals(ORGUserRole.role_dirVice.name)) {
-								roles.add(ORGUserRole.role_dirVice.roleId);// 副董事长
-							} else {
-								// 无，不加
+							if (ts != null) {
+								if (ts.equals(ORGUserRole.role_director.name)) {
+									roles.add(ORGUserRole.role_director.roleId);// 董事
+								} else if (ts.equals(ORGUserRole.role_dirChief.name)) {
+									roles.add(ORGUserRole.role_dirChief.roleId);// 董事长
+								} else if (ts.equals(ORGUserRole.role_dirVice.name)) {
+									roles.add(ORGUserRole.role_dirVice.roleId);// 副董事长
+								} else {
+									// 无，不加
+								}
 							}
 						}
 
 						{
 							// 监事会职务
 							String ts = StringUtils.trim(dutyVisors);
-							if (ts.equals(ORGUserRole.role_supervisor.name)) {
-								roles.add(ORGUserRole.role_supervisor.roleId);// 监事
-							} else if (ts.equals(ORGUserRole.role_supChief.name)) {
-								roles.add(ORGUserRole.role_supChief.roleId);// 监事长
-							} else if (ts.equals(ORGUserRole.role_supVice.name)) {
-								roles.add(ORGUserRole.role_supVice.roleId);// 副监事长
-							} else {
-								// 无，不加
-							}
-						}
-
-						{
-							// 其它管理角色
-							temp = CodecUtils.convertCommaStringList2JSONArray(dutyAdmins);
-							for (int j = 0; j < temp.size(); j++) {
-								String ts = StringUtils.trim(temp.getString(j));
-
-								if (ts.equals(ORGUserRole.role_user.name)) {
-									roles.add(ORGUserRole.role_user.roleId);// 用户
-								} else if (ts.equals(ORGUserRole.role_outuser.name)) {
-									roles.add(ORGUserRole.role_outuser.roleId);// 外部人员
-								} else if (ts.equals(ORGUserRole.role_admin.name)) {
-									roles.add(ORGUserRole.role_admin.roleId);// 管理员
+							if (ts != null) {
+								if (ts.equals(ORGUserRole.role_supervisor.name)) {
+									roles.add(ORGUserRole.role_supervisor.roleId);// 监事
+								} else if (ts.equals(ORGUserRole.role_supChief.name)) {
+									roles.add(ORGUserRole.role_supChief.roleId);// 监事长
+								} else if (ts.equals(ORGUserRole.role_supVice.name)) {
+									roles.add(ORGUserRole.role_supVice.roleId);// 副监事长
 								} else {
-									// 无，不填默认当作用户
-									roles.add(ORGUserRole.role_user.roleId);// 用户
+									// 无，不加
 								}
 							}
+
 						}
+
+//						{
+//							// 其它管理角色
+//							temp = CodecUtils.convertCommaStringList2JSONArray(dutyAdmins);
+//							for (int j = 0; j < temp.size(); j++) {
+//								String ts = StringUtils.trim(temp.getString(j));
+//
+//								if (ts.equals(ORGUserRole.role_user.name)) {
+//									roles.add(ORGUserRole.role_user.roleId);// 用户
+//								} else if (ts.equals(ORGUserRole.role_outuser.name)) {
+//									roles.add(ORGUserRole.role_outuser.roleId);// 外部人员
+//								} else if (ts.equals(ORGUserRole.role_admin.name)) {
+//									roles.add(ORGUserRole.role_admin.roleId);// 管理员
+//								} else {
+//									// 无，不填默认当作用户
+//									roles.add(ORGUserRole.role_user.roleId);// 用户
+//								}
+//							}
+//						}
 
 						{
 
@@ -359,9 +387,12 @@ public class ImportTaskService {
 						}
 
 						try {
-							orgUserService.createORGUser(conn, orgId, mobile, realName, idNumber, address, shareCerNo,
-									"", shareCerHolder, shareAmount, weight, roles, arrGroups, joTags, familyNumber,
-									familyMaster);
+							if (idNumber.length() < 15 || idNumber.length() > 19) {
+								throw new ServerException(BaseRC.AUTH_ERROR, "身份证号不规范");
+							}
+							orgUserService.createORGUser(conn, orgId, mobile, realName, idNumber, sex, familyRelations,
+									resourceShares, assetShares, isORGUser, address, shareCerNo, "", shareCerHolder,
+									shareAmount, weight, roles, arrGroups, joTags, familyNumber, familyMaster);
 							// 修改资产状态为成功
 							PrimaryKey pk = new PrimaryKeyBuilder().add("taskId", importTaskId)
 									.add("recordId", recordId).build();
@@ -372,24 +403,31 @@ public class ImportTaskService {
 
 							taskRepository.countORGUserImportCompletionTask(conn, importTaskId);
 						} catch (Exception e) {
+
+							System.out.println("导入User信息失败+" + realName);
+
 							PrimaryKey pk = new PrimaryKeyBuilder().add("taskId", importTaskId)
 									.add("recordId", recordId).build();
 							ColumnBuilder cb = new ColumnBuilder();
 							cb.add("status", (long) ImportTempRecord.STATUS.FAILURE.v());
-							cb.add("result", e.getLocalizedMessage());
+							cb.add("result", e.getMessage());
 							List<Column> columns = cb.build();
 							TSRepository.nativeUpdate(client, tempRecordRepository.getTableName(), pk, true, columns);
 							taskRepository.countORGUserImportNotCompletionTask(conn, importTaskId);
 						}
+						System.out.println("==============当前行结束===================");
 					}
 					offset = offset + 100;
 				}
+
+				System.out.println("==============导入结束===================");
 				// 执行完成 修改任务表里成功与失败数量
 				ImportTask imp = new ImportTask();
 				imp.finishTime = new Date();
 				imp.status = ImportTask.STATUS.COMPLETED.v();
 				taskRepository.update(conn, EXP.INS().key("id", importTaskId), imp, true);
 			} catch (Exception eee) {
+				System.out.println(123456);
 				eee.printStackTrace();
 			} finally {
 				try {

@@ -59,7 +59,25 @@ public class ORGUser {
 	 */
 	@RDSAnnField(column = RDSAnnField.INTEGER)
 	public Integer weight;
-
+	
+	/**
+	 * 资源股
+	 */
+	@RDSAnnField(column = RDSAnnField.DOUBLE)
+	public Double resourceShares;
+	
+	/**
+	 * 资产股
+	 */
+	@RDSAnnField(column = RDSAnnField.DOUBLE)
+	public Double assetShares;
+	
+	/**
+	 * 是否组织成员
+	 */
+	@RDSAnnField(column = RDSAnnField.BOOLEAN)
+	public Boolean isOrgUser;
+	
 	/**
 	 * 组织用户角色
 	 */
@@ -89,4 +107,10 @@ public class ORGUser {
 	 */
 	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
 	public String familyMaster;
+	
+	/**
+	 * 与户主关系
+	 */
+	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
+	public String familyRelations;
 }

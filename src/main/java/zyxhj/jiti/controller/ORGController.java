@@ -3,6 +3,7 @@ package zyxhj.jiti.controller;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +14,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 import zyxhj.core.domain.User;
+import zyxhj.core.service.UserService;
 import zyxhj.jiti.domain.Examine;
 import zyxhj.jiti.domain.Notice;
 import zyxhj.jiti.domain.ORG;
@@ -41,6 +43,7 @@ public class ORGController extends Controller {
 	private ORGPermissionService orgPermissionService;
 	private ORGUserRoleService orgUserRoleService;
 	private MessageService messageService;
+	private UserService userService;
 
 	public ORGController(String node) {
 		super(node);
@@ -50,10 +53,10 @@ public class ORGController extends Controller {
 			orgService = Singleton.ins(ORGService.class);
 			orgUserService = Singleton.ins(ORGUserService.class);
 
-			orgUserGroupService = Singleton.ins(ORGUserGroupService.class);
-			orgPermissionService = Singleton.ins(ORGPermissionService.class);
+			orgUserGroupService = Singleton.ins(ORGUserGroupService.class);			orgPermissionService = Singleton.ins(ORGPermissionService.class);
 			orgUserRoleService = Singleton.ins(ORGUserRoleService.class);
 			messageService = Singleton.ins(MessageService.class);
+			userService = Singleton.ins(UserService.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -144,10 +147,13 @@ public class ORGController extends Controller {
 			@P(t = "街道地址") String address, //
 			@P(t = "组织机构证书图片地址", r = false) String imgOrg, //
 			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
-			@P(t = "总股份数") Integer shareAmount//
+			@P(t = "总股份数") Integer shareAmount, //
+			@P(t = "资源股", r = false) Double resourceShares, //
+			@P(t = "资产股", r = false) Double assetShares //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			orgService.editORG(conn, code, orgName, orgId, address, imgOrg, imgAuth, shareAmount);
+			orgService.editORG(conn, code, orgName, orgId, address, imgOrg, imgAuth, shareAmount, resourceShares,
+					assetShares);
 			return APIResponse.getNewSuccessResp();
 		}
 	}
@@ -166,11 +172,13 @@ public class ORGController extends Controller {
 			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
 			@P(t = "总股份数", r = false) Integer shareAmount, //
 			@P(t = "等级") Byte level, //
-			@P(t = "上级组织id", r = false) Long superiorId //
+			@P(t = "上级组织id", r = false) Long superiorId, //
+			@P(t = "总资源股", r = false) Double resourceShares, //
+			@P(t = "总资产股", r = false) Double assetShares //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
 			orgService.createSubOrg(conn, name, code, address, imgOrg, imgAuth, level, shareAmount, superiorId,
-					province, city, district);
+					province, city, district, resourceShares, assetShares);
 		}
 	}
 
@@ -276,11 +284,19 @@ public class ORGController extends Controller {
 			@P(t = "分组") JSONArray groups, //
 			@P(t = "标签，包含groups,tags,以及其它自定义分组标签列表") JSONObject tags, //
 			@P(t = "户序号") Long familyNumber, //
-			@P(t = "户主名") String familyMaster //
+			@P(t = "户主名") String familyMaster, //
+			@P(t = "性別") Byte sex, //
+			@P(t = "与户主关系") String familyRelations, //
+			@P(t = "资源股") Double resourceShares, //
+			@P(t = "资产股") Double assetShares, //
+			@P(t = "是否内部人员") Boolean isORGUser //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			orgUserService.createORGUser(conn, orgId, mobile, realName, idNumber, address, shareCerNo, shareCerImg,
-					shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+//			orgUserService.createORGUser(conn, orgId, mobile, realName, idNumber, address, shareCerNo, shareCerImg,
+//					shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+			orgUserService.createORGUser(conn, orgId, mobile, realName, idNumber, sex, familyRelations, resourceShares,
+					assetShares, isORGUser, address, shareCerNo, shareCerImg, shareCerHolder, shareAmount, weight,
+					roles, groups, tags, familyNumber, familyMaster);
 			return APIResponse.getNewSuccessResp();
 		}
 	}
@@ -304,7 +320,7 @@ public class ORGController extends Controller {
 			return APIResponse.getNewSuccessResp(ret);
 		}
 	}
-	
+
 	/**
 	 * 
 	 */
@@ -313,13 +329,17 @@ public class ORGController extends Controller {
 			des = "用户绑定/解绑手机号", //
 			ret = "更新影响记录的行数"//
 	)
-	public APIResponse editUserMobile(
+	public APIResponse editUserMobile(//
 			@P(t = "用户编号") Long userId, //
-			@P(t = "手机号,当手机号为null时为解除绑定", r = false) String mobile //
-			) throws Exception {
+			@P(t = "手机号,当手机号为null时为解除绑定", r = false) String mobile, //
+			@P(t = "用户密码") String password//
+	) throws Exception {
+		if(StringUtils.isBlank(password)) {
+			return APIResponse.getNewSuccessResp(0);
+		}
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			User u = orgUserService.editUserMobile(conn, userId, mobile);
-			if(u!=null) {
+			User u = orgUserService.editUserMobile(conn, userId, mobile,password);
+			if (u != null) {
 				return APIResponse.getNewSuccessResp(u);
 			}
 			return APIResponse.getNewSuccessResp(0);
@@ -364,11 +384,15 @@ public class ORGController extends Controller {
 			@P(t = "分组") JSONArray groups, //
 			@P(t = "标签，包含groups,tags,以及其它自定义分组标签列表") JSONObject tags, //
 			@P(t = "户序号", r = false) Long familyNumber, //
-			@P(t = "户主名", r = false) String familyMaster //
+			@P(t = "户主名", r = false) String familyMaster, //
+			@P(t = "资产股", r = false) Double assetShares, //
+			@P(t = "资源股", r = false) Double resourceShares, //
+			@P(t = "是否组织成员", r = false) Boolean isOrgUser //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgUserService.editORGUser(conn, orgId, userId, address, shareCerNo,
-					shareCerImg, shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster));
+					shareCerImg, shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster,
+					assetShares, resourceShares, isOrgUser));
 		}
 	}
 
@@ -542,7 +566,7 @@ public class ORGController extends Controller {
 	)
 	public APIResponse getORGUserByRole(//
 			@P(t = "组织编号") Long orgId, //
-			@P(t = "角色权限列表,String[]格式 String[1,2,3]", r = false) String[] roles, //
+			@P(t = "角色权限列表,String[]格式 String[1,2,3]", r = false) Long[] roles, //
 			Integer count, //
 			Integer offset//
 	) throws Exception {
@@ -786,11 +810,13 @@ public class ORGController extends Controller {
 			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
 			@P(t = "总股份数") Integer shareAmount, //
 			@P(t = "等级", r = false) Byte level, //
-			@P(t = "上级组织id", r = false) Long superiorId //
+			@P(t = "上级组织id", r = false) Long superiorId, //
+			@P(t = "资源股", r = false) Double resourceShares, //
+			@P(t = "资产股", r = false) Double assetShares //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.createORGApply(conn, userId, name, code, province, city,
-					district, address, imgOrg, imgAuth, shareAmount, level, superiorId));
+					district, address, imgOrg, imgAuth, shareAmount, level, superiorId, resourceShares, assetShares));
 		}
 	}
 
@@ -816,12 +842,14 @@ public class ORGController extends Controller {
 			@P(t = "申请状态") Byte examine, //
 			@P(t = "等级") Byte level, //
 			@P(t = "上级组织id", r = false) Long superiorId, //
-			@P(t = "组织id") Boolean updateDistrict //
+			@P(t = "组织id") Boolean updateDistrict, //
+			@P(t = "资源股", r = false) Double resourceShares, //
+			@P(t = "资产股", r = false) Double assetShares //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse
-					.getNewSuccessResp(orgService.upORGApply(conn, orgExamineId, examine, userId, name, code, province,
-							city, district, address, imgOrg, imgAuth, shareAmount, level, superiorId, updateDistrict));
+			return APIResponse.getNewSuccessResp(orgService.upORGApply(conn, orgExamineId, examine, userId, name, code,
+					province, city, district, address, imgOrg, imgAuth, shareAmount, level, superiorId, updateDistrict,
+					resourceShares, assetShares));
 		}
 	}
 
@@ -847,13 +875,18 @@ public class ORGController extends Controller {
 			@P(t = "等级") Byte level, //
 			@P(t = "上级组织id", r = false) Long superiorId, //
 			@P(t = "组织id", r = false) Long orgId, //
-			@P(t = "是否修改地址") Boolean updateDistrict //
-	) throws Exception {
+			@P(t = "是否修改地址") Boolean updateDistrict, //
+			@P(t = "资源股", r = false) Double resourceShares, //
+			@P(t = "资产股", r = false) Double assetShares //
+	) {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(
-					orgService.upORGApplyAgain(conn, orgExamineId, userId, name, code, province, city, district,
-							address, imgOrg, imgAuth, shareAmount, level, superiorId, orgId, updateDistrict));
+			return APIResponse.getNewSuccessResp(orgService.upORGApplyAgain(conn, orgExamineId, userId, name, code,
+					province, city, district, address, imgOrg, imgAuth, shareAmount, level, superiorId, orgId,
+					updateDistrict, assetShares, resourceShares));
+		}catch(Exception e){
+			e.printStackTrace();
 		}
+		return null;
 	}
 
 	/**
@@ -1694,10 +1727,12 @@ public class ORGController extends Controller {
 	public APIResponse getNoticeByRoleGroup(//
 			@P(t = "组织编号") Long orgId, //
 			@P(t = "角色编号 [102,103,104]") String roles, //
-			@P(t = "分组编号 [1111111,555555,111]") String groups //
+			@P(t = "分组编号 [1111111,555555,111]") String groups, //
+			Integer count, //
+			Integer offset //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.getNoticeByRoleGroup(conn, orgId, roles, groups));
+			return APIResponse.getNewSuccessResp(orgService.getNoticeByRoleGroup(conn, orgId, roles, groups, count, offset));
 		}
 	}
 
@@ -1858,5 +1893,57 @@ public class ORGController extends Controller {
 			return APIResponse.getNewSuccessResp(orgService.delSubOrg(conn, orgId));
 		}
 	}
+
+	@POSTAPI(//
+			path = "getCountsByRoles", //
+			des = "获取组织每个职位的人员总数", //
+			ret = "JSONObject<'roleId', count>"//
+	)
+	public APIResponse getCountsByRoles(//
+			@P(t = "组织id") Long orgId, //
+			@P(t = "职务编号数组") JSONArray roles//
+	) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+
+			return APIResponse.getNewSuccessResp(orgUserService.getCountsByRole(conn, orgId, roles));
+		}
+	}
+
+	/**
+	 * 获取外部成员列表
+	 */
+	@POSTAPI(//
+			path = "getOrgUserListByIsOrgUser", //
+			des = "获取内部或外部成员并附带人员总数", //
+			ret = "JSONObject"//
+	)
+	public APIResponse getOrgUserListByIsOrgUser(//
+			@P(t = "组织id") Long orgId, //
+			@P(t = "内部为true,外部为false") Boolean isOrgUser, //
+			Integer count, //
+			Integer offset//
+	) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse
+					.getNewSuccessResp(orgUserService.getOrgUserListByIsOrgUser(conn, orgId, isOrgUser, count, offset));
+		}
+	}
+	
+	@POSTAPI(//
+			path = "editUserPassword", //
+			des = "修改用戶密碼", //
+			ret = "受影响行数"//
+	)
+	public APIResponse editUserPassword(//
+			@P(t = "用户id") Long userId, //
+			@P(t = "旧密码") String oldPassword, //
+			@P(t = "新密码") String newPassword//
+	) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse.getNewSuccessResp(orgUserService.eidtUserPassword(conn, userId,oldPassword,newPassword));
+		}
+	}
+	
+	
 
 }

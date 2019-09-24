@@ -23,16 +23,10 @@
 	<dependencies>
 		<dependency>
 			<groupId>zyxhj.cn</groupId>
-			<artifactId>content</artifactId>
+			<artifactId>zero</artifactId>
 			<version>0.0.1</version>
 		</dependency>
 
-		<dependency>
-			<!-- 短信 -->
-			<groupId>com.aliyun</groupId>
-			<artifactId>aliyun-java-sdk-core</artifactId>
-			<version>4.1.0</version>
-		</dependency>
 	</dependencies>
 
 	<build>

@@ -1,7 +1,6 @@
 package zyxhj.jiti.service;
 
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -30,8 +29,6 @@ import zyxhj.core.domain.LoginBo;
 import zyxhj.core.domain.User;
 import zyxhj.core.domain.UserSession;
 import zyxhj.core.repository.UserRepository;
-import zyxhj.custom.service.WxDataService;
-import zyxhj.custom.service.WxFuncService;
 import zyxhj.jiti.domain.District;
 import zyxhj.jiti.domain.Family;
 import zyxhj.jiti.domain.Notice;
@@ -82,8 +79,8 @@ public class ORGService {
 	private NoticeTaskRepository noticeTaskRepository;
 	private NoticeTaskRecordRepository noticeTaskRecordRepository;
 	private NoticeRepository noticeRepository;
-	private WxDataService wxDataService;
-	private WxFuncService wxFuncService;
+//	private WxDataService wxDataService;
+//	private WxFuncService wxFuncService;
 
 	public ORGService() {
 		try {
@@ -100,8 +97,8 @@ public class ORGService {
 			noticeTaskRepository = Singleton.ins(NoticeTaskRepository.class);
 			noticeTaskRecordRepository = Singleton.ins(NoticeTaskRecordRepository.class);
 			noticeRepository = Singleton.ins(NoticeRepository.class);
-			wxDataService = Singleton.ins(WxDataService.class);
-			wxFuncService = Singleton.ins(WxFuncService.class);
+//			wxDataService = Singleton.ins(WxDataService.class);
+//			wxFuncService = Singleton.ins(WxFuncService.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -895,15 +892,16 @@ public class ORGService {
 					for (NoticeTaskRecord noticeTaskRecord : noticeRe) {
 						if (notice.mode == NoticeTask.MODE.WX.v()) {
 							// 执行微信发送
-							wxFuncService.templateMessage(wxDataService.getWxMpService(), noticeTaskRecord.openId,
-									notice.title, notice.content, notice.createTime);
+//							wxFuncService.templateMessage(wxDataService.getWxMpService(), noticeTaskRecord.openId,
+//									notice.title, notice.content, notice.createTime);
 						} else if (notice.mode == NoticeTask.MODE.PHONENUMBER.v()) {
 							// 执行短信发送
 							SendSms(noticeTaskRecord.mobile, notice.content);
 						} else if (notice.mode == NoticeTask.MODE.WXANDPHONE.v()) {
 							// 微信和短信都发送
-							wxFuncService.templateMessage(wxDataService.getWxMpService(), noticeTaskRecord.openId,
-									notice.title, notice.content, notice.createTime);
+							// wxFuncService.templateMessage(wxDataService.getWxMpService(),
+							// noticeTaskRecord.openId,
+							// notice.title, notice.content, notice.createTime);
 							SendSms(noticeTaskRecord.mobile, notice.content);
 						}
 					}

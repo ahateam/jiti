@@ -6,6 +6,7 @@ import zyxhj.core.controller.UserController;
 import zyxhj.jiti.controller.AssetController;
 import zyxhj.jiti.controller.BankController;
 import zyxhj.jiti.controller.DemonstrationController;
+import zyxhj.jiti.controller.ExportTaskController;
 import zyxhj.jiti.controller.ExternalController;
 import zyxhj.jiti.controller.ImportController;
 import zyxhj.jiti.controller.ORGController;
@@ -63,6 +64,8 @@ public class JITIVerticle extends ZeroVerticle {
 		initCtrl(ctrlMap, Singleton.ins(ImportController.class, "imp"));
 		
 		initCtrl(ctrlMap, Singleton.ins(VersionController.class, "version"));
+		
+		initCtrl(ctrlMap, Singleton.ins(ExportTaskController.class, "export"));
 
 	}
 

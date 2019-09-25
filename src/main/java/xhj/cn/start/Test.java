@@ -2,7 +2,9 @@ package xhj.cn.start;
 
 import com.alibaba.druid.pool.DruidDataSource;
 
+import zyxhj.core.domain.ExportTask;
 import zyxhj.utils.data.DataSource;
+import zyxhj.utils.data.rds.RDSUtils;
 
 public class Test {
 
@@ -20,7 +22,7 @@ public class Test {
 
 			// RDSUtils.dropTableByEntity(dds, ORGPermission.class);
 
-			// RDSUtils.createTableByEntity(dds, Video.class);
+			 RDSUtils.createTableByEntity(dds, ExportTask.class);
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

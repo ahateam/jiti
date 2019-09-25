@@ -12,6 +12,7 @@ import com.alibaba.fastjson.JSONObject;
 import zyxhj.core.domain.User;
 import zyxhj.core.repository.UserRepository;
 import zyxhj.jiti.controller.ORGController;
+import zyxhj.jiti.controller.VersionController;
 import zyxhj.jiti.controller.VoteController;
 import zyxhj.jiti.domain.ORGUser;
 import zyxhj.jiti.repository.ORGUserRepository;
@@ -104,21 +105,10 @@ public class Test {
 		c.editUserMobile(400987736416750L, null,"");
 		System.out.println();
 	}
-
+	
 	@org.junit.Test
-	public void testgetCountsByRoles() throws Exception {
-
-		Long orgId = 397652553337218L;
-		Long userId = 397652721987284L;
-		JSONArray roles = new JSONArray();
-		roles.add(101);
-		roles.add(107);
-		roles.add(106);
-		roles.add(104);
-		Integer count = 10;
-		Integer offset = 0;
-		VoteService vs = new VoteService();
-		JSONArray ja = vs.getNotVoteByUserRoles(conn, orgId, userId, roles.toJSONString(), count, offset);
-		System.out.println(ja.toJSONString());
+	public void testGetAppVersion() {
+		VersionController ver = new VersionController("");
+		System.out.println(ver.getVersion().toJSONString());
 	}
 }

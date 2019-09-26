@@ -39,23 +39,40 @@ public class ExportTaskController extends Controller {
 	public ExportTask createExportTask(//
 			@P(t = "任务标题") String title,//
 			@P(t = "组织编号") Long orgId,//
-			@P(t = "用户编号") Long userId
+			@P(t = "用户编号") Long userId,//
+			@P(t = "用户编号") Long areaId//
 			) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return taskService.createExportTask(conn, title, orgId, userId);
+			return taskService.createExportTask(conn, title, orgId, userId,areaId);
 		}
 	}
+	
+	@POSTAPI(path= "getExportTaskLikeTitle",
+			des = "模糊查询标题",
+			ret = " List<ExportTask>"
+			)
+	public List<ExportTask> getExportTaskLikeTitle(//
+			@P(t = "组织编号") String title,//
+			Integer count,//
+			Integer offset//
+			) throws Exception{
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return taskService.getExportTaskLikeTitle(conn, title, count, offset);
+		}
+	}
+	
+	
 	@POSTAPI(path= "getTaskList",
 			des = "获取所有导出任务",
 			ret = "当前任务详情"
 			)
 	public List<ExportTask> getTaskList(//
-			@P(t = "组织编号") Long orgId,//
+			@P(t = "组织编号") Long areaId,//
 			Integer count,//
 			Integer offset//
 			) throws Exception{
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return taskService.getExportTaskList(conn, orgId, count, offset);
+			return taskService.getExportTaskList(conn, areaId, count, offset);
 		}
 	}
 	@POSTAPI(path= "downLoadExcel",

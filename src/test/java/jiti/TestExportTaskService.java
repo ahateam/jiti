@@ -39,9 +39,7 @@ public class TestExportTaskService {
 	
 	@Test
 	public void testCreateExportTask() throws Exception {
-		String title = "测试导出数据任务";
-		taskService.createExportTask(conn, title, orgId, userId);
-		
+		taskService.getExportTaskList(conn, 397718468923094L, 10, 0);
 	}
 
 	@Test

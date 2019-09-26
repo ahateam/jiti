@@ -25,6 +25,7 @@ import zyxhj.core.repository.ExportTaskRepository;
 import zyxhj.jiti.domain.ORG;
 import zyxhj.utils.IDUtils;
 import zyxhj.utils.Singleton;
+import zyxhj.utils.api.ServerException;
 import zyxhj.utils.data.EXP;
 
 public class ExportTaskService {
@@ -53,10 +54,11 @@ public class ExportTaskService {
 	private static String ACCESSKEYSECRET = "89EMlXLsP13H8mWKIvdr4iM1OvdVxs";// accessKeySecret
 
 	// 创建导出任务
-	public ExportTask createExportTask(DruidPooledConnection conn, String title, Long orgId, Long userId)
+	public ExportTask createExportTask(DruidPooledConnection conn, String title, Long orgId, Long userId, Long areaId)
 			throws Exception {
 		ExportTask imp = new ExportTask();
 		imp.id = IDUtils.getSimpleId();
+		imp.areaId = areaId;
 		imp.orgId = orgId;
 		imp.title = title;
 		imp.userId = userId;
@@ -70,10 +72,17 @@ public class ExportTaskService {
 		return imp;
 	}
 
+	public List<ExportTask> getExportTaskLikeTitle(DruidPooledConnection conn, String title, Integer count,
+			Integer offset) throws ServerException {
+		return taskRepository.getList(conn, EXP.INS().LIKE("title", title), count, offset);
+	}
+
 	// 查询导出任务列表
-	public List<ExportTask> getExportTaskList(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)
+	public List<ExportTask> getExportTaskList(DruidPooledConnection conn, Long areaId, Integer count, Integer offset)
 			throws Exception {
-		return taskRepository.getList(conn, null, count, offset);
+		System.out.println("areaId-------------------------------------------"+areaId);
+		return taskRepository.getList(conn, EXP.INS().key("area_id", areaId).append("ORDER BY create_time DESC"), count,
+				offset);
 	}
 
 	public ExportTask getExportTask(DruidPooledConnection conn, Long taskId) throws Exception {

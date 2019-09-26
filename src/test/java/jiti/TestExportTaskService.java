@@ -39,13 +39,29 @@ public class TestExportTaskService {
 	
 	@Test
 	public void testCreateExportTask() throws Exception {
-		taskService.getExportTaskList(conn, 397718468923094L, 10, 0);
+		String title = "测试导出数据任务";
+		taskService.createExportTask(conn, title, orgId, userId, 397718468923094L);
+		
+	}
+	
+	@Test
+	public void testGetTaskList() throws Exception {
+		taskService.getExportTaskList(conn, 397718468923094L, 10,0);
 	}
 
 	@Test
 	public void testExportDataIntoOSS() {
 		try {
-			taskService.ExportDataIntoOSS(conn, orgId, taskId);
+			taskService.ExportDataIntoOSS(conn, 399908727332361L, 401788152039380L);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public static void main(String[] args) {
+		try {
+			taskService.ExportDataIntoOSS(conn, 399908727332361L, 401788152039380L);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -54,19 +70,7 @@ public class TestExportTaskService {
 	
 	@Test
 	public void testAddALL() {
-		List<String> a = new ArrayList<String>();
-		List<String> b = new ArrayList<String>();
-		a.add("1");
-		a.add("2");
-		a.add("3");
-		a.add("4");
-		b.add("5");
-		b.add("6");
-		b.add("7");
-		b.addAll(a);
-		for(String s : b) {
-			System.out.println(s);
-		}
+		
 		
 		
 	}

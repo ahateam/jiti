@@ -3,22 +3,27 @@ package zyxhj.jiti.service;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidPooledConnection;
+import com.alicloud.openservices.tablestore.SyncClient;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
 
+import io.vertx.core.Vertx;
 import zyxhj.core.domain.ExportTask;
 import zyxhj.core.domain.ImportTask;
 import zyxhj.core.repository.ExportTaskRepository;
@@ -26,6 +31,7 @@ import zyxhj.jiti.domain.ORG;
 import zyxhj.utils.IDUtils;
 import zyxhj.utils.Singleton;
 import zyxhj.utils.api.ServerException;
+import zyxhj.utils.data.DataSource;
 import zyxhj.utils.data.EXP;
 
 public class ExportTaskService {
@@ -63,6 +69,8 @@ public class ExportTaskService {
 		imp.title = title;
 		imp.userId = userId;
 		imp.createTime = new Date();
+		imp.startTime = new Date();
+		imp.finishTime = new Date();
 		imp.amount = 0;
 		imp.completedCount = 0;
 		imp.successCount = 0;
@@ -72,15 +80,20 @@ public class ExportTaskService {
 		return imp;
 	}
 
-	public List<ExportTask> getExportTaskLikeTitle(DruidPooledConnection conn, String title, Integer count,
+	public List<ExportTask> getExportTaskLikeTitle(DruidPooledConnection conn, Long areaId, String title, Integer count,
 			Integer offset) throws ServerException {
-		return taskRepository.getList(conn, EXP.INS().LIKE("title", title), count, offset);
+		if (StringUtils.isBlank(title)) {
+			return taskRepository.getList(conn, EXP.INS().key("area_id", areaId).append("ORDER BY create_time DESC"),
+					count, offset);
+		} else {
+			return taskRepository.getList(conn, EXP.INS().key("area_id", areaId).LIKE("title", title), count, offset);
+		}
+
 	}
 
 	// 查询导出任务列表
 	public List<ExportTask> getExportTaskList(DruidPooledConnection conn, Long areaId, Integer count, Integer offset)
 			throws Exception {
-		System.out.println("areaId-------------------------------------------"+areaId);
 		return taskRepository.getList(conn, EXP.INS().key("area_id", areaId).append("ORDER BY create_time DESC"), count,
 				offset);
 	}
@@ -90,7 +103,7 @@ public class ExportTaskService {
 	}
 
 	// 导出数据到OSS
-	public void ExportDataIntoOSS(DruidPooledConnection conn, Long orgId, Long taskId) throws Exception {
+	public int ExportDataIntoOSS(DruidPooledConnection conn, Long orgId, Long taskId) throws Exception {
 
 		System.out.println("进入ExportDataIntoOSS");
 
@@ -99,67 +112,81 @@ public class ExportTaskService {
 		exp.status = ExportTask.STATUS.PROGRESSING.v();
 		// 总数
 		int size = orgUserService.getExportDataCount(conn, orgId);
+
 		exp.amount = size;
 		exp.startTime = new Date();
 		taskRepository.update(conn, EXP.INS().key("id", taskId), exp, true);
+		if (size > 0) {
 
-		Integer count = size / 100;
-		Integer offset = 0;
-		XSSFWorkbook dataListExcel = new XSSFWorkbook();
-		// 2.在workbook中添加一个sheet,对应Excel文件中的sheet
-		XSSFSheet sheet = dataListExcel.createSheet("sheet1");
-		// 3.设置表头，即每个列的列名
-		String[] titles = new String[] { "户序号", "户主姓名", "地址", "姓名", "性别", "身份证号码", "是否集体组织成员", "个人持股数（股）", "与户主关系",
-				"成员股权证号", "本户资产股", "本户资源股", "合作社名称", "合作社地址", "合作社成立时间", "合作社信用代码", "集体资产股", "原合作社集体资产股", "集体资源股",
-				"原合作社集体资源股" };
-		// 3.1创建第一行
-		XSSFRow row = sheet.createRow(0);
-//        // 此处创建一个序号列
-		// 将列名写入
-		for (int i = 0; i < titles.length; i++) {
-			// 给列写入数据,创建单元格，写入数据
-			row.createCell(i).setCellValue(titles[i]);
-		}
+			XSSFWorkbook dataListExcel = new XSSFWorkbook();
+			// 2.在workbook中添加一个sheet,对应Excel文件中的sheet
+			XSSFSheet sheet = dataListExcel.createSheet("sheet1");
+			// 3.设置表头，即每个列的列名
+			String[] titles = new String[] { "户序号", "户主姓名", "地址", "姓名", "性别", "身份证号码", "是否集体组织成员", "个人持股数（股）", "与户主关系",
+					"成员股权证号", "本户资产股", "本户资源股", "合作社名称", "合作社地址", "合作社成立时间", "合作社信用代码", "集体资产股", "原合作社集体资产股", "集体资源股",
+					"原合作社集体资源股" };
+			// 3.1创建第一行
+			XSSFRow row = sheet.createRow(0);
+//			        // 此处创建一个序号列
+			// 将列名写入
+			for (int i = 0; i < titles.length; i++) {
+				// 给列写入数据,创建单元格，写入数据
+				row.createCell(i).setCellValue(titles[i]);
+			}
 
-		// 添加数据到Excel表中
-		System.out.println("offset:" + offset);
+			Integer count = 0;
+			Integer offset = 0;
+			int forLength = 0;
+			if (size < 100) {
+				forLength = 1;
+				count = size;
+			} else {
+				forLength = 100;
+				count = size / 100;
+				if (size % 100 > 0) {
+					forLength++;
+				}
+			}
+			List<Map<String, Object>> ecportDataList = new ArrayList<Map<String, Object>>();
+			System.out.println("开始导出数据");
 
-		List<Map<String, Object>> ecportDataList = new ArrayList<Map<String, Object>>();
-
-		System.out.println("开始导出数据");
-		for (int i = 0; i < 100; i++) {
-			if (size % 100 > 0) {
-				if (i == 99) {
-					List<Map<String, Object>> DataList = orgUserService.getExportData(conn, orgId, (size % 100),
-							offset);
-					ecportDataList.addAll(DataList);
+			for (int i = 0; i < forLength; i++) {
+				if (size % 100 > 0) {
+					if (i == 100) {
+						count = (size % 100);
+						List<Map<String, Object>> DataList = orgUserService.getExportData(conn, orgId, count, offset);
+						ecportDataList.addAll(DataList);
+					} else {
+						List<Map<String, Object>> DataList = orgUserService.getExportData(conn, orgId, count, offset);
+						ecportDataList.addAll(DataList);
+					}
 				} else {
 					List<Map<String, Object>> DataList = orgUserService.getExportData(conn, orgId, count, offset);
 					ecportDataList.addAll(DataList);
 				}
-			} else {
-				List<Map<String, Object>> DataList = orgUserService.getExportData(conn, orgId, count, offset);
-				ecportDataList.addAll(DataList);
+				offset += count;
+				// 修改已经完成的数量
+				exp.successCount = offset;
+				taskRepository.update(conn, EXP.INS().key("id", taskId), exp, true);
+
 			}
-			offset += count;
-			// 修改已经完成的数量
-			exp.successCount = offset;
+
+			exportDataModile(sheet, ecportDataList, row, titles);
+
+			// 获取组织名称
+			ORG org = orgService.getORGById(conn, orgId);
+			String url = exportData(dataListExcel, org.name);
+			// 修改任务状态为文件已生成
+			exp.completedCount = offset;
+			exp.failureCount = size - offset;
+			exp.fileUrls = url;
+			exp.status = ExportTask.STATUS.FILE_READY.v();
+			exp.finishTime = new Date();
 			taskRepository.update(conn, EXP.INS().key("id", taskId), exp, true);
-
-		}
-
-		exportDataModile(sheet, ecportDataList, row, titles);
-
-		// 获取组织名称
-		ORG org = orgService.getORGById(conn, orgId);
-		String url = exportData(dataListExcel, org.name);
-		// 修改任务状态为文件已生成
-		exp.completedCount = offset;
-		exp.failureCount = size - offset;
-		exp.fileUrls = url;
-		exp.status = ExportTask.STATUS.FILE_READY.v();
-		exp.finishTime = new Date();
-		taskRepository.update(conn, EXP.INS().key("id", taskId), exp, true);
+		} else {
+			return 0;}
+		
+		return 1;
 	}
 
 	public String exportData(XSSFWorkbook dataListExcel, String orgName) {

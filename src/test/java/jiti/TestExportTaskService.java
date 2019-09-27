@@ -52,7 +52,7 @@ public class TestExportTaskService {
 	@Test
 	public void testExportDataIntoOSS() {
 		try {
-			taskService.ExportDataIntoOSS(conn, 399908727332361L, 401788152039380L);
+			taskService.ExportDataIntoOSS(399908727332361L, 401788152039380L);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -61,7 +61,7 @@ public class TestExportTaskService {
 	
 	public static void main(String[] args) {
 		try {
-			taskService.ExportDataIntoOSS(conn, 399908727332361L, 401788152039380L);
+			taskService.ExportDataIntoOSS(399908727332361L, 401788152039380L);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

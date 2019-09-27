@@ -103,90 +103,114 @@ public class ExportTaskService {
 	}
 
 	// 导出数据到OSS
-	public int ExportDataIntoOSS(DruidPooledConnection conn, Long orgId, Long taskId) throws Exception {
+	public void ExportDataIntoOSS(Long orgId, Long taskId) throws Exception {
 
 		System.out.println("进入ExportDataIntoOSS");
-
-		// 修改任务状态为正在生成文件
-		ExportTask exp = new ExportTask();
-		exp.status = ExportTask.STATUS.PROGRESSING.v();
-		// 总数
-		int size = orgUserService.getExportDataCount(conn, orgId);
-
-		exp.amount = size;
-		exp.startTime = new Date();
-		taskRepository.update(conn, EXP.INS().key("id", taskId), exp, true);
-		if (size > 0) {
-
-			XSSFWorkbook dataListExcel = new XSSFWorkbook();
-			// 2.在workbook中添加一个sheet,对应Excel文件中的sheet
-			XSSFSheet sheet = dataListExcel.createSheet("sheet1");
-			// 3.设置表头，即每个列的列名
-			String[] titles = new String[] { "户序号", "户主姓名", "地址", "姓名", "性别", "身份证号码", "是否集体组织成员", "个人持股数（股）", "与户主关系",
-					"成员股权证号", "本户资产股", "本户资源股", "合作社名称", "合作社地址", "合作社成立时间", "合作社信用代码", "集体资产股", "原合作社集体资产股", "集体资源股",
-					"原合作社集体资源股" };
-			// 3.1创建第一行
-			XSSFRow row = sheet.createRow(0);
-//			        // 此处创建一个序号列
-			// 将列名写入
-			for (int i = 0; i < titles.length; i++) {
-				// 给列写入数据,创建单元格，写入数据
-				row.createCell(i).setCellValue(titles[i]);
+		// 异步方法，不会阻塞
+		Vertx.vertx().executeBlocking(future -> {
+			// 下面这行代码可能花费很长时间
+			DruidDataSource dds;
+			DruidPooledConnection conn = null;
+			SyncClient client = null;
+			try {
+				dds = DataSource.getDruidDataSource("rdsDefault.prop");
+				conn = (DruidPooledConnection) dds.getConnection();
+				client = DataSource.getTableStoreSyncClient("tsDefault.prop");
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 
-			Integer count = 0;
-			Integer offset = 0;
-			int forLength = 0;
-			if (size < 100) {
-				forLength = 1;
-				count = size;
-			} else {
-				forLength = 100;
-				count = size / 100;
-				if (size % 100 > 0) {
-					forLength++;
-				}
-			}
-			List<Map<String, Object>> ecportDataList = new ArrayList<Map<String, Object>>();
-			System.out.println("开始导出数据");
-
-			for (int i = 0; i < forLength; i++) {
-				if (size % 100 > 0) {
-					if (i == 100) {
-						count = (size % 100);
-						List<Map<String, Object>> DataList = orgUserService.getExportData(conn, orgId, count, offset);
-						ecportDataList.addAll(DataList);
-					} else {
-						List<Map<String, Object>> DataList = orgUserService.getExportData(conn, orgId, count, offset);
-						ecportDataList.addAll(DataList);
-					}
-				} else {
-					List<Map<String, Object>> DataList = orgUserService.getExportData(conn, orgId, count, offset);
-					ecportDataList.addAll(DataList);
-				}
-				offset += count;
-				// 修改已经完成的数量
-				exp.successCount = offset;
+			// 修改任务状态为正在生成文件
+			ExportTask exp = new ExportTask();
+			exp.status = ExportTask.STATUS.PROGRESSING.v();
+			// 总数
+			int size;
+			try {
+				size = orgUserService.getExportDataCount(conn, orgId);
+				exp.amount = size;
+				exp.startTime = new Date();
 				taskRepository.update(conn, EXP.INS().key("id", taskId), exp, true);
+				if (size > 0) {
 
+					XSSFWorkbook dataListExcel = new XSSFWorkbook();
+					// 2.在workbook中添加一个sheet,对应Excel文件中的sheet
+					XSSFSheet sheet = dataListExcel.createSheet("sheet1");
+					// 3.设置表头，即每个列的列名
+					String[] titles = new String[] { "户序号", "户主姓名", "地址", "姓名", "性别", "身份证号码", "是否集体组织成员", "个人持股数（股）",
+							"与户主关系", "成员股权证号", "本户资产股", "本户资源股", "合作社名称", "合作社地址", "合作社成立时间", "合作社信用代码", "集体资产股",
+							"原合作社集体资产股", "集体资源股", "原合作社集体资源股" };
+					// 3.1创建第一行
+					XSSFRow row = sheet.createRow(0);
+//			        // 此处创建一个序号列
+					// 将列名写入
+					for (int i = 0; i < titles.length; i++) {
+						// 给列写入数据,创建单元格，写入数据
+						row.createCell(i).setCellValue(titles[i]);
+					}
+
+					Integer count = 0;
+					Integer offset = 0;
+					int forLength = 0;
+					if (size < 100) {
+						forLength = 1;
+						count = size;
+					} else {
+						forLength = 100;
+						count = size / 100;
+						if (size % 100 > 0) {
+							forLength++;
+						}
+					}
+					List<Map<String, Object>> ecportDataList = new ArrayList<Map<String, Object>>();
+					System.out.println("开始导出数据");
+
+					for (int i = 0; i < forLength; i++) {
+						if (size % 100 > 0) {
+							if (i == 100) {
+								count = (size % 100);
+								List<Map<String, Object>> DataList = orgUserService.getExportData(conn, orgId, count,
+										offset);
+								ecportDataList.addAll(DataList);
+							} else {
+								List<Map<String, Object>> DataList = orgUserService.getExportData(conn, orgId, count,
+										offset);
+								ecportDataList.addAll(DataList);
+							}
+						} else {
+							List<Map<String, Object>> DataList = orgUserService.getExportData(conn, orgId, count,
+									offset);
+							ecportDataList.addAll(DataList);
+						}
+						offset += count;
+						// 修改已经完成的数量
+						exp.successCount = offset;
+						taskRepository.update(conn, EXP.INS().key("id", taskId), exp, true);
+
+					}
+
+					exportDataModile(sheet, ecportDataList, row, titles);
+
+					// 获取组织名称
+					ORG org = orgService.getORGById(conn, orgId);
+					String url = exportData(dataListExcel, org.name);
+					// 修改任务状态为文件已生成
+					exp.completedCount = offset;
+					exp.failureCount = size - offset;
+					exp.fileUrls = url;
+					exp.status = ExportTask.STATUS.FILE_READY.v();
+					exp.finishTime = new Date();
+					taskRepository.update(conn, EXP.INS().key("id", taskId), exp, true);
+
+				}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 
-			exportDataModile(sheet, ecportDataList, row, titles);
-
-			// 获取组织名称
-			ORG org = orgService.getORGById(conn, orgId);
-			String url = exportData(dataListExcel, org.name);
-			// 修改任务状态为文件已生成
-			exp.completedCount = offset;
-			exp.failureCount = size - offset;
-			exp.fileUrls = url;
-			exp.status = ExportTask.STATUS.FILE_READY.v();
-			exp.finishTime = new Date();
-			taskRepository.update(conn, EXP.INS().key("id", taskId), exp, true);
-		} else {
-			return 0;}
-		
-		return 1;
+			future.complete("ok");
+		}, res -> {
+			System.out.println("The result is: " + res.result());
+		});
 	}
 
 	public String exportData(XSSFWorkbook dataListExcel, String orgName) {

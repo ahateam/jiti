@@ -1987,10 +1987,10 @@ public class ORGUserService {
 			if (mobile == null) {
 				renew.mobile = "";
 			} else {
-				List<User> ulist = userRepository.getList(conn, EXP.INS().key("mobile", mobile), 10, 0, "mobile");
-				if (ulist.size() > 0 && ulist != null) {
-					return null;
-				}
+//				List<User> ulist = userRepository.getList(conn, EXP.INS().key("mobile", mobile), 10, 0, "mobile");
+//				if (ulist.size() > 0 && ulist != null) {
+//					return null;
+//				}
 				renew.mobile = mobile;
 			}
 			int ret = userRepository.update(conn, EXP.INS().key("id", userId), renew, true);

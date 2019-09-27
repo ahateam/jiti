@@ -97,7 +97,7 @@ public class VoteRepository extends RDSRepository<Vote> {
 		for (int i = 0; i < roles.size(); i++) {
 			subExp.or(EXP.JSON_CONTAINS("crowd", "$.roles", roles.get(i)));
 		}
-		exp.and(subExp);
+		exp.and(subExp).append(" ORDER BY create_time DESC");
 
 		return getList(conn, exp, count, offset);
 

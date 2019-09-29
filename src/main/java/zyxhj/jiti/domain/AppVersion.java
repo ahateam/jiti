@@ -8,11 +8,11 @@ public class AppVersion {
 //		android:"http://jiti-online.oss-cn-hangzhou.aliyuncs.com/app/107/android/jiti.apk",
 //		ios:"http://jiti-online.oss-cn-hangzhou.aliyuncs.com/app/107/ios/jiti.ipa"
 
-	private static String VERSION = "108";
+	private static String VERSION = "111";
 
-	private static String ANDROID = "http://jiti-online.oss-cn-hangzhou.aliyuncs.com/app/108/android/jiti.apk";
+	private static String ANDROID = "http://jiti-online.oss-cn-hangzhou.aliyuncs.com/app/111/android/jiti.apk";
 
-	private static String IOS = "http://jiti-online.oss-cn-hangzhou.aliyuncs.com/app/108/ios/jiti.ipa";
+	private static String IOS = "http://jiti-online.oss-cn-hangzhou.aliyuncs.com/app/111/ios/jiti.ipa";
 
 	private static JSONObject APPVERSION = new JSONObject();
 

@@ -1835,7 +1835,6 @@ public class ORGUserService {
 			Integer count, Integer offset) throws Exception {
 		List<ORG> orgs = orgService.getORGs(conn, districtId, 512, 0);
 		return examineRepository.getExamineByORGIds(conn, orgs, type, status, count, offset);
-
 	}
 
 	// 设置股权证号

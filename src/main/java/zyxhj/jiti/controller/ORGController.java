@@ -53,7 +53,8 @@ public class ORGController extends Controller {
 			orgService = Singleton.ins(ORGService.class);
 			orgUserService = Singleton.ins(ORGUserService.class);
 
-			orgUserGroupService = Singleton.ins(ORGUserGroupService.class);			orgPermissionService = Singleton.ins(ORGPermissionService.class);
+			orgUserGroupService = Singleton.ins(ORGUserGroupService.class);
+			orgPermissionService = Singleton.ins(ORGPermissionService.class);
 			orgUserRoleService = Singleton.ins(ORGUserRoleService.class);
 			messageService = Singleton.ins(MessageService.class);
 			userService = Singleton.ins(UserService.class);
@@ -334,11 +335,11 @@ public class ORGController extends Controller {
 			@P(t = "手机号,当手机号为null时为解除绑定", r = false) String mobile, //
 			@P(t = "用户密码") String password//
 	) throws Exception {
-		if(StringUtils.isBlank(password)) {
+		if (StringUtils.isBlank(password)) {
 			return APIResponse.getNewSuccessResp(0);
 		}
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			User u = orgUserService.editUserMobile(conn, userId, mobile,password);
+			User u = orgUserService.editUserMobile(conn, userId, mobile, password);
 			if (u != null) {
 				return APIResponse.getNewSuccessResp(u);
 			}
@@ -883,7 +884,7 @@ public class ORGController extends Controller {
 			return APIResponse.getNewSuccessResp(orgService.upORGApplyAgain(conn, orgExamineId, userId, name, code,
 					province, city, district, address, imgOrg, imgAuth, shareAmount, level, superiorId, orgId,
 					updateDistrict, assetShares, resourceShares));
-		}catch(Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return null;
@@ -1732,7 +1733,8 @@ public class ORGController extends Controller {
 			Integer offset //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.getNoticeByRoleGroup(conn, orgId, roles, groups, count, offset));
+			return APIResponse
+					.getNewSuccessResp(orgService.getNoticeByRoleGroup(conn, orgId, roles, groups, count, offset));
 		}
 	}
 
@@ -1928,7 +1930,7 @@ public class ORGController extends Controller {
 					.getNewSuccessResp(orgUserService.getOrgUserListByIsOrgUser(conn, orgId, isOrgUser, count, offset));
 		}
 	}
-	
+
 	@POSTAPI(//
 			path = "editUserPassword", //
 			des = "修改用戶密碼", //
@@ -1940,10 +1942,68 @@ public class ORGController extends Controller {
 			@P(t = "新密码") String newPassword//
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(orgUserService.eidtUserPassword(conn, userId,oldPassword,newPassword));
+			return APIResponse
+					.getNewSuccessResp(orgUserService.eidtUserPassword(conn, userId, oldPassword, newPassword));
 		}
 	}
-	
-	
+
+	@POSTAPI(//
+			path = "createSupORGApply", //
+			des = "创建修改上级组织申请", //
+			ret = ""//
+	)
+	public APIResponse createSupORGApply(//
+			@P(t = "组织编号") Long userId, //
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "上级组织编号") Long superiorId //
+	) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			orgService.createEditSupORGApply(conn, userId, orgId, superiorId);
+			return APIResponse.getNewSuccessResp();
+		}
+	}
+
+	@POSTAPI(//
+			path = "editSupORGApply", //
+			des = "修改上级组织修改申请状态", //
+			ret = ""//
+	)
+	public APIResponse editSupORGApply(//
+			@P(t = "组织编号") Long examineId, //
+			@P(t = "组织编号") Byte examine //
+	) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			orgService.editSupORGApply(conn, examineId, examine);
+			return APIResponse.getNewSuccessResp();
+		}
+	}
+
+	@POSTAPI(//
+			path = "getSuperiorORG", //
+			des = "查询当前组织上级机构", //
+			ret = "上级组织数据"//
+	)
+	public APIResponse getSuperiorORG(//
+			@P(t = "组织编号") Long orgId //
+	) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.getSuperiorORG(conn, orgId));
+		}
+	}
+
+	@POSTAPI(//
+			path = "getSuperiorORGs", //
+			des = "获取上级组织列表", //
+			ret = "上级组织列表List<ORG>"//
+	)
+	public APIResponse getSuperiorORGs(//
+			@P(t = "组织编号") Byte level, //
+			Integer count, //
+			Integer offset //
+	) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.getSuperiorORGs(conn, level, count, offset));
+		}
+	}
 
 }

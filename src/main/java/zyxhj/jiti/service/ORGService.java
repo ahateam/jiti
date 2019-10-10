@@ -1082,4 +1082,66 @@ public class ORGService {
 			return 0;
 		}
 	}
+	
+	/**
+	 * 获取上级组织
+	 */
+	public ORG getSuperiorORG(DruidPooledConnection conn,Long orgId) throws Exception{
+		Superior superior = superiorRepository.get(conn, EXP.INS().key("org_id", orgId));
+		return orgRepository.get(conn, EXP.INS().key("id", superior.superiorId));
+	}
+	
+	/**
+	 * 修改上级组织
+	 */
+	public int editSuperiorORG(DruidPooledConnection conn, Long orgId, Long superiorId) throws Exception {
+		Superior s = new Superior();
+		s.superiorId = superiorId;
+		return superiorRepository.update(conn,EXP.INS().key("org_id", orgId), s, true);
+	}
+	/**
+	 * 获取上级组织列表
+	 */
+	public List<ORG> getSuperiorORGs(DruidPooledConnection conn,Byte level,Integer count, Integer offset) throws Exception{
+		return orgRepository.getList(conn, EXP.INS().exp("level", "<", level), count, offset);
+	}
+	
+	/**
+	 * 创建修改上级组织申请
+	 */
+	public void createEditSupORGApply(DruidPooledConnection conn, Long userId, Long orgId, Long superiorId) throws Exception {
+		ORGExamine orgExamine = new ORGExamine();
+		ORG org = orgRepository.get(conn, EXP.INS().key("id", orgId));
+		orgExamine.id = IDUtils.getSimpleId();
+		orgExamine.createTime = new Date();
+		orgExamine.userId = userId;
+		orgExamine.name = org.name;
+		orgExamine.code = org.code;
+		orgExamine.address = org.address;
+		orgExamine.imgOrg = org.imgOrg;
+		orgExamine.imgAuth = org.imgAuth;
+		orgExamine.shareAmount = org.shareAmount;
+		orgExamine.level = org.level;
+		orgExamine.assetShares = org.assetShares;
+		orgExamine.resourceShares = org.resourceShares;
+		orgExamine.examine = ORGExamine.STATUS.VOTING.v();
+		orgExamine.superiorId = superiorId;
+		orgExamineRepository.insert(conn, orgExamine);
+	}
+
+	/**
+	 * 修改上级组织申请状态
+	 */
+	public int editSupORGApply(DruidPooledConnection conn, Long examineId, Byte examine) throws Exception {
+		ORGExamine orgExamine = new ORGExamine();
+		orgExamine.examine = examine;
+		if(examine == ORGExamine.STATUS.WAITING.v()) {
+			ORGExamine e = orgExamineRepository.get(conn, EXP.INS().key("id", examineId));
+			editSuperiorORG(conn, e.orgId, e.superiorId);
+		}
+		return orgExamineRepository.update(conn, EXP.INS().key("id", examineId), orgExamine, true);
+	}
+	
+
+	
 }

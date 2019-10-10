@@ -120,6 +120,7 @@ public class ImportTaskService {
 				cb.add("status", (long) ImportTempRecord.STATUS.PENDING.v());
 				for (int i = 0; i < colCount; i++) {
 					cb.add(StringUtils.join("Col", i), ExcelUtils.getString(row.get(i)));
+					System.out.println(ExcelUtils.getString(row.get(i)));
 				}
 
 				count++;
@@ -256,48 +257,103 @@ public class ImportTaskService {
 						{
 							// 股东成员职务
 							String ts = StringUtils.trim(dutyShareholders);
-							if (ts != null) {
-								if (ts.equals(ORGUserRole.role_shareHolder.name)) {
-									roles.add(ORGUserRole.role_shareHolder.roleId);// 股东
-								} else if (ts.equals(ORGUserRole.role_shareDeputy.name)) {
-									roles.add(ORGUserRole.role_shareDeputy.roleId);// 股东代表
-								} else if (ts.equals(ORGUserRole.role_shareFamily.name)) {
-									roles.add(ORGUserRole.role_shareFamily.roleId);// 股东户代表
+							if(ts!=null) {
+								JSONArray ja = getRoleArray(ts.trim());
+								if (ja.size() > 1) {
+									for (int r = 0; r < ja.size(); r++) {
+										String role = ja.getString(r);
+										if (role.equals(ORGUserRole.role_shareHolder.name)) {
+											roles.add(ORGUserRole.role_shareHolder.roleId);// 股东
+										} else if (role.equals(ORGUserRole.role_shareDeputy.name)) {
+											roles.add(ORGUserRole.role_shareDeputy.roleId);// 股东代表
+										} else if (role.equals(ORGUserRole.role_shareFamily.name)) {
+											roles.add(ORGUserRole.role_shareFamily.roleId);// 股东户代表
+										} else {
+											// 无，不加
+										}
+									}
 								} else {
-									// 无，不加
+									String role = ja.getString(0);
+									if (role.equals(ORGUserRole.role_shareHolder.name)) {
+										roles.add(ORGUserRole.role_shareHolder.roleId);// 股东
+									} else if (role.equals(ORGUserRole.role_shareDeputy.name)) {
+										roles.add(ORGUserRole.role_shareDeputy.roleId);// 股东代表
+									} else if (role.equals(ORGUserRole.role_shareFamily.name)) {
+										roles.add(ORGUserRole.role_shareFamily.roleId);// 股东户代表
+									} else {
+										// 无，不加
+									}
 								}
 							}
+							
+
 						}
 
 						{
 							// 董事会职务
 							String ts = StringUtils.trim(dutyDirectors);
-							if (ts != null) {
-								if (ts.equals(ORGUserRole.role_director.name)) {
-									roles.add(ORGUserRole.role_director.roleId);// 董事
-								} else if (ts.equals(ORGUserRole.role_dirChief.name)) {
-									roles.add(ORGUserRole.role_dirChief.roleId);// 董事长
-								} else if (ts.equals(ORGUserRole.role_dirVice.name)) {
-									roles.add(ORGUserRole.role_dirVice.roleId);// 副董事长
+							if(ts!=null) {
+								JSONArray ja = getRoleArray(ts.trim());
+								if (ja.size() > 1) {
+									for (int r = 0; r < ja.size(); r++) {
+										String role = ja.getString(r);
+										if (role.equals(ORGUserRole.role_director.name)) {
+											roles.add(ORGUserRole.role_director.roleId);// 董事
+										} else if (role.equals(ORGUserRole.role_dirChief.name)) {
+											roles.add(ORGUserRole.role_dirChief.roleId);// 董事长
+										} else if (role.equals(ORGUserRole.role_dirVice.name)) {
+											roles.add(ORGUserRole.role_dirVice.roleId);// 副董事长
+										} else {
+											// 无，不加
+										}
+									}
 								} else {
-									// 无，不加
+									String role = ja.getString(0);
+									if (role.equals(ORGUserRole.role_director.name)) {
+										roles.add(ORGUserRole.role_director.roleId);// 董事
+									} else if (role.equals(ORGUserRole.role_dirChief.name)) {
+										roles.add(ORGUserRole.role_dirChief.roleId);// 董事长
+									} else if (role.equals(ORGUserRole.role_dirVice.name)) {
+										roles.add(ORGUserRole.role_dirVice.roleId);// 副董事长
+									} else {
+										// 无，不加
+									}
 								}
 							}
+
 						}
 
 						{
 							// 监事会职务
 							String ts = StringUtils.trim(dutyVisors);
 							if (ts != null) {
-								if (ts.equals(ORGUserRole.role_supervisor.name)) {
-									roles.add(ORGUserRole.role_supervisor.roleId);// 监事
-								} else if (ts.equals(ORGUserRole.role_supChief.name)) {
-									roles.add(ORGUserRole.role_supChief.roleId);// 监事长
-								} else if (ts.equals(ORGUserRole.role_supVice.name)) {
-									roles.add(ORGUserRole.role_supVice.roleId);// 副监事长
-								} else {
-									// 无，不加
+								JSONArray ja = getRoleArray(ts.trim());
+								if (ja.size() > 1) {
+									for (int r = 0; r < ja.size(); r++) {
+										String role = ja.getString(r);
+										if (role.equals(ORGUserRole.role_supervisor.name)) {
+											roles.add(ORGUserRole.role_supervisor.roleId);// 监事
+										} else if (role.equals(ORGUserRole.role_supChief.name)) {
+											roles.add(ORGUserRole.role_supChief.roleId);// 监事长
+										} else if (role.equals(ORGUserRole.role_supVice.name)) {
+											roles.add(ORGUserRole.role_supVice.roleId);// 副监事长
+										} else {
+											// 无，不加
+										}
+									}
+								}else {
+									String role = ja.getString(0);
+									if (role.equals(ORGUserRole.role_supervisor.name)) {
+										roles.add(ORGUserRole.role_supervisor.roleId);// 监事
+									} else if (role.equals(ORGUserRole.role_supChief.name)) {
+										roles.add(ORGUserRole.role_supChief.roleId);// 监事长
+									} else if (role.equals(ORGUserRole.role_supVice.name)) {
+										roles.add(ORGUserRole.role_supVice.roleId);// 副监事长
+									} else {
+										// 无，不加
+									}
 								}
+								
 							}
 
 						}
@@ -642,6 +698,41 @@ public class ImportTaskService {
 
 	public ImportTask getImportTask(DruidPooledConnection conn, Long importTaskId) throws Exception {
 		return taskRepository.get(conn, EXP.INS().key("id", importTaskId));
+	}
+
+	/**
+	 * 遍历字符串，将其中的角色添加到JSONArry中
+	 */
+	private JSONArray getRoleArray(String roleStr) {
+		JSONArray roleArray = new JSONArray();
+		roleStr.trim();
+		int start = roleStr.indexOf("/");
+		if (start < 0) {
+			roleArray.add(roleStr);
+		} else {
+			int end = roleStr.lastIndexOf("/");
+			roleArray.add(roleStr.substring(0, start));
+			if (end == start) {
+				roleArray.add(roleStr.substring(start + 1, roleStr.length()));
+			} else {
+				String newStr = roleStr.substring(start + 1, roleStr.length());
+				String newStr2 = newStr;
+				for (int i = 0; i < 5; i++) {
+					if (newStr2.indexOf("/") > 0) {
+						newStr2 = newStr.substring(newStr.indexOf("/") + 1, newStr.length());
+						newStr = newStr.substring(0, newStr.indexOf("/"));
+						roleArray.add(newStr);
+						start = newStr.indexOf("/") + 1;
+						newStr = newStr2;
+					} else {
+						newStr2 = newStr2.substring(newStr2.lastIndexOf("/") + 1, newStr2.length());
+						roleArray.add(newStr2);
+						break;
+					}
+				}
+			}
+		}
+		return roleArray;
 	}
 
 }

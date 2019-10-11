@@ -185,78 +185,8 @@ public class ORGUserService {
 			.maximumSize(100)//
 			.build();
 
-//	private void insertORGUser(DruidPooledConnection conn, Long orgId, Long userId, String address, String shareCerNo,
-//			String shareCerImg, Boolean shareCerHolder, Double shareAmount, Integer weight, JSONArray roles,
-//			JSONArray groups, JSONObject tags, Long familyNumber, String familyMaster) throws Exception {
-//		ORGUser or = new ORGUser();
-//		// Family fa = new Family();
-//		or.orgId = orgId;
-//		or.userId = userId;
-//
-//		or.address = address;
-//		or.shareCerNo = shareCerNo;
-//		or.shareCerImg = shareCerImg;
-//		or.shareCerHolder = shareCerHolder;
-//
-//		or.shareAmount = shareAmount;
-//		or.weight = weight;
-//
-//		or.roles = array2JsonString(checkRoles(roles));
-//		or.groups = array2JsonString(checkGroups(conn, orgId, groups));
-//		or.tags = obj2JsonString(tags);
-//
-//		or.familyNumber = familyNumber;
-//		or.familyMaster = familyMaster;
 
-	// if (familyNumber != null) {
-	// // 查询户序号在family表里是否拥有 有则把usreid插入到户成员下 无则添加户
-	//
-	// Family fn = FAMILY_CACHE.getIfPresent(familyNumber);
-	// if (fn == null) {
-	//
-	// fn = familyRepository.getByANDKeys(conn, new String[] { "org_id",
-	// "family_number" },
-	// new Object[] { orgId, familyNumber });
-	// if (fn != null) {
-	// FAMILY_CACHE.put(familyNumber.toString(), fn);
-	// }
-	//
-	// }
-	//
-	// // 从缓存和数据库都取了一遍，
-	// if (fn == null) {
-	// // 如果空需要创建
-	// // 添加户
-	// fa.id = IDUtils.getSimpleId();
-	// fa.orgId = orgId;
-	// fa.familyNumber = familyNumber;
-	// fa.familyMaster = familyMaster;
-	//
-	// // 将当前用户的id插入到户成员里
-	// JSONArray json = new JSONArray();
-	// json.add(userId);
-	// fa.familyMember = json.toString();
-	// familyRepository.insert(conn, fa);
-	// } else {
-	// // 添加到户成员下
-	// JSONArray json = JSONArray.parseArray(fn.familyMember);
-	// json.add(userId);
-	// fa.familyMember = json.toString();
-	// familyRepository.updateByKey(conn, "family_number", familyNumber, fa, true);
-	// FAMILY_CACHE.put(familyNumber.toString(), fa);
-	//
-	// }
-	//
-	// }
-//		orgUserRepository.insert(conn, or);
-//	}
-
-	/////////////////////////////////////////////////
-	/////////////////////////////////////////////////
-	/////////////////////////////////////////////////
-	/////////////////////////////////////////////////
-
-	// 修改字段后的方法----新建方法
+	// 创建用户
 	public void createORGUser(DruidPooledConnection conn, Long orgId, String mobile, String realName, String idNumber,
 			Byte sex, String familyRelations, Double resourceShares, Double assetShares, Boolean isOrgUser,
 			String address, String shareCerNo, String shareCerImg, Boolean shareCerHolder, Double shareAmount,
@@ -340,52 +270,6 @@ public class ORGUserService {
 
 		orgUserRepository.insert(conn, or);
 	}
-
-	/////////////////////////////////////////////////
-	/////////////////////////////////////////////////
-	/////////////////////////////////////////////////
-	/////////////////////////////////////////////////
-	/////////////////////////////////////////////////
-
-	/**
-	 * 创建组织用户
-	 */
-	/**
-	 * public void oldcreateORGUser(DruidPooledConnection conn, Long orgId, String
-	 * mobile, String realName, String idNumber, String address, String shareCerNo,
-	 * String shareCerImg, Boolean shareCerHolder, Double shareAmount, Integer
-	 * weight, JSONArray roles, JSONArray groups, JSONObject tags, Long
-	 * familyNumber, String familyMaster) throws Exception {
-	 * 
-	 * User extUser = userRepository.get(conn, EXP.INS().key("id_number",
-	 * idNumber));
-	 * 
-	 * if (null == extUser) { // 用户完全不存在，则User和ORGUser记录都创建
-	 * 
-	 * User newUser = new User(); newUser.id = IDUtils.getSimpleId();
-	 * newUser.createDate = new Date(); newUser.realName = realName; newUser.mobile
-	 * = mobile; newUser.idNumber = idNumber;
-	 * 
-	 * // 默认密码,身份证后6位 newUser.pwd = idNumber.substring(idNumber.length() - 6);
-	 * 
-	 * // 创建用户 userRepository.insert(conn, newUser);
-	 * 
-	 * // 写入股东信息表 insertORGUser(conn, orgId, newUser.id, address, shareCerNo,
-	 * shareCerImg, shareCerHolder, shareAmount, weight, roles, groups, tags,
-	 * familyNumber, familyMaster);
-	 * 
-	 * } else { // 判断ORGUser是否存在 ORGUser existor = orgUserRepository.get(conn,
-	 * EXP.INS().key("org_id", orgId).andKey("user_id", extUser.id));
-	 * 
-	 * if (null == existor) { // ORGUser用户不存在，直接创建
-	 * 
-	 * // 写入股东信息表 insertORGUser(conn, orgId, extUser.id, address, shareCerNo,
-	 * shareCerImg, shareCerHolder, shareAmount, weight, roles, groups, tags,
-	 * familyNumber, familyMaster); } else { // System.out //
-	 * .println(StringUtils.join("xxxx>>orgId>", orgId, " - userId>", extUser.id, "
-	 * // - id=", idNumber)); throw new ServerException(BaseRC.ECM_ORG_USER_EXIST);
-	 * } } }
-	 */
 
 	/**
 	 * 修改用户信息，身份证信息不能修改

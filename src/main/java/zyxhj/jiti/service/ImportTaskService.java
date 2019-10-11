@@ -264,6 +264,7 @@ public class ImportTaskService {
 										String role = ja.getString(r);
 										if (role.equals(ORGUserRole.role_shareHolder.name)) {
 											roles.add(ORGUserRole.role_shareHolder.roleId);// 股东
+											isORGUser = true;
 										} else if (role.equals(ORGUserRole.role_shareDeputy.name)) {
 											roles.add(ORGUserRole.role_shareDeputy.roleId);// 股东代表
 										} else if (role.equals(ORGUserRole.role_shareFamily.name)) {

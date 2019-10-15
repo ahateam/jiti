@@ -811,13 +811,15 @@ public class ORGController extends Controller {
 			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
 			@P(t = "总股份数") Integer shareAmount, //
 			@P(t = "等级", r = false) Byte level, //
+			@P(t = "组织id", r = false) Long orgId, //
 			@P(t = "上级组织id", r = false) Long superiorId, //
 			@P(t = "资源股", r = false) Double resourceShares, //
-			@P(t = "资产股", r = false) Double assetShares //
-	) throws Exception {
+			@P(t = "资产股", r = false) Double assetShares, //
+			@P(t = "是否为修改上级机构申请", r = false) Boolean updateDistrict) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.createORGApply(conn, userId, name, code, province, city,
-					district, address, imgOrg, imgAuth, shareAmount, level, superiorId, resourceShares, assetShares));
+			return APIResponse.getNewSuccessResp(
+					orgService.createORGApply(conn, userId, name, code, province, city, district, address, imgOrg,
+							imgAuth, shareAmount, level, superiorId, resourceShares, assetShares, updateDistrict,orgId));
 		}
 	}
 
@@ -842,6 +844,7 @@ public class ORGController extends Controller {
 			@P(t = "总股份数", r = false) Integer shareAmount, //
 			@P(t = "申请状态") Byte examine, //
 			@P(t = "等级") Byte level, //
+			@P(t = "组织id", r = false) Long orgId, //
 			@P(t = "上级组织id", r = false) Long superiorId, //
 			@P(t = "组织id") Boolean updateDistrict, //
 			@P(t = "资源股", r = false) Double resourceShares, //
@@ -850,7 +853,7 @@ public class ORGController extends Controller {
 		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.upORGApply(conn, orgExamineId, examine, userId, name, code,
 					province, city, district, address, imgOrg, imgAuth, shareAmount, level, superiorId, updateDistrict,
-					resourceShares, assetShares));
+					resourceShares, assetShares,orgId));
 		}
 	}
 
@@ -1955,10 +1958,11 @@ public class ORGController extends Controller {
 	public APIResponse createSupORGApply(//
 			@P(t = "组织编号") Long userId, //
 			@P(t = "组织编号") Long orgId, //
-			@P(t = "上级组织编号") Long superiorId //
+			@P(t = "上级组织编号") Long superiorId, //
+			@P(t = "是否为修改上级机构申请") Boolean updateDistrict//
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			orgService.createEditSupORGApply(conn, userId, orgId, superiorId);
+			orgService.createEditSupORGApply(conn, userId, orgId, superiorId, updateDistrict);
 			return APIResponse.getNewSuccessResp();
 		}
 	}

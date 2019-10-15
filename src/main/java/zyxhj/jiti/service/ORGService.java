@@ -172,12 +172,12 @@ public class ORGService {
 		ret.shareCerNo = orgUser.shareCerNo;
 		ret.shareCerImg = orgUser.shareCerImg;
 		ret.shareCerHolder = orgUser.shareCerHolder;
-		
+
 		ret.shareAmount = orgUser.shareAmount;
 		ret.weight = orgUser.weight;
 		ret.resourceShares = orgUser.resourceShares;
 		ret.assetShares = orgUser.assetShares;
-		
+
 		ret.orgRoles = JSON.parseArray(orgUser.roles);
 		ret.groups = JSON.parseArray(orgUser.groups);
 		ret.permissions = orgPermissionService.getPermissionsByRoles(conn, orgUser.orgId, ret.orgRoles);
@@ -393,7 +393,7 @@ public class ORGService {
 		List<Superior> superior = superiorRepository.getList(conn, EXP.INS().key("superior_id", superiorId), 512, 0);
 
 		for (Superior sup : superior) {
-				json.add(sup.orgId);
+			json.add(sup.orgId);
 		}
 		return orgRepository.getList(conn, EXP.IN("id", json.toArray()), count, offset);
 	}
@@ -520,7 +520,8 @@ public class ORGService {
 	 */
 	public ORGExamine createORGApply(DruidPooledConnection conn, Long userId, String name, String code, Long province,
 			Long city, Long district, String address, String imgOrg, String imgAuth, Integer shareAmount, Byte level,
-			Long superiorId, Double resourceShares, Double assetShares) throws Exception {
+			Long superiorId, Double resourceShares, Double assetShares, Boolean updateDistrict, Long orgId)
+			throws Exception {
 		ORG existORG = orgRepository.get(conn, EXP.INS().key("code", code));
 		if (null == existORG) {
 			// 组织不存在
@@ -542,6 +543,7 @@ public class ORGService {
 			newORG.assetShares = assetShares;
 			newORG.resourceShares = resourceShares;
 			newORG.examine = ORGExamine.STATUS.VOTING.v();
+			newORG.updateDistrict = updateDistrict;
 
 			if (superiorId == null) {
 				newORG.type = ORGExamine.TYPE.INDEPENDENT.v();
@@ -557,6 +559,44 @@ public class ORGService {
 
 			return newORG;
 		} else {
+			if (updateDistrict) {
+				// 组织不存在
+				ORGExamine newORG = new ORGExamine();
+
+				newORG.id = IDUtils.getSimpleId();
+				newORG.createTime = new Date();
+				newORG.userId = userId;
+				newORG.name = name;
+				newORG.code = code;
+				newORG.province = province;
+				newORG.city = city;
+				newORG.district = district;
+				newORG.address = address;
+				newORG.imgOrg = imgOrg;
+				newORG.imgAuth = imgAuth;
+				newORG.shareAmount = shareAmount;
+				newORG.level = level;
+				newORG.assetShares = assetShares;
+				newORG.resourceShares = resourceShares;
+				newORG.examine = ORGExamine.STATUS.VOTING.v();
+				newORG.updateDistrict = updateDistrict;
+				newORG.orgId = orgId;
+
+				if (superiorId == null) {
+					newORG.type = ORGExamine.TYPE.INDEPENDENT.v();
+					// TODO 现为直接插入数据库 平台管理出来以后使用申请方式
+//					createORG(conn, newORG.id, userId, name, code, address, imgOrg, imgAuth, level, shareAmount,
+//							resourceShares, assetShares);
+					// orgExamineRepository.insert(conn, newORG); //申请方式
+					throw new ServerException(null, "上级组织编号为空");
+				} else {
+					newORG.type = ORGExamine.TYPE.NOTINDEPENDENT.v();
+					newORG.superiorId = superiorId;
+					orgExamineRepository.insert(conn, newORG);
+				}
+
+				return newORG;
+			}
 			// 组织已存在
 			throw new ServerException(BaseRC.ECM_ORG_EXIST);
 		}
@@ -566,7 +606,7 @@ public class ORGService {
 	public ORGExamine upORGApply(DruidPooledConnection conn, Long orgExamineId, Byte examine, Long userId, String name,
 			String code, Long province, Long city, Long district, String address, String imgOrg, String imgAuth,
 			Integer shareAmount, Byte level, Long superiorId, Boolean updateDistrict, Double resourceShares,
-			Double assetShares) throws Exception {
+			Double assetShares, Long orgId) throws Exception {
 
 		ORGExamine ex = new ORGExamine();
 		// 是否有org
@@ -581,6 +621,7 @@ public class ORGService {
 
 				// 创建组织归属
 				createORGDistrict(conn, orgExamineId, province, city, district);
+
 			}
 			// 上级机构修改申请通过 则表示要修改原来的org 并将orgExamine修改为通过
 			if (examine == ORGExamine.STATUS.WAITING.v()) {
@@ -600,29 +641,67 @@ public class ORGService {
 
 		} else {// 如果为空 则表示为新的提交
 
-			// 上级机构修改申请通过 则表示要修改原来的org 并将orgExamine修改为通过
-			if (examine == ORGExamine.STATUS.WAITING.v()) {
-				// 创建组织
-				createORG(conn, orgExamineId, userId, name, code, address, imgOrg, imgAuth, level, shareAmount,
-						resourceShares, assetShares);
+			// updateDistrict为true时为修改上级组织
+			if (updateDistrict) {
+				ORG uorg = orgRepository.get(conn, EXP.INS().key("id", orgId));
 
-				// 创建上级关系
-				addSupAndSub(conn, superiorId, orgExamineId, level);
+				if (uorg != null) {
+					// 上级机构修改申请通过 则表示要修改原来的org 并将orgExamine修改为通过
+					if (examine == ORGExamine.STATUS.WAITING.v()) {
+						Superior sup = superiorRepository.get(conn, EXP.INS().key("org_id", orgId));
+						if (sup != null) {
+							//修改上级机构
+							int xxx = superiorRepository.update(conn, EXP.INS().key("superior_id", superiorId),
+									EXP.INS().key("org_id", orgId));
+							System.out.println("xxx-------------------"+xxx);
+							//修改组织归属
+							orgDistrictRepository.update(conn, EXP.INS().key("pro_id", province).andKey("city_id", city)
+									.andKey("dis_id", district), EXP.INS().key("org_id", orgId));
+						} else {
+							// 创建上级关系
+							addSupAndSub(conn, superiorId, orgExamineId, level);
 
-				// 创建组织归属
-				createORGDistrict(conn, orgExamineId, province, city, district);
+							// 创建组织归属
+							createORGDistrict(conn, orgExamineId, province, city, district);
+						}
+						// 将修改申请表改为通过
+						ex.examine = ORGExamine.STATUS.WAITING.v();
+						orgExamineRepository.update(conn, EXP.INS().key("id", orgExamineId), ex, true);
 
-				// 将修改申请表改为通过
-				ex.examine = ORGExamine.STATUS.WAITING.v();
-				orgExamineRepository.update(conn, EXP.INS().key("id", orgExamineId), ex, true);
+					} else if (examine == ORGExamine.STATUS.INVALID.v()) {// 上级组织修改申请为失败
 
-			} else if (examine == ORGExamine.STATUS.INVALID.v()) {// 上级组织修改申请为失败
+						ex.examine = ORGExamine.STATUS.INVALID.v();
+						orgExamineRepository.update(conn, EXP.INS().key("id", orgExamineId), ex, true);
+					}
+				}else {
+					throw new ServerException(null,"组织不存在");
+				}
 
-				ex.examine = ORGExamine.STATUS.INVALID.v();
-				orgExamineRepository.update(conn, EXP.INS().key("id", orgExamineId), ex, true);
+			} else {
+				// 上级机构修改申请通过 则表示要修改原来的org 并将orgExamine修改为通过
+				if (examine == ORGExamine.STATUS.WAITING.v()) {
+					// 创建组织
+					createORG(conn, orgExamineId, userId, name, code, address, imgOrg, imgAuth, level, shareAmount,
+							resourceShares, assetShares);
+
+					// 创建上级关系
+					addSupAndSub(conn, superiorId, orgExamineId, level);
+
+					// 创建组织归属
+					createORGDistrict(conn, orgExamineId, province, city, district);
+
+					// 将修改申请表改为通过
+					ex.examine = ORGExamine.STATUS.WAITING.v();
+					orgExamineRepository.update(conn, EXP.INS().key("id", orgExamineId), ex, true);
+
+				} else if (examine == ORGExamine.STATUS.INVALID.v()) {// 上级组织修改申请为失败
+
+					ex.examine = ORGExamine.STATUS.INVALID.v();
+					orgExamineRepository.update(conn, EXP.INS().key("id", orgExamineId), ex, true);
+
+				}
 
 			}
-
 		}
 
 		return ex;
@@ -665,12 +744,13 @@ public class ORGService {
 	}
 
 	/**
-	 *  TODO 未使用
+	 * TODO 未使用
 	 */
 	// 再次提交组织申请
 	public int upORGApplyAgain(DruidPooledConnection conn, Long orgExamineId, Long userId, String name, String code,
 			Long province, Long city, Long district, String address, String imgOrg, String imgAuth, Integer shareAmount,
-			Byte level, Long superiorId, Long orgId, Boolean updateDistrict,Double assetShares,Double resourceShares) throws Exception {
+			Byte level, Long superiorId, Long orgId, Boolean updateDistrict, Double assetShares, Double resourceShares)
+			throws Exception {
 		ORGExamine newORG = new ORGExamine();
 
 		newORG.createTime = new Date();
@@ -1002,8 +1082,8 @@ public class ORGService {
 	}
 
 	// 用户查看公告
-	public List<Notice> getNoticeByRoleGroup(DruidPooledConnection conn, Long orgId, String roles, String groups, Integer count, Integer offset)
-			throws Exception {
+	public List<Notice> getNoticeByRoleGroup(DruidPooledConnection conn, Long orgId, String roles, String groups,
+			Integer count, Integer offset) throws Exception {
 		return noticeRepository.getNoticeByRoleGroup(conn, orgId, roles, groups, count, offset);
 	}
 
@@ -1082,34 +1162,37 @@ public class ORGService {
 			return 0;
 		}
 	}
-	
+
 	/**
 	 * 获取上级组织
 	 */
-	public ORG getSuperiorORG(DruidPooledConnection conn,Long orgId) throws Exception{
+	public ORG getSuperiorORG(DruidPooledConnection conn, Long orgId) throws Exception {
 		Superior superior = superiorRepository.get(conn, EXP.INS().key("org_id", orgId));
 		return orgRepository.get(conn, EXP.INS().key("id", superior.superiorId));
 	}
-	
+
 	/**
 	 * 修改上级组织
 	 */
 	public int editSuperiorORG(DruidPooledConnection conn, Long orgId, Long superiorId) throws Exception {
 		Superior s = new Superior();
 		s.superiorId = superiorId;
-		return superiorRepository.update(conn,EXP.INS().key("org_id", orgId), s, true);
+		return superiorRepository.update(conn, EXP.INS().key("org_id", orgId), s, true);
 	}
+
 	/**
 	 * 获取上级组织列表
 	 */
-	public List<ORG> getSuperiorORGs(DruidPooledConnection conn,Byte level,Integer count, Integer offset) throws Exception{
-		return orgRepository.getList(conn, EXP.INS().exp("level", "<", level), count, offset);
+	public List<ORG> getSuperiorORGs(DruidPooledConnection conn, Byte level, Integer count, Integer offset)
+			throws Exception {
+		return orgRepository.getList(conn, EXP.INS().key("level", (level - 1)), count, offset);
 	}
-	
+
 	/**
 	 * 创建修改上级组织申请
 	 */
-	public void createEditSupORGApply(DruidPooledConnection conn, Long userId, Long orgId, Long superiorId) throws Exception {
+	public void createEditSupORGApply(DruidPooledConnection conn, Long userId, Long orgId, Long superiorId,
+			Boolean updateDistrict) throws Exception {
 		ORGExamine orgExamine = new ORGExamine();
 		ORG org = orgRepository.get(conn, EXP.INS().key("id", orgId));
 		orgExamine.id = IDUtils.getSimpleId();
@@ -1126,6 +1209,7 @@ public class ORGService {
 		orgExamine.resourceShares = org.resourceShares;
 		orgExamine.examine = ORGExamine.STATUS.VOTING.v();
 		orgExamine.superiorId = superiorId;
+		orgExamine.updateDistrict = updateDistrict;
 		orgExamineRepository.insert(conn, orgExamine);
 	}
 
@@ -1135,13 +1219,11 @@ public class ORGService {
 	public int editSupORGApply(DruidPooledConnection conn, Long examineId, Byte examine) throws Exception {
 		ORGExamine orgExamine = new ORGExamine();
 		orgExamine.examine = examine;
-		if(examine == ORGExamine.STATUS.WAITING.v()) {
+		if (examine == ORGExamine.STATUS.WAITING.v()) {
 			ORGExamine e = orgExamineRepository.get(conn, EXP.INS().key("id", examineId));
 			editSuperiorORG(conn, e.orgId, e.superiorId);
 		}
 		return orgExamineRepository.update(conn, EXP.INS().key("id", examineId), orgExamine, true);
 	}
-	
 
-	
 }

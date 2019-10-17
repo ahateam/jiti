@@ -30,6 +30,7 @@ import zyxhj.core.domain.User;
 import zyxhj.core.domain.UserSession;
 import zyxhj.core.repository.UserRepository;
 import zyxhj.jiti.domain.District;
+import zyxhj.jiti.domain.Examine;
 import zyxhj.jiti.domain.Family;
 import zyxhj.jiti.domain.Notice;
 import zyxhj.jiti.domain.NoticeTask;
@@ -420,8 +421,16 @@ public class ORGService {
 	 * @param pwd    密码
 	 * @param 登录业务对象
 	 */
-	public LoginBo loginByMobile(DruidPooledConnection conn, String mobile, String pwd) throws Exception {
-		User existUser = userRepository.get(conn, EXP.INS().key("mobile", mobile));
+	public LoginBo loginByMobile(DruidPooledConnection conn, String accountNumber, String pwd) throws Exception {
+		EXP exp;
+		if(accountNumber.length()>12) {
+			//身份证登录
+			exp = EXP.INS().key("id_number", accountNumber);
+		}else {
+			//手机号登录
+			exp = EXP.INS().key("mobile", accountNumber);
+		}
+		User existUser = userRepository.get(conn, exp);
 		if (null == existUser) {
 			// 用户不存在
 			throw new ServerException(BaseRC.USER_NOT_EXIST);
@@ -619,6 +628,7 @@ public class ORGService {
 				// 要修改 则需要删除以前的归属 加入新的归属
 				orgDistrictRepository.delete(conn, EXP.INS().key("org_id", ex.orgId));
 
+				System.out.println("province=========================="+province);
 				// 创建组织归属
 				createORGDistrict(conn, orgExamineId, province, city, district);
 
@@ -654,15 +664,10 @@ public class ORGService {
 							int xxx = superiorRepository.update(conn, EXP.INS().key("superior_id", superiorId),
 									EXP.INS().key("org_id", orgId));
 							System.out.println("xxx-------------------"+xxx);
-							//修改组织归属
-							orgDistrictRepository.update(conn, EXP.INS().key("pro_id", province).andKey("city_id", city)
-									.andKey("dis_id", district), EXP.INS().key("org_id", orgId));
 						} else {
 							// 创建上级关系
 							addSupAndSub(conn, superiorId, orgExamineId, level);
 
-							// 创建组织归属
-							createORGDistrict(conn, orgExamineId, province, city, district);
 						}
 						// 将修改申请表改为通过
 						ex.examine = ORGExamine.STATUS.WAITING.v();
@@ -1183,9 +1188,9 @@ public class ORGService {
 	/**
 	 * 获取上级组织列表
 	 */
-	public List<ORG> getSuperiorORGs(DruidPooledConnection conn, Byte level, Integer count, Integer offset)
+	public List<ORG> getSuperiorORGs(DruidPooledConnection conn,Long superiorId, Byte level, Integer count, Integer offset)
 			throws Exception {
-		return orgRepository.getList(conn, EXP.INS().key("level", (level - 1)), count, offset);
+		return orgRepository.getList(conn, EXP.INS().key("level", (level - 1)).append(" AND id <> "+superiorId), count, offset);
 	}
 
 	/**
@@ -1225,5 +1230,60 @@ public class ORGService {
 		}
 		return orgExamineRepository.update(conn, EXP.INS().key("id", examineId), orgExamine, true);
 	}
+
+	/**
+	 * 	区级模糊查询下级机构申请
+	 */
+	public List<ORGExamine> getExamineByORGNameDistrict(DruidPooledConnection conn, Long districtId, String ORGName, Byte examine, Integer count,
+			Integer offset) throws Exception {
+		EXP exp = EXP.INS().key("superior_id", districtId).andKey("examine", examine).and(EXP.LIKE("name", ORGName));
+		List<ORGExamine> elist = orgExamineRepository.getList(conn, exp, count, offset);
+		return elist;
+	}
+
+	public List<ORGExamine> getORGExamineByUserANDLikeORGName(DruidPooledConnection conn, Long userId, String ORGName, Byte examine,
+			Integer count, Integer offset) throws Exception  {
+		EXP exp;
+		if(examine==null) {
+			exp = EXP.INS().key("user_id", userId).and(EXP.LIKE("name", ORGName));
+		}else {
+			exp = EXP.INS().key("user_id", userId).andKey("examine", examine).and(EXP.LIKE("name", ORGName));
+		}
+		List<ORGExamine> elist = orgExamineRepository.getList(conn, exp, count, offset);
+		return elist;
+		
+	}
+
+	public List<ORG> getSubORGByLikeORGName(DruidPooledConnection conn, Long districtId, String ORGName, Integer count,
+			Integer offset) throws Exception {
+		return orgRepository.getSubORGByLikeORGName(conn, districtId,ORGName,count,offset);
+	}
+
+	public LoginBo COOPLogin(DruidPooledConnection conn, String accountNumber, String pwd) throws Exception {
+		EXP exp;
+		if(accountNumber.length()>12) {
+			//身份证登录
+			exp = EXP.INS().key("id_number", accountNumber);
+		}else {
+			//手机号登录
+			exp = EXP.INS().key("mobile", accountNumber);
+		}
+		User u = userRepository.get(conn, exp);
+		if(u!=null) {
+			if(pwd.equals(u.pwd)) {
+				
+				return login(conn, u);
+			}else {
+				throw new ServerException(BaseRC.USER_PWD_ERROR);
+			}
+		}else {
+			throw new ServerException(BaseRC.USER_NOT_EXIST);
+		}
+		
+	}
+
+	
+	
+	
 
 }

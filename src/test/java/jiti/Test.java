@@ -12,11 +12,14 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFFactory;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -123,39 +126,6 @@ public class Test {
 		System.out.println();
 	}
 
-	@org.junit.Test
-	public void testExportDataIntoOSS() {
-		try {
-
-			// 导入数据到程序中
-			XSSFWorkbook readXssfWorkbook = new XSSFWorkbook("C:\\Users\\Admin\\Desktop\\1.xlsx");
-			// 得到第一张工作表
-			XSSFSheet sheet = readXssfWorkbook.getSheetAt(0);
-			for (int i = 0; i < 10; i++) {
-				XSSFRow row = sheet.createRow((i + 1));
-				for (int j = 0; j < 20; j++) {
-					row.createCell(j).setCellValue("a" + i);
-				}
-			}
-			OutputStream outputStream = new FileOutputStream("C:\\Users\\Admin\\Desktop\\1.xlsx");
-			readXssfWorkbook.write(outputStream);
-
-//		for (int r = 1; r < 50; r++) {
-//			XSSFRow row = sheet.createRow(r);
-//			for (int c = 0; c < 20; c++) {
-//				row.createCell(c).setCellValue("csss" + c);
-//			}
-//		}
-//		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-//		readXssfWorkbook.write(outputStream);
-			outputStream.flush();
-			outputStream.close();
-
-		} catch (Exception e) {
-			// TODO: handle exception
-		}
-
-	}
 
 	@org.junit.Test
 	public void testiiii() {
@@ -167,15 +137,19 @@ public class Test {
 		}
 	}
 
-	public static void dealExcel(String in, String out) throws Exception {
-		if (!in.equals(out)) {
-			copyFile(in, out);
+	public static void dealExcel(String template, String out) throws Exception {
+		if (!template.equals(out)) {
+			copyFile(template, out);
 		}
 		FileInputStream input = new FileInputStream(new File(out));
 		Workbook wb = WorkbookFactory.create(input);
 		FileOutputStream output = new FileOutputStream(new File(out));
 		Sheet sheet = wb.getSheetAt(0);
 		System.out.println(sheet.getRow(0).getLastCellNum());
+		XSSFCellStyle lockstyle = (XSSFCellStyle) wb.createCellStyle();
+		lockstyle.setLocked(true);
+		
+		lockstyle.setFillPattern(FillPatternType.SOLID_FOREGROUND );
 		int columnCount = -1;
 		int rowCount = 0;
 		sheet.createRow(1);
@@ -183,38 +157,17 @@ public class Test {
 			Row row = sheet.createRow(r);
 			for (int c = 0; c < 20; c++) {
 				Cell cell = row.createCell(c);
-				cell.setCellValue("aaa" + c);
-
+				cell.setCellValue("row-" + r + "---" + c);
+				cell.setCellStyle(lockstyle);
 			}
 		}
-//	        for (Row row : sheet) {
-//	            if (columnCount == -1) {
-//	                columnCount = row.getLastCellNum();
-//	            }
-//
-//	            if (row.getLastCellNum() == columnCount) {
-//	                //增加列
-//	                Cell last = row.createCell(columnCount);
-//	                if (rowCount == 0) {
-//	                    last.setCellValue("Test");
-//	                } else {
-//	                    last.setCellValue(rowCount);
-//	                }
-//	                rowCount++;
-//	            }
-//	        }
-
-		//// 添加行
-		// Row row = sheet.createRow(sheet.getLastRowNum());
-		// Cell cell = row.createCell(0);
-		// cell.setCellValue("Test");
-
 		output.flush();
 		wb.write(output);
 		wb.close();
 		output.close();
 	}
 
+	//复制文件
 	public static void copyFile(String in, String out) throws Exception {
 		InputStream inputStream = new FileInputStream(new File(in));
 

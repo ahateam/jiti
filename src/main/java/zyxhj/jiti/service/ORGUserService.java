@@ -185,7 +185,6 @@ public class ORGUserService {
 			.maximumSize(100)//
 			.build();
 
-
 	// 创建用户
 	public void createORGUser(DruidPooledConnection conn, Long orgId, String mobile, String realName, String idNumber,
 			Byte sex, String familyRelations, Double resourceShares, Double assetShares, Boolean isOrgUser,
@@ -1925,140 +1924,172 @@ public class ORGUserService {
 		}
 	}
 
-	
-	//获取打印的数据总条数
+	// 获取打印的数据总条数
 	public int getExportDataCount(DruidPooledConnection conn, Long orgId) throws Exception {
 		return orgUserRepository.getExportDataCount(conn, orgId);
 	}
-	
-	public List<Map<String, Object>> getExportData(DruidPooledConnection conn, Long orgId, Integer count , Integer offset) throws Exception {
-		List<Object[]> olist = orgUserRepository.getExportData(conn,orgId, count, offset);
-		
+
+	public List<Map<String, Object>> getExportData(DruidPooledConnection conn, Long orgId, Integer count,
+			Integer offset) throws Exception {
+		List<Object[]> olist = orgUserRepository.getExportData(conn, orgId, count, offset);
+
 		List<Map<String, Object>> exportDataList = new ArrayList<Map<String, Object>>();
-		
+
 		for (int i = 0; i < olist.size(); i++) {
 			Object[] s = olist.get(i);
 			Map<String, Object> data = new HashMap<String, Object>();
 
-			if(s[0]==null) {
+			if (s[0] == null) {
 				data.put("户序号", "");
-			}else {
+			} else {
 				data.put("户序号", s[0].toString());
 			}
-			if(s[1]==null) {
+			if (s[1] == null) {
 				data.put("户主姓名", "");
-			}else {
+			} else {
 				data.put("户主姓名", s[1].toString());
 			}
-			if(s[2]==null) {
+			if (s[2] == null) {
 				data.put("地址", "");
-			}else {
+			} else {
 				data.put("地址", s[2].toString());
 			}
-			if(s[3]==null) {
-				data.put("姓名","");
-			}else {
+			if (s[3] == null) {
+				data.put("姓名", "");
+			} else {
 				data.put("姓名", s[3].toString());
 			}
 
-			if(s[4]==null) {
+			if (s[4] == null) {
 				data.put("性别", "");
-				data.put("身份证号码","");
-			}else {
+				data.put("身份证号码", "");
+			} else {
 				String idNumber = s[4].toString();
-				if(idNumber.length()==18) {
-					if(Integer.parseInt(idNumber.substring(16, 17))%2==0) {
+				if (idNumber.length() == 18) {
+					if (Integer.parseInt(idNumber.substring(16, 17)) % 2 == 0) {
 						data.put("性别", "女");
-					}else {
+					} else {
 						data.put("性别", "男");
 					}
 				}
 				data.put("身份证号码", idNumber);
 			}
-			if(s[5]==null) {
+			if (s[5] == null) {
 				data.put("是否集体组织成员", "否");
-			}else {
-				if((boolean)s[5]==true) {
+			} else {
+				if ((boolean) s[5] == true) {
 					data.put("是否集体组织成员", "是");
-				}else {
+				} else {
 					data.put("是否集体组织成员", "否");
 				}
 			}
-			
-			if(s[6]==null) {
+
+			if (s[6] == null) {
 				data.put("个人持股数（股）", "");
-			}else {
+			} else {
 				data.put("个人持股数（股）", s[6].toString());
 			}
-			
-			if(s[7]==null) {
+
+			if (s[7] == null) {
 				data.put("与户主关系", "");
-			}else {
+			} else {
 				data.put("与户主关系", s[7].toString());
 			}
-			
-			if(s[8]==null) {
+
+			if (s[8] == null) {
 				data.put("成员股权证号", "");
-			}else {
+			} else {
 				data.put("成员股权证号", s[8].toString());
 			}
-			
-			if(s[9]==null) {
+
+			if (s[9] == null) {
 				data.put("本户资源股", "");
-			}else {
+			} else {
 				data.put("本户资源股", s[9].toString());
 			}
-			
-			if(s[10]==null) {
-				data.put("本户资产股","");
-			}else {
+
+			if (s[10] == null) {
+				data.put("本户资产股", "");
+			} else {
 				data.put("本户资产股", s[10].toString());
 			}
 
-			if(s[11]==null) {
+			if (s[11] == null) {
 				data.put("合作社名称", "");
-			}else {
+			} else {
 				data.put("合作社名称", s[11].toString());
 			}
-			
-			if(s[12]==null) {
+
+			if (s[12] == null) {
 				data.put("合作社地址", "");
-			}else {
+			} else {
 				data.put("合作社地址", s[11].toString());
 			}
-			
-			if(s[13]==null) {
-				data.put("合作社成立时间","");
-			}else {
-				data.put("合作社成立时间", s[13].toString().substring(0,10));
+
+			if (s[13] == null) {
+				data.put("合作社成立时间", "");
+			} else {
+				data.put("合作社成立时间", s[13].toString().substring(0, 10));
 			}
-			
-			if(s[14]==null) {
-				data.put("合作社信用代码","");
-			}else {
+
+			if (s[14] == null) {
+				data.put("合作社信用代码", "");
+			} else {
 				data.put("合作社信用代码", s[14].toString());
 			}
 
-			if(s[15]==null) {
+			if (s[15] == null) {
 				data.put("集体资产股", "");
-			}else {
+			} else {
 				data.put("集体资产股", s[15].toString());
 			}
-			
+
 			data.put("原合作社集体资产股", "");
-			
-			if(s[16]==null) {
+
+			if (s[16] == null) {
 				data.put("集体资源股", "");
-			}else {
+			} else {
 				data.put("集体资源股", s[16].toString());
 			}
-			data.put("原合作社集体资产股","");
-			
+			data.put("原合作社集体资产股", "");
+
 			exportDataList.add(data);
 		}
-		
-		
+
 		return exportDataList;
+	}
+
+	// 通过户主名查询审批
+	public List<Examine> getExamineByFamilyMaster(DruidPooledConnection conn, Long orgId, String familyMaster,
+			Byte type, Byte status, Integer count, Integer offset) throws Exception {
+		/**
+		 * SQL语句原型（未判断分户、新增户等类型）： select * from tb_ecm_examine where type = 1 and status
+		 * = 1 and org_id = 397652553337218 and JSON_EXTRACT(data,
+		 * '$.newData[*][*].familyMaster') like '%苟金兰%'s
+		 * 
+		 * SQL语句原型（判断分户，新增户等类型）: select * from tb_ecm_examine where type = 1 and status
+		 * = 1 and org_id = 397652553337218 and JSON_EXTRACT(data,
+		 * '$.newData[*][*].familyMaster') like '%苟金兰%' and JSON_EXTRACT(data,
+		 * '$.ext.familyOperate') = 1
+		 */
+		if (type == 0) {
+			String sql = StringUtils.join(" org_id = ", orgId, " and type = ", type, " and status = ", status,
+					" JSON_EXTRACT(data, '$.newData[*][*].familyMaster') like '%", familyMaster, "%'");
+			return examineRepository.getExamineByName(conn, sql, count, offset);
+		} else {
+			/**
+			 * SQL语句原型（股权变更审批）：select * from tb_ecm_examine where type = 2 and status = 2
+			 * and org_id = 397652553337218 and JSON_EXTRACT(data,
+			 * '$.newData[0].user.realName') like '%梁廷竹%'
+			 */
+			String sql = StringUtils.join(" org_id = ", orgId, " and type = ", type, " and status = ", status,
+					" JSON_EXTRACT(data, '$.newData[0].user.realName') like '%", familyMaster, "%'");
+			return examineRepository.getExamineByName(conn, sql, count, offset);
+		}
+	}
+
+	public int setISORGUser(DruidPooledConnection conn, Long orgId, Long userId, Boolean isORGUser) throws Exception {
+		return orgUserRepository.update(conn, EXP.INS().key("is_org_user", isORGUser), EXP.INS().key("org_id", orgId).andKey("user_id", userId));
 	}
 
 }

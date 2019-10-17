@@ -1,5 +1,6 @@
 package zyxhj.jiti.service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -53,7 +54,7 @@ public class BankService {
 
 	public ORG createBankORG(DruidPooledConnection conn, Long districtId, String name, String address, String code)
 			throws Exception {
-		ORG existORG = orgRepository.get(conn,EXP.INS().key("code", code));
+		ORG existORG = orgRepository.get(conn, EXP.INS().key("code", code));
 		if (null == existORG) {
 			ORG org = new ORG();
 			org.id = IDUtils.getSimpleId();
@@ -84,18 +85,17 @@ public class BankService {
 		org.name = name;
 		org.address = address;
 
-		return orgRepository.update(conn,EXP.INS().key("id", bankId), org, true);
-		
-		
+		return orgRepository.update(conn, EXP.INS().key("id", bankId), org, true);
+
 	}
 
 	public int deleteBankORG(DruidPooledConnection conn, Long bankId) throws Exception {
-		return orgRepository.delete(conn,EXP.INS().key("id", bankId));
+		return orgRepository.delete(conn, EXP.INS().key("id", bankId));
 	}
 
 	public void createBankAdmin(DruidPooledConnection conn, Long bankId, String address, String idNumber, String mobile,
 			String pwd, String realName) throws Exception {
-		User exisUser = userRepository.get(conn,EXP.INS().andKey("id_number", idNumber).andKey("mobile", mobile));
+		User exisUser = userRepository.get(conn, EXP.INS().andKey("id_number", idNumber).andKey("mobile", mobile));
 		// 用户不存在再去添加用户
 		if (exisUser == null) {
 			User user = new User();
@@ -118,7 +118,8 @@ public class BankService {
 			orgUserRepository.insert(conn, oru);
 
 		} else {
-			ORGUser existor = orgUserRepository.get(conn,EXP.INS().key("org_id", bankId).andKey("user_id",  exisUser.id));
+			ORGUser existor = orgUserRepository.get(conn,
+					EXP.INS().key("org_id", bankId).andKey("user_id", exisUser.id));
 			if (null == existor) {
 				ORGUser oru = new ORGUser();
 				oru.orgId = bankId;
@@ -128,7 +129,7 @@ public class BankService {
 				roles.add(ORGUserRole.role_admin.roleId);
 				oru.roles = JSON.toJSONString(roles);
 				orgUserRepository.insert(conn, oru);
-				
+
 			} else {
 				throw new ServerException(BaseRC.ECM_ORG_USER_EXIST);
 			}
@@ -138,30 +139,33 @@ public class BankService {
 
 	public List<ORGUser> getBankAdmin(DruidPooledConnection conn, Long bankId, Integer count, Integer offset)
 			throws Exception {
-		return orgUserRepository.getList(conn,EXP.INS().key("org_id", bankId), count, offset);
+		return orgUserRepository.getList(conn, EXP.INS().key("org_id", bankId), count, offset);
 	}
 
 	public int deleteBankAdmin(DruidPooledConnection conn, Long bankId, Long userId) throws Exception {
-		return orgUserRepository.delete(conn, EXP.INS().key("org_id", bankId).andKey("user_id",userId));
+		return orgUserRepository.delete(conn, EXP.INS().key("org_id", bankId).andKey("user_id", userId));
 	}
 
 	public List<ORG> getBankList(DruidPooledConnection conn, Long districtId, String name, Integer count,
 			Integer offset) throws Exception {
-		JSONArray json = new JSONArray();
-		List<Superior> superior = superiorRepository.getList(conn,EXP.INS().key( "superior_id", districtId), null, null);
+
+		List<Long> json = new ArrayList<Long>();
+		List<Superior> superior = superiorRepository.getList(conn, EXP.INS().key("superior_id", districtId), null,
+				null);
 		for (Superior su : superior) {
 			json.add(su.orgId);
 		}
+
 		Byte type = ORG.TYPE.FINANCIAL.v();
 		return orgRepository.getBankList(conn, json, name, type, count, offset);
 	}
 
 	public List<ORG> getORGByBank(DruidPooledConnection conn, Long bankId, String name, Integer count, Integer offset)
 			throws Exception {
-		JSONArray json = new JSONArray();
+		List<Long> json = new ArrayList<Long>();
 		Superior bankSup = superiorRepository.get(conn, EXP.INS().key("org_id", bankId));
-		List<Superior> su = superiorRepository.getList(conn,EXP.INS().key( "superior_id", bankSup.superiorId), null, null);
-		
+		List<Superior> su = superiorRepository.getList(conn, EXP.INS().key("superior_id", bankSup.superiorId), null,
+				null);
 
 		for (Superior superior : su) {
 			json.add(superior.orgId);

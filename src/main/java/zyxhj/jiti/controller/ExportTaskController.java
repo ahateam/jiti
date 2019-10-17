@@ -76,7 +76,7 @@ public class ExportTaskController extends Controller {
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
 			// 将数据导入到Excel中，并上传到OSS
-			taskService.ExportDataIntoOSS(orgId, taskId);
+			taskService.exportData(orgId, taskId);
 			return taskService.getExportTask(conn, taskId);
 		}
 	}

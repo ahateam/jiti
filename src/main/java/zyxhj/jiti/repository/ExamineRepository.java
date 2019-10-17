@@ -37,4 +37,10 @@ public class ExamineRepository extends RDSRepository<Examine> {
 				" LIKE \"%", userId, "%\""), null, count, offset);
 	}
 
+	public List<Examine> getExamineByName(DruidPooledConnection conn, String sql, Integer count,
+			Integer offset) throws Exception {
+		this.getList(conn, sql, null, count, offset);
+		return null;
+	}
+
 }

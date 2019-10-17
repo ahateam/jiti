@@ -64,7 +64,7 @@ public class ORGRepository extends RDSRepository<ORG> {
 		return getList(conn, StringUtils.join("name LIKE '%", name, "%'"), null, count, offset);
 	}
 
-	public List<ORG> getBankList(DruidPooledConnection conn, JSONArray json, String name, Byte type, Integer count,
+	public List<ORG> getBankList(DruidPooledConnection conn, List<Long> json, String name, Byte type, Integer count,
 			Integer offset) throws Exception {
 
 		StringBuffer sb = new StringBuffer();
@@ -72,14 +72,24 @@ public class ORGRepository extends RDSRepository<ORG> {
 		if (json != null && json.size() > 0) {
 			EXP sqlOR = EXP.INS();
 			for (int i = 0; i < json.size(); i++) {
-				sqlOR.or(EXP.INS().key("id", json.getLong(i)));
+				sqlOR.or(EXP.INS().key("id", json.get(i)));
 			}
 			sql.and(sqlOR);
 		}
+		List<Object> params = new ArrayList<Object>();
+		sql.toSQL(sb, params );
 		if (name != null) {
 //			sql.and(StringUtils.join("name LIKE '%", name, "%'"));
-			sql.and(EXP.INS().LIKE("name", name));
+			String sql1 = StringUtils.join(" AND name LIKE '%",name,"%'");
+			sb.append(sql1);
 		}
-		return getList(conn, sql, count, offset);
+		return getList(conn, sb.toString(), params,count, offset);
+	}
+
+	public List<ORG> getSubORGByLikeORGName(DruidPooledConnection conn, Long districtId, String ORGName, Integer count,
+			Integer offset) throws Exception {
+		// TODO Auto-generated method stub
+		String sql = " id in (select org_id from tb_ecm_superior where superior_id = "+districtId+" ) and name like '%"+ORGName+"%'";
+		return this.getList(conn, sql, null, count, offset);
 	}
 }

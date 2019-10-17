@@ -72,17 +72,28 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		// '102', '$') OR JSON_CONTAINS(roles, '103', '$') OR JSON_CONTAINS(roles,
 		// '104', '$') OR JSON_CONTAINS(roles, '105', '$') )
 
+		System.out.println("----------------------------------------------------------------------------------------");
+		System.out.println("----------------------------------------------------------------------------------------");
+		System.out.println("----------------------------------------------------------------------------------------");
+		System.out.println("----------------------------------------------------------------------------------------");
+		System.out.println("----------------------------------------------------------------------------------------");
+		System.out.println("----------------------------------------------------------------------------------------");
+		System.out.println("----------------------------------------------------------------------------------------");
 		JSONArray roles = crowd.getJSONArray("roles");
 		JSONArray groups = crowd.getJSONArray("groups");
 		JSONObject tags = crowd.getJSONObject("tags");
+		
+		System.out.println("roles================="+roles.size());
 
 		EXP sql = EXP.INS().key("org_id", orgId);
 		if ((roles != null && roles.size() > 0) || (groups != null && groups.size() > 0) || (tags != null)) {
 			EXP sqlEx = EXP.INS();
 			if (roles != null && roles.size() > 0) {
+				System.out.println("11111111111111111111111111111111");
 //				sqlEx.and(EXP.JSON_CONTAINS_KEYS(roles, "roles", null));
 				for (int i = 0; i < roles.size(); i++) {
 //					sqlEx.or(StringUtils.join("JSON_CONTAINS(roles, '", roles.getString(i), "', '$') "));
+					System.out.println("1===="+roles.get(i));
 					sqlEx.or(EXP.JSON_CONTAINS("roles", "$", roles.get(i)));
 				}
 			}
@@ -96,7 +107,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 				}
 			}
 
-			if (tags != null) {
+			if (tags != null && tags.size() > 0) {
 //				sqlEx.and(EXP.JSON_CONTAINS_JSONOBJECT(tags, "tags"));
 				Iterator<Entry<String, Object>> it = tags.entrySet().iterator();
 				while (it.hasNext()) {
@@ -493,14 +504,17 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		return count;
 	}
 
-	public List<Object[]> getExportData(DruidPooledConnection conn, Long orgId, Integer count, Integer offset) throws Exception {
-		StringBuffer sql =new StringBuffer( "SELECT OU.family_number AS '户序号', OU.family_master AS '户主姓名', OU.address AS '地址', U.real_name AS '姓名', U.id_number AS '身份证号码', ou.is_org_user AS '是否组织成员', ou.share_amount AS '个人持股数（股）', ou.family_relations AS '与户主关系', ou.share_cer_no AS '成员股权证号', ou.resource_shares AS '本户资源股', ou.asset_shares AS '本户资产股', o.`name` AS '合作社名称', o.address AS '合作社地址', o.create_time AS '合作社成立时间', o.`code` AS '合作社信用代码', o.asset_shares AS '集体资产股', o.resource_shares AS '集体资源股' FROM ( tb_ecm_org O LEFT JOIN tb_ecm_org_user OU ON O.id = OU.org_id ) LEFT JOIN tb_user U ON OU.user_id = U.id WHERE O.id =");
+	public List<Object[]> getExportData(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)
+			throws Exception {
+		StringBuffer sql = new StringBuffer(
+				"SELECT OU.family_number AS '户序号', OU.family_master AS '户主姓名', OU.address AS '地址', U.real_name AS '姓名', U.id_number AS '身份证号码', ou.is_org_user AS '是否组织成员', ou.share_amount AS '个人持股数（股）', ou.family_relations AS '与户主关系', ou.share_cer_no AS '成员股权证号', ou.resource_shares AS '本户资源股', ou.asset_shares AS '本户资产股', o.`name` AS '合作社名称', o.address AS '合作社地址', o.create_time AS '合作社成立时间', o.`code` AS '合作社信用代码', o.asset_shares AS '集体资产股', o.resource_shares AS '集体资源股' FROM ( tb_ecm_org O LEFT JOIN tb_ecm_org_user OU ON O.id = OU.org_id ) LEFT JOIN tb_user U ON OU.user_id = U.id WHERE O.id =");
 		sql.append(orgId);
 		return this.sqlGetObjectsList(conn, sql.toString(), null, count, offset);
 	}
-	
+
 	public int getExportDataCount(DruidPooledConnection conn, Long orgId) throws Exception {
-		StringBuffer sql =new StringBuffer( "SELECT count(*) FROM ( tb_ecm_org O LEFT JOIN tb_ecm_org_user OU ON O.id = OU.org_id ) LEFT JOIN tb_user U ON OU.user_id = U.id WHERE O.id =");
+		StringBuffer sql = new StringBuffer(
+				"SELECT count(*) FROM ( tb_ecm_org O LEFT JOIN tb_ecm_org_user OU ON O.id = OU.org_id ) LEFT JOIN tb_user U ON OU.user_id = U.id WHERE O.id =");
 		sql.append(orgId);
 		Object[] s = this.sqlGetObjects(conn, sql.toString(), null);
 

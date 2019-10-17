@@ -1,5 +1,9 @@
 package zyxhj.jiti.controller;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -26,6 +30,7 @@ import zyxhj.jiti.service.ORGService;
 import zyxhj.jiti.service.ORGUserGroupService;
 import zyxhj.jiti.service.ORGUserRoleService;
 import zyxhj.jiti.service.ORGUserService;
+import zyxhj.jiti.service.UploadFile;
 import zyxhj.utils.ServiceUtils;
 import zyxhj.utils.Singleton;
 import zyxhj.utils.api.APIResponse;
@@ -98,7 +103,6 @@ public class ORGController extends Controller {
 			@P(t = "手机号") String mobile, //
 			@P(t = "姓名（实名）") String realName, //
 			@P(t = "身份证号") String idNumber, //
-
 			@P(t = "密码") String pwd //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
@@ -434,6 +438,21 @@ public class ORGController extends Controller {
 		}
 	}
 
+	@POSTAPI(//
+			path = "COOPLogin", //
+			des = "手机号密码登录", //
+			ret = "LoginBO对象，包含user，session等信息"//
+	)
+	public APIResponse COOPLogin(//
+			@P(t = "登录账号") String accountNumber, //
+			@P(t = "密码") String pwd//
+	) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse.getNewSuccessResp(ServiceUtils.checkNull(orgService.COOPLogin(conn, accountNumber, pwd)));
+		}
+	}
+	
+	
 	/**
 	 * 
 	 */
@@ -443,7 +462,7 @@ public class ORGController extends Controller {
 			ret = "LoginBO对象，包含user，session等信息"//
 	)
 	public APIResponse loginByMobileAndPwd(//
-			@P(t = "手机号") String mobile, //
+			@P(t = "登录账号") String mobile, //
 			@P(t = "密码") String pwd//
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
@@ -817,9 +836,9 @@ public class ORGController extends Controller {
 			@P(t = "资产股", r = false) Double assetShares, //
 			@P(t = "是否为修改上级机构申请", r = false) Boolean updateDistrict) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(
-					orgService.createORGApply(conn, userId, name, code, province, city, district, address, imgOrg,
-							imgAuth, shareAmount, level, superiorId, resourceShares, assetShares, updateDistrict,orgId));
+			return APIResponse.getNewSuccessResp(orgService.createORGApply(conn, userId, name, code, province, city,
+					district, address, imgOrg, imgAuth, shareAmount, level, superiorId, resourceShares, assetShares,
+					updateDistrict, orgId));
 		}
 	}
 
@@ -853,7 +872,7 @@ public class ORGController extends Controller {
 		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.upORGApply(conn, orgExamineId, examine, userId, name, code,
 					province, city, district, address, imgOrg, imgAuth, shareAmount, level, superiorId, updateDistrict,
-					resourceShares, assetShares,orgId));
+					resourceShares, assetShares, orgId));
 		}
 	}
 
@@ -1951,38 +1970,6 @@ public class ORGController extends Controller {
 	}
 
 	@POSTAPI(//
-			path = "createSupORGApply", //
-			des = "创建修改上级组织申请", //
-			ret = ""//
-	)
-	public APIResponse createSupORGApply(//
-			@P(t = "组织编号") Long userId, //
-			@P(t = "组织编号") Long orgId, //
-			@P(t = "上级组织编号") Long superiorId, //
-			@P(t = "是否为修改上级机构申请") Boolean updateDistrict//
-	) throws Exception {
-		try (DruidPooledConnection conn = dds.getConnection()) {
-			orgService.createEditSupORGApply(conn, userId, orgId, superiorId, updateDistrict);
-			return APIResponse.getNewSuccessResp();
-		}
-	}
-
-	@POSTAPI(//
-			path = "editSupORGApply", //
-			des = "修改上级组织修改申请状态", //
-			ret = ""//
-	)
-	public APIResponse editSupORGApply(//
-			@P(t = "组织编号") Long examineId, //
-			@P(t = "组织编号") Byte examine //
-	) throws Exception {
-		try (DruidPooledConnection conn = dds.getConnection()) {
-			orgService.editSupORGApply(conn, examineId, examine);
-			return APIResponse.getNewSuccessResp();
-		}
-	}
-
-	@POSTAPI(//
 			path = "getSuperiorORG", //
 			des = "查询当前组织上级机构", //
 			ret = "上级组织数据"//
@@ -2001,12 +1988,105 @@ public class ORGController extends Controller {
 			ret = "上级组织列表List<ORG>"//
 	)
 	public APIResponse getSuperiorORGs(//
+			@P(t = "上级编号") Long superiorId,//
 			@P(t = "组织编号") Byte level, //
 			Integer count, //
 			Integer offset //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.getSuperiorORGs(conn, level, count, offset));
+			return APIResponse.getNewSuccessResp(orgService.getSuperiorORGs(conn, superiorId, level, count, offset));
+		}
+	}
+
+	////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////
+
+	@POSTAPI(//
+			path = "getExamineByORGNameDistrict", //
+			des = "区级模糊查询下级机构申请", //
+			ret = "上级组织列表List<ORGExamine>"//
+	)
+	public APIResponse getExamineByORGNameDistrict(//
+			@P(t = "区级编号") Long districtId, //
+			@P(t = "下属机构名称") String ORGName, //
+			@P(t = "申请状态") Byte examine, //
+			Integer count, //
+			Integer offset //
+	) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse.getNewSuccessResp(
+					orgService.getExamineByORGNameDistrict(conn, districtId, ORGName, examine, count, offset));
+		}
+	}
+
+	@POSTAPI(//
+			path = "getORGExamineByUserANDLikeORGName", //
+			des = "用户模糊查询机构申请", //
+			ret = "List<ORGExamine>"//
+	)
+	public APIResponse getORGExamineByUserANDLikeORGName(//
+			@P(t = "用户编号") Long userId, //
+			@P(t = "机构名称") String ORGName, //
+			@P(t = "申请状态", r = false) Byte examine, //
+			Integer count, //
+			Integer offset //
+	) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse.getNewSuccessResp(
+					orgService.getORGExamineByUserANDLikeORGName(conn, userId, ORGName, examine, count, offset));
+		}
+	}
+
+	@POSTAPI(//
+			path = "getSubORGByLikeORGName", //
+			des = "区级模糊查询下级机构", //
+			ret = "List<ORG>"//
+	)
+	public APIResponse getSubORGByLikeORGName(//
+			@P(t = "区级编号") Long districtId, //
+			@P(t = "下属机构名称") String ORGName, //
+			Integer count, //
+			Integer offset //
+	) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse
+					.getNewSuccessResp(orgService.getSubORGByLikeORGName(conn, districtId, ORGName, count, offset));
+		}
+	}
+
+	@POSTAPI(//
+			path = "getExamineByFamilyMaster", //
+			des = "审批列表中通过户主名查询审批记录", //
+			ret = "List<Examine>"//
+	)
+	public APIResponse getExamineByFamilyMaster(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "户主名") String familyMaster, //
+			@P(t = "审批类型") Byte type, //
+			@P(t = "审批状态") Byte status, //
+			Integer count, //
+			Integer offset //
+	) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse.getNewSuccessResp(
+					orgUserService.getExamineByFamilyMaster(conn, orgId, familyMaster, type, status, count, offset));
+		}
+	}
+
+	@POSTAPI(//
+			path = "setISORGUser", //
+			des = "设置用户是否为组织成员", //
+			ret = "受影响行数"//
+	)
+	public APIResponse setISORGUser(//
+			@P(t = "组织编号") Long orgId, //
+			@P(t = "户主名") Long userId, //
+			@P(t = "是否为组织成员（设置用户为组织成员为true ,将用户设置为外部人员为false）") Boolean isORGUser//
+	) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse.getNewSuccessResp(orgUserService.setISORGUser(conn, orgId, userId, isORGUser));
 		}
 	}
 

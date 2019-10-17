@@ -1,5 +1,8 @@
 package zyxhj.jiti.service;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 
@@ -39,6 +42,7 @@ public class ExamineService {
 	private MessageService messageService;
 	private ExamineRepository examineRepository;
 	private ORGUserService orgUserService;
+	private static UploadFile uploadFile;
 
 	public ExamineService() {
 		try {
@@ -50,6 +54,7 @@ public class ExamineService {
 			messageService = Singleton.ins(MessageService.class);
 			examineRepository = Singleton.ins(ExamineRepository.class);
 			orgUserService = Singleton.ins(ORGUserService.class);
+			uploadFile = Singleton.ins(UploadFile.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -615,5 +620,59 @@ public class ExamineService {
 
 		return addNewData;
 	}
+	// 审批中添加无限文件上传
+	// 直接将文件复制上传到OSS服务器中，下一个审批流程时，通过需求，直接重OSS服务器中获取文件到本地
+	public void uploadFile(JSONArray fileUrls) {
+		try {
+			// 遍历数组，得到本地文件路径
+			for (Object obj : fileUrls) {
+				String fileUrl = (String) obj;
+				// 通过文件路径生成文件对象（FILE）
+				File file = new File(fileUrl);
+				InputStream inputStream = new FileInputStream(file);
+				JSONArray ja = getRoleArray(fileUrl,"\\" );
+				System.out.println(ja.get(ja.size()-1));
+				uploadFile.uploadFileToOSS(UploadFile.OSSCATALOGUE_EXAMINE, ja.getString(ja.size()-1), inputStream);
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
+	}
+	
+	private JSONArray getRoleArray(String roleStr,String Separator) {
+		JSONArray roleArray = new JSONArray();
+		roleStr.trim();
+		int start = roleStr.indexOf(Separator);
+		if (start < 0) {
+			roleArray.add(roleStr);
+		} else {
+			int end = roleStr.lastIndexOf(Separator);
+			roleArray.add(roleStr.substring(0, start));
+			if (end == start) {
+				roleArray.add(roleStr.substring(start + 1, roleStr.length()));
+			} else {
+				String newStr = roleStr.substring(start + 1, roleStr.length());
+				String newStr2 = newStr;
+				for (int i = 0; i < 5; i++) {
+					if (newStr2.indexOf(Separator) > 0) {
+						newStr2 = newStr.substring(newStr.indexOf(Separator) + 1, newStr.length());
+						newStr = newStr.substring(0, newStr.indexOf(Separator));
+						roleArray.add(newStr);
+						start = newStr.indexOf(Separator) + 1;
+						newStr = newStr2;
+					} else {
+						newStr2 = newStr2.substring(newStr2.lastIndexOf(Separator) + 1, newStr2.length());
+						roleArray.add(newStr2);
+						break;
+					}
+				}
+			}
+		}
+		return roleArray;
+	}
+	
+	
+	
 }

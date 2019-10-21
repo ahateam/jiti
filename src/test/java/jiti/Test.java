@@ -26,6 +26,7 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
@@ -55,7 +56,8 @@ public class Test {
 		}
 	}
 
-	private static ORGService or = new ORGService();
+	private static ORGService orgService = new ORGService();
+	private static ORGUserService orgUserService = new ORGUserService();
 
 	public static void main(String[] args) throws Exception {
 		//
@@ -188,4 +190,10 @@ public class Test {
 
 	}
 
+	@org.junit.Test
+	public void testget() throws Exception {
+		orgService.getFamilyInfo(conn, 397652553337218L, 10L);
+	}
+	
+	
 }

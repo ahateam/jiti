@@ -164,5 +164,8 @@ public class ExternalController extends Controller {
 			return APIResponse.getNewSuccessResp(PrintingTypeService.data);
 		}
 	}
+	
+	
+	
 
 }

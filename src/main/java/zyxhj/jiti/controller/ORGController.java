@@ -1,10 +1,5 @@
 package zyxhj.jiti.controller;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.sql.SQLException;
 import java.util.ArrayList;
 
 import org.apache.commons.lang3.StringUtils;
@@ -13,7 +8,6 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidPooledConnection;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
@@ -30,7 +24,6 @@ import zyxhj.jiti.service.ORGService;
 import zyxhj.jiti.service.ORGUserGroupService;
 import zyxhj.jiti.service.ORGUserRoleService;
 import zyxhj.jiti.service.ORGUserService;
-import zyxhj.jiti.service.UploadFile;
 import zyxhj.utils.ServiceUtils;
 import zyxhj.utils.Singleton;
 import zyxhj.utils.api.APIResponse;
@@ -2090,4 +2083,68 @@ public class ORGController extends Controller {
 		}
 	}
 
+	@GETAPI(//
+			path = "getORGUserInfo",//
+			des = "获取用户详细信息",//
+			ret = "单个用户详细信息"
+			)
+	public APIResponse getORGUserInfo(//
+			@P(t = "用户编号") Long userId,//
+			@P(t = "组织编号") Long orgId//
+			) throws Exception {
+		System.out.println(123465);
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse.getNewSuccessResp(orgUserService.getORGUserInfo(conn, userId, orgId));
+		}
+	}
+	/**
+	 *	单证书打印接口 
+	 */
+	@POSTAPI(//
+			path = "getORGList",//
+			des = "获取所有组织",//
+			ret = "组织列表"
+			)
+	public APIResponse getORGList(//
+			@P(t = "组织名称", r = false)String orgName,//
+			Integer count,//
+			Integer offset//
+			) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.getORGList(conn, orgName, count,offset));
+		}
+	}
+	
+	
+	@POSTAPI(//
+			path = "getFamilyMasterList",//
+			des = "获取户主列表",//
+			ret = "户主列表List<ORGUser>"
+			)
+	public APIResponse getFamilyMasterList(//
+			@P(t = "组织编号")Long orgId,//
+			@P(t = "户主姓名",r = false) String familyMaster,//
+			Integer count,//
+			Integer offset//
+			) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.getFamilyMasterList(conn, orgId, familyMaster, count,offset));
+		}
+	}
+	
+
+	@POSTAPI(//
+			path = "getFamilyInfo",//
+			des = "获取当前户所有成员信息",//
+			ret = "组织列表"
+			)
+	public APIResponse getFamilyInfo(//
+			@P(t = "组织编号")Long orgId,//
+			@P(t = "户序号") Long familyNumber//
+			) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.getFamilyInfo(conn, orgId, familyNumber));
+		}
+	}
+	
 }

@@ -2089,7 +2089,39 @@ public class ORGUserService {
 	}
 
 	public int setISORGUser(DruidPooledConnection conn, Long orgId, Long userId, Boolean isORGUser) throws Exception {
-		return orgUserRepository.update(conn, EXP.INS().key("is_org_user", isORGUser), EXP.INS().key("org_id", orgId).andKey("user_id", userId));
+		return orgUserRepository.update(conn, EXP.INS().key("is_org_user", isORGUser),
+				EXP.INS().key("org_id", orgId).andKey("user_id", userId));
 	}
+
+	public JSONObject getORGUserInfo(DruidPooledConnection conn, Long userId,Long orgId) {
+		try {
+			JSONObject jo = new JSONObject();
+			User user = userRepository.get(conn, EXP.INS().key("id", userId));
+			if (user != null) {
+				ORG org = orgService.getORGById(conn, orgId);
+				if(org!=null) {
+					jo.put("org", org);
+					ORGUser orgUser = orgUserRepository.get(conn, EXP.INS().key("user_id", userId).andKey("org_id", orgId));
+					if(orgUser!=null) {
+						jo.put("orgUser", orgUser);
+					}else {
+						return new JSONObject();
+					}
+				}else {
+					return new JSONObject();
+				}
+				jo.put("user", user);
+				return jo;
+			}else {
+				return new JSONObject();
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return new JSONObject();
+		
+	}
+	
+	
 
 }

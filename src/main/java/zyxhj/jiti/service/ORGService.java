@@ -423,11 +423,11 @@ public class ORGService {
 	 */
 	public LoginBo loginByMobile(DruidPooledConnection conn, String accountNumber, String pwd) throws Exception {
 		EXP exp;
-		if(accountNumber.length()>12) {
-			//身份证登录
+		if (accountNumber.length() > 12) {
+			// 身份证登录
 			exp = EXP.INS().key("id_number", accountNumber);
-		}else {
-			//手机号登录
+		} else {
+			// 手机号登录
 			exp = EXP.INS().key("mobile", accountNumber);
 		}
 		User existUser = userRepository.get(conn, exp);
@@ -628,7 +628,7 @@ public class ORGService {
 				// 要修改 则需要删除以前的归属 加入新的归属
 				orgDistrictRepository.delete(conn, EXP.INS().key("org_id", ex.orgId));
 
-				System.out.println("province=========================="+province);
+				System.out.println("province==========================" + province);
 				// 创建组织归属
 				createORGDistrict(conn, orgExamineId, province, city, district);
 
@@ -660,10 +660,10 @@ public class ORGService {
 					if (examine == ORGExamine.STATUS.WAITING.v()) {
 						Superior sup = superiorRepository.get(conn, EXP.INS().key("org_id", orgId));
 						if (sup != null) {
-							//修改上级机构
+							// 修改上级机构
 							int xxx = superiorRepository.update(conn, EXP.INS().key("superior_id", superiorId),
 									EXP.INS().key("org_id", orgId));
-							System.out.println("xxx-------------------"+xxx);
+							System.out.println("xxx-------------------" + xxx);
 						} else {
 							// 创建上级关系
 							addSupAndSub(conn, superiorId, orgExamineId, level);
@@ -678,8 +678,8 @@ public class ORGService {
 						ex.examine = ORGExamine.STATUS.INVALID.v();
 						orgExamineRepository.update(conn, EXP.INS().key("id", orgExamineId), ex, true);
 					}
-				}else {
-					throw new ServerException(null,"组织不存在");
+				} else {
+					throw new ServerException(null, "组织不存在");
 				}
 
 			} else {
@@ -1188,9 +1188,10 @@ public class ORGService {
 	/**
 	 * 获取上级组织列表
 	 */
-	public List<ORG> getSuperiorORGs(DruidPooledConnection conn,Long superiorId, Byte level, Integer count, Integer offset)
-			throws Exception {
-		return orgRepository.getList(conn, EXP.INS().key("level", (level - 1)).append(" AND id <> "+superiorId), count, offset);
+	public List<ORG> getSuperiorORGs(DruidPooledConnection conn, Long superiorId, Byte level, Integer count,
+			Integer offset) throws Exception {
+		return orgRepository.getList(conn, EXP.INS().key("level", (level - 1)).append(" AND id <> " + superiorId),
+				count, offset);
 	}
 
 	/**
@@ -1232,58 +1233,95 @@ public class ORGService {
 	}
 
 	/**
-	 * 	区级模糊查询下级机构申请
+	 * 区级模糊查询下级机构申请
 	 */
-	public List<ORGExamine> getExamineByORGNameDistrict(DruidPooledConnection conn, Long districtId, String ORGName, Byte examine, Integer count,
-			Integer offset) throws Exception {
+	public List<ORGExamine> getExamineByORGNameDistrict(DruidPooledConnection conn, Long districtId, String ORGName,
+			Byte examine, Integer count, Integer offset) throws Exception {
 		EXP exp = EXP.INS().key("superior_id", districtId).andKey("examine", examine).and(EXP.LIKE("name", ORGName));
 		List<ORGExamine> elist = orgExamineRepository.getList(conn, exp, count, offset);
 		return elist;
 	}
 
-	public List<ORGExamine> getORGExamineByUserANDLikeORGName(DruidPooledConnection conn, Long userId, String ORGName, Byte examine,
-			Integer count, Integer offset) throws Exception  {
+	public List<ORGExamine> getORGExamineByUserANDLikeORGName(DruidPooledConnection conn, Long userId, String ORGName,
+			Byte examine, Integer count, Integer offset) throws Exception {
 		EXP exp;
-		if(examine==null) {
+		if (examine == null) {
 			exp = EXP.INS().key("user_id", userId).and(EXP.LIKE("name", ORGName));
-		}else {
+		} else {
 			exp = EXP.INS().key("user_id", userId).andKey("examine", examine).and(EXP.LIKE("name", ORGName));
 		}
 		List<ORGExamine> elist = orgExamineRepository.getList(conn, exp, count, offset);
 		return elist;
-		
+
 	}
 
 	public List<ORG> getSubORGByLikeORGName(DruidPooledConnection conn, Long districtId, String ORGName, Integer count,
 			Integer offset) throws Exception {
-		return orgRepository.getSubORGByLikeORGName(conn, districtId,ORGName,count,offset);
+		return orgRepository.getSubORGByLikeORGName(conn, districtId, ORGName, count, offset);
 	}
 
 	public LoginBo COOPLogin(DruidPooledConnection conn, String accountNumber, String pwd) throws Exception {
 		EXP exp;
-		if(accountNumber.length()>12) {
-			//身份证登录
+		if (accountNumber.length() > 12) {
+			// 身份证登录
 			exp = EXP.INS().key("id_number", accountNumber);
-		}else {
-			//手机号登录
+		} else {
+			// 手机号登录
 			exp = EXP.INS().key("mobile", accountNumber);
 		}
 		User u = userRepository.get(conn, exp);
-		if(u!=null) {
-			if(pwd.equals(u.pwd)) {
-				
+		if (u != null) {
+			if (pwd.equals(u.pwd)) {
+
 				return login(conn, u);
-			}else {
+			} else {
 				throw new ServerException(BaseRC.USER_PWD_ERROR);
 			}
-		}else {
+		} else {
 			throw new ServerException(BaseRC.USER_NOT_EXIST);
 		}
-		
+
 	}
 
-	
-	
-	
+	// 单证书打印接口
+
+	public List<ORG> getORGList(DruidPooledConnection conn, String orgName, Integer count, Integer offset)
+			throws Exception {
+		if (StringUtils.isBlank(orgName)) {
+			return orgRepository.getList(conn, null, count, offset);
+		} else {
+			return orgRepository.getList(conn, EXP.INS().and(EXP.LIKE("name", orgName)), count, offset);
+		}
+	}
+
+	// 查询所有户主信息（只查询返回需要显示的字段）（待修改）
+	public JSONArray getFamilyMasterList(DruidPooledConnection conn, Long orgId, String familyMaster, Integer count,
+			Integer offset) throws Exception {
+		String sql = new String();
+		if (StringUtils.isBlank(familyMaster)) {
+			sql = StringUtils.join(
+					"select org.family_number , user.real_name , user.id_number from tb_user user,tb_ecm_org_user org where user.id = org.user_id and  org.org_id = ",
+					orgId,
+					" and org.family_number is not null GROUP BY org.family_master ORDER BY org.family_number asc");
+		} else {
+			sql = StringUtils.join(
+					"select org.family_number , user.real_name , user.id_number from tb_user user,tb_ecm_org_user org where user.id = org.user_id and  org.org_id = ",
+					orgId, " and org.family_number is not null and org.family_master like '%", familyMaster,
+					"%' GROUP BY org.family_master ORDER BY org.family_number asc");
+		}
+		return orgUserRepository.getFamilyMasterList(conn, sql, count, offset);
+	}
+
+	public JSONObject getFamilyInfo(DruidPooledConnection conn, Long orgId, Long familyNumber) throws Exception {
+		// 获取户成员所有信息
+		String familyMemberSql = StringUtils.join(
+				"SELECT user.real_name, user.id_number,user.sex,org.family_relations FROM tb_user user, tb_ecm_org_user org WHERE user.id  = org.user_id AND org.family_number = ",
+				familyNumber, " AND org.org_id = ", orgId);
+		// 获取当前户家庭住址 总资产股份数与总资源股份数
+		String familyInfoSql = StringUtils.join(
+				"SELECT org.family_master, org.address, user.sex, COUNT(org.asset_shares) AS asset_share , COUNT(org.resource_shares) AS resource_shares FROM tb_user user, tb_ecm_org_user org WHERE user.id = org.user_id AND org.family_number = ",
+				familyNumber, " AND org.org_id = ", orgId);
+		return userRepository.getFamilyMenber(conn, familyMemberSql, familyInfoSql);
+	}
 
 }

@@ -75,9 +75,9 @@
 							<artifactSet>
 							</artifactSet>
 							<outputFile>${project.build.directory}/${project.artifactId}-${project.version}-fat.jar</outputFile>
-							
+
 							<filters>
-							<!-- 这是由于一些包重复引用，打包后的 META-INF 目录多出了一些 *.SF 等文件所致解决方案，-->
+								<!-- 这是由于一些包重复引用，打包后的 META-INF 目录多出了一些 *.SF 等文件所致解决方案， -->
 								<filter>
 									<artifact>*:*</artifact>
 									<excludes>

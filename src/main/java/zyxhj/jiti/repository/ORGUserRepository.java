@@ -82,8 +82,8 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		JSONArray roles = crowd.getJSONArray("roles");
 		JSONArray groups = crowd.getJSONArray("groups");
 		JSONObject tags = crowd.getJSONObject("tags");
-		
-		System.out.println("roles================="+roles.size());
+
+		System.out.println("roles=================" + roles.size());
 
 		EXP sql = EXP.INS().key("org_id", orgId);
 		if ((roles != null && roles.size() > 0) || (groups != null && groups.size() > 0) || (tags != null)) {
@@ -93,7 +93,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 //				sqlEx.and(EXP.JSON_CONTAINS_KEYS(roles, "roles", null));
 				for (int i = 0; i < roles.size(); i++) {
 //					sqlEx.or(StringUtils.join("JSON_CONTAINS(roles, '", roles.getString(i), "', '$') "));
-					System.out.println("1===="+roles.get(i));
+					System.out.println("1====" + roles.get(i));
 					sqlEx.or(EXP.JSON_CONTAINS("roles", "$", roles.get(i)));
 				}
 			}
@@ -519,6 +519,50 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		Object[] s = this.sqlGetObjects(conn, sql.toString(), null);
 
 		return Integer.parseInt(s[0].toString());
+	}
+
+	// 查询所有户主信息（只查询返回需要显示的字段）（待修改）
+	public JSONArray getFamilyMasterList(DruidPooledConnection conn, String sql, Integer count, Integer offset)
+			throws Exception {
+		List<Object[]> olist = this.sqlGetObjectsList(conn, sql, null, count, offset);
+		JSONArray masterArray = new JSONArray();
+
+		for (int i = 0; i < olist.size(); i++) {
+			JSONObject master = new JSONObject();
+			Object[] s = olist.get(i);
+			for (int j = 0; j < s.length; j++) {
+				if (s[j] != null) {
+					String is = s[j].toString();
+					System.out.println(is);
+					switch (j) {
+					case 0:
+						master.put("familyNumber", is);
+						break;
+					case 1:
+						master.put("realName", is);
+						break;
+					case 2:
+						master.put("idNumber", is);
+						break;
+					}
+				} else {
+					switch (j) {
+					case 0:
+						master.put("familyNumber", "");
+						break;
+					case 1:
+						master.put("realName", "");
+						break;
+					case 2:
+						master.put("idNumber", "");
+						break;
+					}
+				}
+			}
+			masterArray.add(master);
+		}
+		System.out.println(masterArray.toJSONString());
+		return masterArray;
 	}
 
 }

@@ -1,14 +1,14 @@
 package jiti;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
+import com.alibaba.fastjson.JSONArray;
 
+import zyxhj.jiti.controller.ORGController;
+import zyxhj.jiti.service.ExamineService;
 import zyxhj.jiti.service.ExportTaskService;
 import zyxhj.utils.Singleton;
 import zyxhj.utils.data.DataSource;
@@ -17,12 +17,15 @@ public class TestExportTaskService {
 	private static DruidPooledConnection conn;
 	
 	private static ExportTaskService taskService;
+
+	private static ExamineService examineService;
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		try {
 			conn = DataSource.getDruidDataSource("rdsDefault.prop").getConnection();
 			taskService = Singleton.ins(ExportTaskService.class);
+			examineService = Singleton.ins(ExamineService.class);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -52,7 +55,7 @@ public class TestExportTaskService {
 	@Test
 	public void testExportDataIntoOSS() {
 		try {
-			taskService.ExportDataIntoOSS(399908727332361L, 401788152039380L);
+			taskService.exportData(399908727332361L, 401788152039380L);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -61,7 +64,7 @@ public class TestExportTaskService {
 	
 	public static void main(String[] args) {
 		try {
-			taskService.ExportDataIntoOSS(399908727332361L, 401788152039380L);
+			taskService.exportData(399908727332361L, 401788152039380L);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -69,9 +72,12 @@ public class TestExportTaskService {
 	}
 	
 	@Test
-	public void testAddALL() {
-		
-		
+	public void testUploadFile() {
+		JSONArray fileUrls = new JSONArray();
+		fileUrls.add("C:\\Users\\Admin\\Desktop\\集体经济账号.txt");
+		fileUrls.add("C:\\Users\\Admin\\Desktop\\样表.docx");
+		System.out.println(fileUrls.toJSONString());
+		examineService.uploadFile(fileUrls);
 		
 	}
 }

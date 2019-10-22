@@ -9,6 +9,9 @@ import zyxhj.core.domain.User;
 import zyxhj.jiti.domain.ORG;
 import zyxhj.jiti.domain.ORGUser;
 import zyxhj.jiti.domain.ORGUserRole;
+import zyxhj.jiti.domain.PDConnection;
+import zyxhj.jiti.domain.SingleCertificateTask;
+import zyxhj.jiti.domain.UserExamineRecord;
 import zyxhj.jiti.domain.Vote;
 import zyxhj.jiti.domain.VoteOption;
 import zyxhj.jiti.domain.VoteTicket;
@@ -38,17 +41,22 @@ public class JITIInitializer {
 
 	private static void initDB(DruidDataSource dsRds) {
 
-		RDSUtils.createTableByEntity(dsRds, Tag.class);
-		RDSUtils.createTableByEntity(dsRds, TagGroup.class);
-		RDSUtils.createTableByEntity(dsRds, User.class);
-
-		RDSUtils.createTableByEntity(dsRds, ORG.class);
-		RDSUtils.createTableByEntity(dsRds, ORGUser.class);
-		RDSUtils.createTableByEntity(dsRds, ORGUserRole.class);
-
-		RDSUtils.createTableByEntity(dsRds, Vote.class);
-		RDSUtils.createTableByEntity(dsRds, VoteOption.class);
-		RDSUtils.createTableByEntity(dsRds, VoteTicket.class);
+//		RDSUtils.createTableByEntity(dsRds, Tag.class);
+//		RDSUtils.createTableByEntity(dsRds, TagGroup.class);
+//		RDSUtils.createTableByEntity(dsRds, User.class);
+//
+//		RDSUtils.createTableByEntity(dsRds, ORG.class);
+//		RDSUtils.createTableByEntity(dsRds, ORGUser.class);
+//		RDSUtils.createTableByEntity(dsRds, ORGUserRole.class);
+//
+//		RDSUtils.createTableByEntity(dsRds, Vote.class);
+//		RDSUtils.createTableByEntity(dsRds, VoteOption.class);
+//		RDSUtils.createTableByEntity(dsRds, VoteTicket.class);
+		
+		RDSUtils.createTableByEntity(dsRds, SingleCertificateTask.class);
+//		RDSUtils.createTableByEntity(dsRds, PDConnection.class);
+//		RDSUtils.dropTableByEntity(dsRds, SingleCertificateTask.class);
+		
 
 	}
 

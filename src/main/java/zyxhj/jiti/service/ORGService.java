@@ -1283,45 +1283,4 @@ public class ORGService {
 
 	}
 
-	// 单证书打印接口
-
-	public List<ORG> getORGList(DruidPooledConnection conn, String orgName, Integer count, Integer offset)
-			throws Exception {
-		if (StringUtils.isBlank(orgName)) {
-			return orgRepository.getList(conn, null, count, offset);
-		} else {
-			return orgRepository.getList(conn, EXP.INS().and(EXP.LIKE("name", orgName)), count, offset);
-		}
-	}
-
-	// 查询所有户主信息（只查询返回需要显示的字段）（待修改）
-	public JSONArray getFamilyMasterList(DruidPooledConnection conn, Long orgId, String familyMaster, Integer count,
-			Integer offset) throws Exception {
-		String sql = new String();
-		if (StringUtils.isBlank(familyMaster)) {
-			sql = StringUtils.join(
-					"select org.family_number , user.real_name , user.id_number from tb_user user,tb_ecm_org_user org where user.id = org.user_id and  org.org_id = ",
-					orgId,
-					" and org.family_number is not null GROUP BY org.family_master ORDER BY org.family_number asc");
-		} else {
-			sql = StringUtils.join(
-					"select org.family_number , user.real_name , user.id_number from tb_user user,tb_ecm_org_user org where user.id = org.user_id and  org.org_id = ",
-					orgId, " and org.family_number is not null and org.family_master like '%", familyMaster,
-					"%' GROUP BY org.family_master ORDER BY org.family_number asc");
-		}
-		return orgUserRepository.getFamilyMasterList(conn, sql, count, offset);
-	}
-
-	public JSONObject getFamilyInfo(DruidPooledConnection conn, Long orgId, Long familyNumber) throws Exception {
-		// 获取户成员所有信息
-		String familyMemberSql = StringUtils.join(
-				"SELECT user.real_name, user.id_number,user.sex,org.family_relations FROM tb_user user, tb_ecm_org_user org WHERE user.id  = org.user_id AND org.family_number = ",
-				familyNumber, " AND org.org_id = ", orgId);
-		// 获取当前户家庭住址 总资产股份数与总资源股份数
-		String familyInfoSql = StringUtils.join(
-				"SELECT org.family_master, org.address, user.sex, COUNT(org.asset_shares) AS asset_share , COUNT(org.resource_shares) AS resource_shares FROM tb_user user, tb_ecm_org_user org WHERE user.id = org.user_id AND org.family_number = ",
-				familyNumber, " AND org.org_id = ", orgId);
-		return userRepository.getFamilyMenber(conn, familyMemberSql, familyInfoSql);
-	}
-
 }

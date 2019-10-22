@@ -1,7 +1,5 @@
 package jiti;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -10,36 +8,23 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.FillPatternType;
-import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
-import org.apache.poi.xssf.usermodel.XSSFFactory;
-import org.apache.poi.xssf.usermodel.XSSFRow;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 
-import zyxhj.core.domain.User;
-import zyxhj.core.repository.UserRepository;
 import zyxhj.jiti.controller.ORGController;
-import zyxhj.jiti.controller.VersionController;
-import zyxhj.jiti.controller.VoteController;
 import zyxhj.jiti.domain.ORGUser;
 import zyxhj.jiti.repository.ORGUserRepository;
 import zyxhj.jiti.service.ORGService;
 import zyxhj.jiti.service.ORGUserService;
-import zyxhj.jiti.service.VoteService;
+import zyxhj.jiti.service.SingleCertificateTaskService;
 import zyxhj.utils.api.ServerException;
 import zyxhj.utils.data.DataSource;
 import zyxhj.utils.data.EXP;
@@ -58,6 +43,7 @@ public class Test {
 
 	private static ORGService orgService = new ORGService();
 	private static ORGUserService orgUserService = new ORGUserService();
+	private static SingleCertificateTaskService scftService = new SingleCertificateTaskService();  
 
 	public static void main(String[] args) throws Exception {
 		//
@@ -192,7 +178,9 @@ public class Test {
 
 	@org.junit.Test
 	public void testget() throws Exception {
-		orgService.getFamilyInfo(conn, 397652553337218L, 10L);
+//		scftService.getFamilyInfo(conn, 397652553337218L, 10L);
+//		scftService.getFamilyInfoByCodeANDFamilyNumber(conn, 101L, "N2520303MF102560XT");
+		scftService.getFamilyInfo(conn, 401653766220125L, 101L);
 	}
 	
 	

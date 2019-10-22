@@ -26,6 +26,7 @@ import zyxhj.jiti.domain.ORGUser;
 import zyxhj.jiti.repository.ORGPermissionRelaRepository;
 import zyxhj.jiti.repository.ORGUserRepository;
 import zyxhj.utils.Singleton;
+import zyxhj.utils.UploadFile;
 import zyxhj.utils.data.EXP;
 import zyxhj.utils.data.ts.ColumnBuilder;
 import zyxhj.utils.data.ts.PrimaryKeyBuilder;

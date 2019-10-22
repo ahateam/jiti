@@ -2097,54 +2097,5 @@ public class ORGController extends Controller {
 			return APIResponse.getNewSuccessResp(orgUserService.getORGUserInfo(conn, userId, orgId));
 		}
 	}
-	/**
-	 *	单证书打印接口 
-	 */
-	@POSTAPI(//
-			path = "getORGList",//
-			des = "获取所有组织",//
-			ret = "组织列表"
-			)
-	public APIResponse getORGList(//
-			@P(t = "组织名称", r = false)String orgName,//
-			Integer count,//
-			Integer offset//
-			) throws Exception {
-		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.getORGList(conn, orgName, count,offset));
-		}
-	}
-	
-	
-	@POSTAPI(//
-			path = "getFamilyMasterList",//
-			des = "获取户主列表",//
-			ret = "户主列表List<ORGUser>"
-			)
-	public APIResponse getFamilyMasterList(//
-			@P(t = "组织编号")Long orgId,//
-			@P(t = "户主姓名",r = false) String familyMaster,//
-			Integer count,//
-			Integer offset//
-			) throws Exception {
-		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.getFamilyMasterList(conn, orgId, familyMaster, count,offset));
-		}
-	}
-	
-
-	@POSTAPI(//
-			path = "getFamilyInfo",//
-			des = "获取当前户所有成员信息",//
-			ret = "组织列表"
-			)
-	public APIResponse getFamilyInfo(//
-			@P(t = "组织编号")Long orgId,//
-			@P(t = "户序号") Long familyNumber//
-			) throws Exception {
-		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.getFamilyInfo(conn, orgId, familyNumber));
-		}
-	}
 	
 }

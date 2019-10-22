@@ -3,6 +3,9 @@ package xhj.cn.start;
 import io.vertx.core.Vertx;
 import zyxhj.core.controller.TestController;
 import zyxhj.core.controller.UserController;
+import zyxhj.flow.service.FlowService;
+import zyxhj.flow.service.ProcessService;
+import zyxhj.jiti.controller.ApprovalProcessController;
 import zyxhj.jiti.controller.AssetController;
 import zyxhj.jiti.controller.BankController;
 import zyxhj.jiti.controller.DemonstrationController;
@@ -10,6 +13,7 @@ import zyxhj.jiti.controller.ExportTaskController;
 import zyxhj.jiti.controller.ExternalController;
 import zyxhj.jiti.controller.ImportController;
 import zyxhj.jiti.controller.ORGController;
+import zyxhj.jiti.controller.SingleCertificateTaskController;
 import zyxhj.jiti.controller.VersionController;
 import zyxhj.jiti.controller.VoteController;
 import zyxhj.movie.VideoController;
@@ -66,6 +70,14 @@ public class JITIVerticle extends ZeroVerticle {
 		initCtrl(ctrlMap, Singleton.ins(VersionController.class, "version"));
 		
 		initCtrl(ctrlMap, Singleton.ins(ExportTaskController.class, "export"));
+		
+		initCtrl(ctrlMap, Singleton.ins(ApprovalProcessController.class, "aProcess"));
+		
+		initCtrl(ctrlMap, Singleton.ins(SingleCertificateTaskController.class, "scft"));
+		
+		initCtrl(ctrlMap, Singleton.ins(ProcessService.class, "process"));
+
+		initCtrl(ctrlMap, Singleton.ins(FlowService.class, "flow"));
 
 	}
 

@@ -2121,6 +2121,11 @@ public class ORGUserService {
 		return new JSONObject();
 		
 	}
+
+	//通过权限查询用户
+	public List<ORGUser> getOrgUserByRole(DruidPooledConnection conn, Long orgId, Long role) throws Exception {
+		return orgUserRepository.getList(conn, EXP.INS().key("org_id",orgId).and(EXP.JSON_CONTAINS("roles","$", role)), null, null);
+	}
 	
 	
 

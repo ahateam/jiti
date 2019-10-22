@@ -533,7 +533,6 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 			for (int j = 0; j < s.length; j++) {
 				if (s[j] != null) {
 					String is = s[j].toString();
-					System.out.println(is);
 					switch (j) {
 					case 0:
 						master.put("familyNumber", is);
@@ -561,7 +560,6 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 			}
 			masterArray.add(master);
 		}
-		System.out.println(masterArray.toJSONString());
 		return masterArray;
 	}
 

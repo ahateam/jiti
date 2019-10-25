@@ -19,8 +19,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
+import zyxhj.core.domain.MailTag;
 import zyxhj.core.domain.User;
 import zyxhj.core.repository.UserRepository;
+import zyxhj.core.service.MailService;
 import zyxhj.jiti.domain.Examine;
 import zyxhj.jiti.domain.Family;
 import zyxhj.jiti.domain.ORG;
@@ -29,6 +31,7 @@ import zyxhj.jiti.domain.ORGPermissionRel;
 import zyxhj.jiti.domain.ORGUser;
 import zyxhj.jiti.domain.ORGUserRole;
 import zyxhj.jiti.domain.ORGUserTagGroup;
+import zyxhj.jiti.domain.Vote;
 import zyxhj.jiti.repository.ExamineRepository;
 import zyxhj.jiti.repository.ORGPermissionRelaRepository;
 import zyxhj.jiti.repository.ORGUserImportRecordRepository;
@@ -58,6 +61,7 @@ public class ORGUserService {
 //	private WxDataService wxDataService;
 	// private WxFuncService wxFuncService;
 	private MessageService messageService;
+	private static MailService mailService;
 
 	public ORGUserService() {
 		try {
@@ -73,6 +77,7 @@ public class ORGUserService {
 			// wxFuncService = Singleton.ins(WxFuncService.class);
 			messageService = Singleton.ins(MessageService.class);
 			orgUserRoleRepository = Singleton.ins(ORGUserRoleRepository.class);
+			mailService = Singleton.ins(MailService.class, "node");
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -1165,7 +1170,9 @@ public class ORGUserService {
 			if (orgPer != null) {
 				examine.status = Examine.STATUS.NOEXAMINE.v();
 				// 给审核人员发送通知
-				examineMessage(conn, orgId, examine, ORGPermission.per_feparate_family.id);
+//				examineMessage(conn, orgId, examine, ORGPermission.per_feparate_family.id);
+
+				sendEexamineMail(conn, orgId, examine.id, ORGPermission.per_feparate_family.id);
 
 				// 平台内消息通知
 				message(conn, data, ORGPermission.per_feparate_family.name, examine.status);
@@ -1181,7 +1188,8 @@ public class ORGUserService {
 			if (orgPer != null) {
 				examine.status = Examine.STATUS.NOEXAMINE.v();
 				// 给审核人员发送通知
-				examineMessage(conn, orgId, examine, ORGPermission.per_share_change.id);
+//				examineMessage(conn, orgId, examine, ORGPermission.per_share_change.id);
+				sendEexamineMail(conn, orgId, examine.id, ORGPermission.per_share_change.id);
 
 				shareMessage(conn, data, ORGPermission.per_share_change.name, examine.status);
 			} else {
@@ -1198,6 +1206,45 @@ public class ORGUserService {
 		return examine;
 
 	}
+
+	//发送审批消息
+	public void sendEexamineMail(DruidPooledConnection conn, Long orgId, Long examineId, Long permissionId) throws Exception {
+		// 通过组织编号和权限编号查询当前能接收消息的用户
+		// 1、通过组织编号和权限编号查询当前能够操作审批的角色roles
+		List<ORGPermissionRel> rel = orgPermissionRelaRepository.getList(conn,
+				EXP.INS().key("org_id", orgId).andKey("permission_id", permissionId), null, null);
+		//通过得到的角色列表，查询拥有当前角色的用户
+		System.out.println(rel.size());
+		if(rel!=null && rel.size()>0) {
+			JSONArray roles = new JSONArray();
+			for(ORGPermissionRel r:rel) {
+				Long role = r.roleId;
+				roles.add(role);
+			}
+
+			//查询拥有当前角色的用户
+			EXP exp = EXP.JSON_CONTAINS_KEYS(roles, "roles", null);
+			JSONArray userList = orgUserRepository.getUserIds(conn,exp);
+			JSONArray tags = new JSONArray();
+			tags.add(MailTag.JITI_EXAMINE);
+			mailService.mailSend(100001L, userList, tags, orgId.toString(), "审批消息", "新的审批消息请查看", examineId.toString(), "examine");
+		}
+	}
+	
+	//发送投票消息
+	public void sendVoteMail(DruidPooledConnection conn,Long orgId, Vote vote) throws Exception {
+		//获取投票权限
+		JSONObject rolesJO = JSON.parseObject(vote.crowd);
+		JSONArray roles = JSON.parseArray(rolesJO.getString("roles"));
+		if(roles!=null && roles.size()>0) {
+			EXP exp = EXP.JSON_CONTAINS_KEYS(roles, "roles", null);
+			JSONArray userList = orgUserRepository.getUserIds(conn, exp);
+			JSONArray tags = new JSONArray();
+			tags.add(MailTag.JITI_VOTE);
+			mailService.mailSend(100001L, userList, tags, orgId.toString(), "投票消息", "新的投票消息请查看", vote.id.toString(), "vote");
+		}
+	}
+	
 
 	private void shareMessage(DruidPooledConnection conn, String data, String perName, Byte examineStatus)
 			throws Exception {
@@ -2093,40 +2140,40 @@ public class ORGUserService {
 				EXP.INS().key("org_id", orgId).andKey("user_id", userId));
 	}
 
-	public JSONObject getORGUserInfo(DruidPooledConnection conn, Long userId,Long orgId) {
+	public JSONObject getORGUserInfo(DruidPooledConnection conn, Long userId, Long orgId) {
 		try {
 			JSONObject jo = new JSONObject();
 			User user = userRepository.get(conn, EXP.INS().key("id", userId));
 			if (user != null) {
 				ORG org = orgService.getORGById(conn, orgId);
-				if(org!=null) {
+				if (org != null) {
 					jo.put("org", org);
-					ORGUser orgUser = orgUserRepository.get(conn, EXP.INS().key("user_id", userId).andKey("org_id", orgId));
-					if(orgUser!=null) {
+					ORGUser orgUser = orgUserRepository.get(conn,
+							EXP.INS().key("user_id", userId).andKey("org_id", orgId));
+					if (orgUser != null) {
 						jo.put("orgUser", orgUser);
-					}else {
+					} else {
 						return new JSONObject();
 					}
-				}else {
+				} else {
 					return new JSONObject();
 				}
 				jo.put("user", user);
 				return jo;
-			}else {
+			} else {
 				return new JSONObject();
 			}
-		}catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return new JSONObject();
-		
+
 	}
 
-	//通过权限查询用户
+	// 通过权限查询用户
 	public List<ORGUser> getOrgUserByRole(DruidPooledConnection conn, Long orgId, Long role) throws Exception {
-		return orgUserRepository.getList(conn, EXP.INS().key("org_id",orgId).and(EXP.JSON_CONTAINS("roles","$", role)), null, null);
+		return orgUserRepository.getList(conn,
+				EXP.INS().key("org_id", orgId).and(EXP.JSON_CONTAINS("roles", "$", role)), null, null);
 	}
-	
-	
 
 }

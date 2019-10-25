@@ -754,4 +754,9 @@ public class VoteService {
 		jo.put("offset", offset);
 		return jo;
 	}
+
+	//将当前时间大于或等于投票的结束时间的投票设置为投票结束
+	public int VotoISOver(DruidPooledConnection conn) throws Exception {
+		return voteRepository.voteIsOver(conn);
+	}
 }

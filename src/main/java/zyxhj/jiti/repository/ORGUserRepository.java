@@ -563,4 +563,15 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		return masterArray;
 	}
 
+	public JSONArray getUserIds(DruidPooledConnection conn, EXP exp) throws Exception {
+		StringBuffer sb = new StringBuffer();
+		exp.toSQL(sb, new ArrayList());
+		List<ORGUser> u = this.getList(conn, sb.toString(),null, null, null, "user_id");
+		JSONArray ja = new JSONArray();
+		for(ORGUser user : u) {
+			ja.add(user.userId);
+		}
+		return ja;
+	}
+
 }

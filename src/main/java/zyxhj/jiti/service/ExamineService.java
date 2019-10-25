@@ -32,6 +32,19 @@ import zyxhj.utils.data.ts.ColumnBuilder;
 import zyxhj.utils.data.ts.PrimaryKeyBuilder;
 import zyxhj.utils.data.ts.TSRepository;
 
+/**
+ * 
+ * @author JXians
+ *
+ *
+ *已废弃
+ */
+
+
+
+
+
+
 public class ExamineService {
 
 	private static Logger log = LoggerFactory.getLogger(ExamineService.class);
@@ -186,7 +199,7 @@ public class ExamineService {
 				// familyMaster, type,
 				// new Date());
 			}
-			messageService.createExamineMessages(conn, user, type, da, status);
+//			messageService.createExamineMessages(conn, user, type, da, status);
 		}
 
 	}
@@ -200,10 +213,10 @@ public class ExamineService {
 		if (familyOperate == Examine.OPERATE.MOVEFAMILYUSER.v()) {
 			for (int i = 0; i < oldDatas.size(); i++) {
 				JSONArray oldData = oldDatas.getJSONArray(i);
-				messageService.createExamineMessages(conn, oldData, perName, data, examineStatus);
+//				messageService.createExamineMessages(conn, oldData, perName, data, examineStatus);
 			}
 		} else {
-			messageService.createExamineMessages(conn, oldDatas, perName, data, examineStatus);
+//			messageService.createExamineMessages(conn, oldDatas, perName, data, examineStatus);
 		}
 	}
 

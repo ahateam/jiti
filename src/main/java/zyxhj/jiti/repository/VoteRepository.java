@@ -165,6 +165,17 @@ public class VoteRepository extends RDSRepository<Vote> {
 		return size;
 	}
 
+	public int voteIsOver(DruidPooledConnection conn) throws Exception {
+		String where = "unix_timestamp() >= unix_timestamp(expiry_time) AND status <> 4 ";
+		List<Vote> voteList = this.getList(conn, where,null, 50, 0);
+		if(voteList.size()>0 && voteList != null) {
+			Vote vote = new Vote();
+			vote.status = Vote.STATUS.PAUSED.v();
+			return this.update(conn, where, null, vote, true);
+		}
+		return 0;
+	}
+
 	// //统计组织下可投票人数
 	// public void countNumberByOrgId(DruidPooledConnection conn, JSONArray orgIds)
 	// {

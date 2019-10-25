@@ -11,18 +11,15 @@ import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
-import zyxhj.core.repository.ExamineRepository;
 import zyxhj.core.repository.UserRepository;
 import zyxhj.jiti.domain.ORG;
 import zyxhj.jiti.domain.ORGUser;
 import zyxhj.jiti.domain.SingleCertificateTask;
-import zyxhj.jiti.repository.ORGPermissionRelaRepository;
 import zyxhj.jiti.repository.ORGRepository;
 import zyxhj.jiti.repository.ORGUserRepository;
 import zyxhj.jiti.repository.SingleCertificateTaskRepository;
 import zyxhj.utils.IDUtils;
 import zyxhj.utils.Singleton;
-import zyxhj.utils.UploadFile;
 import zyxhj.utils.data.EXP;
 
 public class SingleCertificateTaskService {
@@ -82,6 +79,8 @@ public class SingleCertificateTaskService {
 	}
 
 	public JSONObject getFamilyInfo(DruidPooledConnection conn, Long orgId, Long familyNumber) throws Exception {
+		
+		ORG org = orgRepository.get(conn, EXP.INS().key("id", orgId));
 		// 获取户成员所有信息
 		String familyMemberSql = StringUtils.join(
 				"SELECT user.real_name, user.id_number,user.sex,org.family_relations FROM tb_user user, tb_ecm_org_user org WHERE user.id  = org.user_id AND org.family_number = ",
@@ -90,7 +89,9 @@ public class SingleCertificateTaskService {
 		String familyInfoSql = StringUtils.join(
 				"SELECT org.family_master, org.address, user.sex, COUNT(org.asset_shares) AS asset_share , COUNT(org.resource_shares) AS resource_shares, org.share_cer_no FROM tb_user user, tb_ecm_org_user org WHERE user.id = org.user_id AND org.family_number = ",
 				familyNumber, " AND org.org_id = ", orgId);
-		return userRepository.getFamilyMenber(conn, familyMemberSql,familyInfoSql);
+		JSONObject info = userRepository.getFamilyMenber(conn, familyMemberSql,familyInfoSql);
+		info.put("org",org);
+		return info;
 	}
 
 	public JSONArray getFamilyInfoArray(DruidPooledConnection conn, Long orgId, Long startFamilyNumber,

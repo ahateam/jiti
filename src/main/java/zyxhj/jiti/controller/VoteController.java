@@ -496,5 +496,12 @@ public class VoteController extends Controller {
 			return APIResponse.getNewSuccessResp();
 		}
 	}
-
+	
+	public int VotoISOver() throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return voteService.VotoISOver(conn);
+		}
+	}
+	
+	
 }

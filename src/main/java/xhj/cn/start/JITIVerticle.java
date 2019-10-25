@@ -25,6 +25,7 @@ public class JITIVerticle extends ZeroVerticle {
 	public static void main(String[] args) {
 		Vertx vertx = Vertx.vertx();
 		vertx.deployVerticle(new JITIVerticle());
+		vertx.deployVerticle(SelfRunning.class.getName());
 	}
 
 	public String name() {
@@ -49,14 +50,6 @@ public class JITIVerticle extends ZeroVerticle {
 
 		initCtrl(ctrlMap, Singleton.ins(UserController.class, "user"));
 
-		// initCtrl(ctrlMap, Singleton.ins(TagController.class, "tag"));
-
-		// initCtrl(ctrlMap, Singleton.ins(WxEventController.class, "wx"));
-
-		// initCtrl(ctrlMap, Singleton.ins(WxOAuth2Controller.class, "wxOAuth"));
-
-		// initCtrl(ctrlMap, Singleton.ins(ContentController.class, "content"));
-
 		initCtrl(ctrlMap, Singleton.ins(DemonstrationController.class, "demon"));
 
 		initCtrl(ctrlMap, Singleton.ins(BankController.class, "bank"));
@@ -71,9 +64,9 @@ public class JITIVerticle extends ZeroVerticle {
 		
 		initCtrl(ctrlMap, Singleton.ins(ExportTaskController.class, "export"));
 		
-		initCtrl(ctrlMap, Singleton.ins(ApprovalProcessController.class, "aProcess"));
-		
 		initCtrl(ctrlMap, Singleton.ins(SingleCertificateTaskController.class, "scft"));
+
+		initCtrl(ctrlMap, Singleton.ins(ApprovalProcessController.class, "aProcess"));
 		
 		initCtrl(ctrlMap, Singleton.ins(ProcessService.class, "process"));
 

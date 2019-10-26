@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alicloud.openservices.tablestore.SyncClient;
@@ -37,13 +38,8 @@ import zyxhj.utils.data.ts.TSRepository;
  * @author JXians
  *
  *
- *已废弃
+ *         已废弃
  */
-
-
-
-
-
 
 public class ExamineService {
 
@@ -355,17 +351,16 @@ public class ExamineService {
 					Long familyNumber = jo.getLong("familyNumber");
 					String familyMaster = jo.getString("familyMaster");
 					JSONObject tags = jo.getJSONObject("tags");
-					
+
 					Double resourceShares = jo.getDouble("resourceShares");
 					Double assetShares = jo.getDouble("assetShares");
 					Boolean isOrgUser = jo.getBoolean("isOrgUser");
 					Byte sex = jo.getByte("sex");
 					String familyRelations = jo.getString("familyRelations");
-					
+
 //					orgUserService.oldcreateORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo,
 //							shareCerImg, shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber,
 //							familyMaster);
-					
 
 					orgUserService.createORGUser(conn, or, mobile, realName, idNumber, sex, familyRelations,
 							resourceShares, assetShares, isOrgUser, address, shareCerNo, shareCerImg, shareCerHolder,
@@ -422,24 +417,21 @@ public class ExamineService {
 					Long familyNumber = json.getLong("familyNumber");
 					String familyMaster = json.getString("familyMaster");
 					JSONObject tags = json.getJSONObject("tags");
-					
+
 					Double resourceShares = json.getDouble("resourceShares");
 					Double assetShares = json.getDouble("assetShares");
 					Boolean isOrgUser = json.getBoolean("isOrgUser");
 					Byte sex = json.getByte("sex");
 					String familyRelations = json.getString("familyRelations");
-					
+
 //					orgUserService.oldcreateORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo,
 //							shareCerImg, shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber,
 //							familyMaster);
-					
+
 					orgUserService.createORGUser(conn, or, mobile, realName, idNumber, sex, familyRelations,
 							resourceShares, assetShares, isOrgUser, address, shareCerNo, shareCerImg, shareCerHolder,
 							shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
 
-					
-					
-					
 				} else if (userTab != null && userTab == Examine.TAB.REMOVE.v()) {
 					// 移除户成员
 					Long or = json.getLong("orgId");
@@ -516,24 +508,21 @@ public class ExamineService {
 						}
 					}
 					JSONObject tags = jo.getJSONObject("tags");
-					
 
 					Double resourceShares = jo.getDouble("resourceShares");
 					Double assetShares = jo.getDouble("assetShares");
 					Boolean isOrgUser = jo.getBoolean("isOrgUser");
 					Byte sex = jo.getByte("sex");
 					String familyRelations = jo.getString("familyRelations");
-					
-					
+
 //					orgUserService.oldcreateORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo,
 //							shareCerImg, shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber,
 //							familyMaster);
-					
+
 					orgUserService.createORGUser(conn, or, mobile, realName, idNumber, sex, familyRelations,
 							resourceShares, assetShares, isOrgUser, address, shareCerNo, shareCerImg, shareCerHolder,
 							shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
 
-					
 					jo.put("familyNumber", familyNumber);
 					js.add(jo);
 				} else if (userTab != null && userTab == Examine.TAB.REMOVE.v()) {
@@ -616,9 +605,9 @@ public class ExamineService {
 //				orgUserService.oldcreateORGUser(conn, or, mobile, realName, idNumber, address, shareCerNo, shareCerImg,
 //						shareCerHolder, shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
 
-				orgUserService.createORGUser(conn, or, mobile, realName, idNumber, sex, familyRelations,
-						resourceShares, assetShares, isOrgUser, address, shareCerNo, shareCerImg, shareCerHolder,
-						shareAmount, weight, roles, groups, tags, familyNumber, familyMaster);
+				orgUserService.createORGUser(conn, or, mobile, realName, idNumber, sex, familyRelations, resourceShares,
+						assetShares, isOrgUser, address, shareCerNo, shareCerImg, shareCerHolder, shareAmount, weight,
+						roles, groups, tags, familyNumber, familyMaster);
 
 				addFamily.add(json);
 			}
@@ -634,6 +623,7 @@ public class ExamineService {
 
 		return addNewData;
 	}
+
 	// 审批中添加无限文件上传
 	// 直接将文件复制上传到OSS服务器中，下一个审批流程时，通过需求，直接重OSS服务器中获取文件到本地
 	public void uploadFile(JSONArray fileUrls) {
@@ -644,49 +634,15 @@ public class ExamineService {
 				// 通过文件路径生成文件对象（FILE）
 				File file = new File(fileUrl);
 				InputStream inputStream = new FileInputStream(file);
-				JSONArray ja = getRoleArray(fileUrl,"\\" );
-				System.out.println(ja.get(ja.size()-1));
-				uploadFile.uploadFileToOSS(UploadFile.OSSCATALOGUE_EXAMINE, ja.getString(ja.size()-1), inputStream);
+				JSONArray ja = JSON.parseArray(JSON.toJSONString(fileUrl.split("\\")));
+				System.out.println(ja.get(ja.size() - 1));
+				uploadFile.uploadFileToOSS(UploadFile.BUCKETNAME_JITI, UploadFile.OSSCATALOGUE_EXAMINE,
+						ja.getString(ja.size() - 1), inputStream);
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
 
-	}
-	
-	private JSONArray getRoleArray(String roleStr,String Separator) {
-		JSONArray roleArray = new JSONArray();
-		roleStr.trim();
-		int start = roleStr.indexOf(Separator);
-		if (start < 0) {
-			roleArray.add(roleStr);
-		} else {
-			int end = roleStr.lastIndexOf(Separator);
-			roleArray.add(roleStr.substring(0, start));
-			if (end == start) {
-				roleArray.add(roleStr.substring(start + 1, roleStr.length()));
-			} else {
-				String newStr = roleStr.substring(start + 1, roleStr.length());
-				String newStr2 = newStr;
-				for (int i = 0; i < 5; i++) {
-					if (newStr2.indexOf(Separator) > 0) {
-						newStr2 = newStr.substring(newStr.indexOf(Separator) + 1, newStr.length());
-						newStr = newStr.substring(0, newStr.indexOf(Separator));
-						roleArray.add(newStr);
-						start = newStr.indexOf(Separator) + 1;
-						newStr = newStr2;
-					} else {
-						newStr2 = newStr2.substring(newStr2.lastIndexOf(Separator) + 1, newStr2.length());
-						roleArray.add(newStr2);
-						break;
-					}
-				}
-			}
-		}
-		return roleArray;
-	}
-	
-	
-	
 }

@@ -17,6 +17,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
+import zyxhj.core.domain.User;
+import zyxhj.core.repository.UserRepository;
+import zyxhj.core.service.UserService;
 import zyxhj.jiti.domain.ORGUser;
 import zyxhj.jiti.domain.Vote;
 import zyxhj.jiti.domain.VoteOption;
@@ -42,6 +45,8 @@ public class VoteService {
 //	private WxDataService wxDataService;
 	// private WxFuncService wxFuncService;
 	private MessageService messageService;
+	private ORGUserService orgUserService;
+	private UserService userService;
 
 	public VoteService() {
 		try {
@@ -52,6 +57,8 @@ public class VoteService {
 //			wxDataService = Singleton.ins(WxDataService.class);
 			// wxFuncService = Singleton.ins(WxFuncService.class);
 			messageService = Singleton.ins(MessageService.class);
+			orgUserService = Singleton.ins(ORGUserService.class);
+			userService = Singleton.ins(UserService.class);
 
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
@@ -139,11 +146,11 @@ public class VoteService {
 
 			v.quorum = orgUserRepository.getParticipateCount(conn, orgId, v.id, crowd);
 			voteRepository.insert(conn, v);
-
 			if (isAbstain) {
 				// 如果自动带有弃权选项，则默认创建一个VoteOption
 				addVoteOption(conn, v.id, true, "弃权", "", "");
 			}
+			orgUserService.sendVoteMail(conn, orgId, v);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -717,26 +724,26 @@ public class VoteService {
 
 	// 是否投票列表
 	public JSONObject getVoteByUserRoles(DruidPooledConnection conn, Long orgId, Long userId, JSONArray roles,
-			Integer count, Integer offset,Boolean bool) throws Exception {
+			Integer count, Integer offset, Boolean bool) throws Exception {
 		// 根据orgId以及roles获取用户的可投票列表 select * from aa where org_id = ? And
 		// (JSON_CONTAINS(role,101,'$') OR JSON_CON.... )
 		JSONObject jo = new JSONObject();
 		JSONArray json = new JSONArray();
-		//得到该组织的投票总数
+		// 得到该组织的投票总数
 		int size = voteRepository.getVoteCount(conn, orgId, roles);
 		while (true) {
-			//判断循环是否超出范围
+			// 判断循环是否超出范围
 			if (offset < size) {
 				List<Vote> vote = voteRepository.getVoteByUserRoles(conn, orgId, roles, count, offset); // 获取到了vote
 				// 再去根据用户id去查询当前用户是否已经投了此票 如果用户id+投票id为空 则表示未投 不为空 则表示已经投了票
 				for (Vote v : vote) {
 					VoteTicket voteTicket = ticketRepository.get(conn,
 							EXP.INS().key("vote_id", v.id).andKey("user_id", userId));
-					if(bool) {//已投票
+					if (bool) {// 已投票
 						if (voteTicket != null) {
 							json.add(v);
 						}
-					}else {//未投票
+					} else {// 未投票
 						if (voteTicket == null) {
 							json.add(v);
 						}
@@ -755,8 +762,54 @@ public class VoteService {
 		return jo;
 	}
 
-	//将当前时间大于或等于投票的结束时间的投票设置为投票结束
+	// 将当前时间大于或等于投票的结束时间的投票设置为投票结束
 	public int VotoISOver(DruidPooledConnection conn) throws Exception {
 		return voteRepository.voteIsOver(conn);
+	}
+
+	public JSONArray getNoVoteUsers(DruidPooledConnection conn, Long orgId, Long voteId) throws Exception {
+		// 获取当前投票详情，从中拿取投票权限
+		Vote vo = voteRepository.get(conn, EXP.INS().key("org_id", orgId).andKey("id", voteId));
+		if (vo != null) {
+			JSONObject jo = JSON.parseObject(vo.crowd);
+			JSONArray roles = jo.getJSONArray("roles");
+			if (roles != null && roles.size() > 0) {
+				// 通过可投票角色查询可投票用户
+				EXP exp = EXP.INS().key("org_id", orgId).and(EXP.JSON_CONTAINS_KEYS(roles, "roles", null));
+				List<ORGUser> userList = orgUserRepository.getList(conn, exp, null, null);
+				if (userList != null && userList.size() > 0) {
+					// 查询已经投票的用户
+					List<VoteTicket> vtlist = ticketRepository.getList(conn,
+							EXP.INS().key("org_id", orgId).andKey("vote_id", voteId), null, null);
+					if (vtlist != null && vtlist.size() > 0) {
+						List<ORGUser> userIds = new ArrayList<ORGUser>();
+						for (int u = 0; u < userList.size(); u++) {
+							Long userId = userList.get(u).userId;
+							for (int v = 0; v < vtlist.size(); v++) {
+								Long vUserId = vtlist.get(v).userId;
+								if (userId == vUserId) {
+									userIds.add(userList.get(u));
+								}
+							}
+						}
+						userList.removeAll(userIds);
+						JSONArray ulist= new JSONArray();
+						for (int i = 0; i < userList.size(); i++) {
+							User user = userService.getUserById(conn, userList.get(i).userId);
+							if(user!=null) {
+								JSONObject userJo = new JSONObject();
+								userJo.put("id", user.id);
+								userJo.put("realName", user.realName);
+								ulist.add(userJo);
+							}
+						}
+						return ulist;
+
+					}
+				}
+			}
+
+		}
+		return null;
 	}
 }

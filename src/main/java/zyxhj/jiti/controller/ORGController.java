@@ -11,7 +11,9 @@ import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
+import zyxhj.core.domain.Mail;
 import zyxhj.core.domain.User;
+import zyxhj.core.service.MailService;
 import zyxhj.core.service.UserService;
 import zyxhj.jiti.domain.Examine;
 import zyxhj.jiti.domain.Notice;
@@ -42,6 +44,7 @@ public class ORGController extends Controller {
 	private ORGUserRoleService orgUserRoleService;
 	private MessageService messageService;
 	private UserService userService;
+	private static MailService mailService;
 
 	public ORGController(String node) {
 		super(node);
@@ -56,6 +59,7 @@ public class ORGController extends Controller {
 			orgUserRoleService = Singleton.ins(ORGUserRoleService.class);
 			messageService = Singleton.ins(MessageService.class);
 			userService = Singleton.ins(UserService.class);
+			mailService = Singleton.ins(MailService.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -441,11 +445,11 @@ public class ORGController extends Controller {
 			@P(t = "密码") String pwd//
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(ServiceUtils.checkNull(orgService.COOPLogin(conn, accountNumber, pwd)));
+			return APIResponse
+					.getNewSuccessResp(ServiceUtils.checkNull(orgService.COOPLogin(conn, accountNumber, pwd)));
 		}
 	}
-	
-	
+
 	/**
 	 * 
 	 */
@@ -1981,7 +1985,7 @@ public class ORGController extends Controller {
 			ret = "上级组织列表List<ORG>"//
 	)
 	public APIResponse getSuperiorORGs(//
-			@P(t = "上级编号") Long superiorId,//
+			@P(t = "上级编号") Long superiorId, //
 			@P(t = "组织编号") Byte level, //
 			Integer count, //
 			Integer offset //
@@ -2083,18 +2087,64 @@ public class ORGController extends Controller {
 		}
 	}
 
-	@GETAPI(//
-			path = "getORGUserInfo",//
-			des = "获取用户详细信息",//
-			ret = "单个用户详细信息"
-			)
+	@POSTAPI(//
+			path = "getORGUserInfo", //
+			des = "获取用户详细信息", //
+			ret = "单个用户详细信息")
 	public APIResponse getORGUserInfo(//
-			@P(t = "用户编号") Long userId,//
+			@P(t = "用户编号") Long userId, //
 			@P(t = "组织编号") Long orgId//
-			) throws Exception {
+	) throws Exception {
 		System.out.println(123465);
 		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgUserService.getORGUserInfo(conn, userId, orgId));
+		}
+	}
+
+	@POSTAPI(//
+			path = "getMailListByUserId", //
+			des = "获取当前用户的所有消息", //
+			ret = "JSONArray")
+	public APIResponse getMailListByUserId(//
+			@P(t = "用户编号") Long userId, //
+			Integer count, //
+			Integer offset) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse
+					.getNewSuccessResp(mailService.mailList(Mail.JITI_MODULEID, userId.toString(), count, offset));
+		}
+	}
+
+	@POSTAPI(//
+			path = "latlestMail",//
+			des = "获取当前用户的最新消息",//
+			ret = "JSONArray"
+			)
+	public APIResponse latlestMail(//
+			@P(t = "用户编号") Long userId//
+			) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse.getNewSuccessResp(mailService.latlestMail(Mail.JITI_MODULEID, userId.toString()));
+		}
+	}
+
+	@POSTAPI(//
+			path = "editMailStatus",//
+			des = "标记消息为已读"//
+			)
+	public APIResponse editMailStatus(//
+			@P(t = "用户编号") Long userId,//
+			@P(t = "自增编号") Long sequenceId,//
+			@P(t = "标签") JSONArray tags,//
+			@P(t = "发送编号") String orgId,//
+			@P(t = "消息标题") String title,//
+			@P(t = "消息内容") String text,//
+			@P(t = "消息操作编号（投票编号或审批编号）") String action,//
+			@P(t = "备用字段") String ext,//
+			@P(t = "消息创建时间") Long createTime//
+			) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse.getNewSuccessResp(mailService.delMail(Mail.JITI_MODULEID, userId.toString(), sequenceId, tags, orgId.toString(), title, text, action, createTime, ext));
 		}
 	}
 	

@@ -12,13 +12,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alicloud.openservices.tablestore.SyncClient;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
+import io.vertx.core.Vertx;
+import zyxhj.core.domain.Mail;
 import zyxhj.core.domain.MailTag;
 import zyxhj.core.domain.User;
 import zyxhj.core.repository.UserRepository;
@@ -44,6 +48,7 @@ import zyxhj.utils.IDUtils;
 import zyxhj.utils.Singleton;
 import zyxhj.utils.api.BaseRC;
 import zyxhj.utils.api.ServerException;
+import zyxhj.utils.data.DataSource;
 import zyxhj.utils.data.EXP;
 
 public class ORGUserService {
@@ -1172,7 +1177,7 @@ public class ORGUserService {
 				// 给审核人员发送通知
 //				examineMessage(conn, orgId, examine, ORGPermission.per_feparate_family.id);
 
-				sendEexamineMail(conn, orgId, examine.id, ORGPermission.per_feparate_family.id);
+				sendEexamineMail(orgId, examine.id, ORGPermission.per_feparate_family.id);
 
 				// 平台内消息通知
 				message(conn, data, ORGPermission.per_feparate_family.name, examine.status);
@@ -1189,7 +1194,7 @@ public class ORGUserService {
 				examine.status = Examine.STATUS.NOEXAMINE.v();
 				// 给审核人员发送通知
 //				examineMessage(conn, orgId, examine, ORGPermission.per_share_change.id);
-				sendEexamineMail(conn, orgId, examine.id, ORGPermission.per_share_change.id);
+				sendEexamineMail(orgId, examine.id, ORGPermission.per_share_change.id);
 
 				shareMessage(conn, data, ORGPermission.per_share_change.name, examine.status);
 			} else {
@@ -1207,45 +1212,91 @@ public class ORGUserService {
 
 	}
 
-	//发送审批消息
-	public void sendEexamineMail(DruidPooledConnection conn, Long orgId, Long examineId, Long permissionId) throws Exception {
-		// 通过组织编号和权限编号查询当前能接收消息的用户
-		// 1、通过组织编号和权限编号查询当前能够操作审批的角色roles
-		List<ORGPermissionRel> rel = orgPermissionRelaRepository.getList(conn,
-				EXP.INS().key("org_id", orgId).andKey("permission_id", permissionId), null, null);
-		//通过得到的角色列表，查询拥有当前角色的用户
-		System.out.println(rel.size());
-		if(rel!=null && rel.size()>0) {
-			JSONArray roles = new JSONArray();
-			for(ORGPermissionRel r:rel) {
-				Long role = r.roleId;
-				roles.add(role);
+	// 发送审批消息（如果使用不了就将异步删除）
+	public void sendEexamineMail(Long orgId, Long examineId, Long permissionId)
+			throws Exception {
+		Vertx.vertx().executeBlocking(future -> {
+			// 下面这行代码可能花费很长时间
+			DruidDataSource dds;
+			DruidPooledConnection conn = null;
+			try {
+				dds = DataSource.getDruidDataSource("rdsDefault.prop");
+				conn = (DruidPooledConnection) dds.getConnection();
+				// 通过组织编号和权限编号查询当前能接收消息的用户
+				// 1、通过组织编号和权限编号查询当前能够操作审批的角色roles
+				List<ORGPermissionRel> rel = orgPermissionRelaRepository.getList(conn,
+						EXP.INS().key("org_id", orgId).andKey("permission_id", permissionId), null, null);
+				// 通过得到的角色列表，查询拥有当前角色的用户
+				System.out.println(rel.size());
+				if (rel != null && rel.size() > 0) {
+					JSONArray roles = new JSONArray();
+					for (ORGPermissionRel r : rel) {
+						Long role = r.roleId;
+						roles.add(role);
+					}
+					if (roles != null && roles.size() > 0) {
+						// 查询拥有当前角色的用户
+						EXP exp = EXP.INS().key("org_id", orgId).and(EXP.JSON_CONTAINS_KEYS(roles, "roles", null));
+						
+						JSONArray userList = orgUserRepository.getUserIds(conn, exp);
+						System.out.println("---------------------------------------------------------");
+						System.out.println("userList.size==="+userList.size());
+						if (userList != null && userList.size() > 0) {
+							JSONArray tags = new JSONArray();
+							tags.add(MailTag.JITI_EXAMINE.name);
+							mailService.mailSend(Mail.JITI_MODULEID, userList, tags, orgId.toString(), "审批消息", "新的审批消息请查看",
+									examineId.toString(), "examine");
+							System.out.println("---------------------------------------------------------");
+							System.out.println("发送消息成功");
+						}
+					}
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
+			future.complete("ok");
+		}, res -> {
+			System.out.println("The result is: " + res.result());
+		});
 
-			//查询拥有当前角色的用户
-			EXP exp = EXP.JSON_CONTAINS_KEYS(roles, "roles", null);
-			JSONArray userList = orgUserRepository.getUserIds(conn,exp);
-			JSONArray tags = new JSONArray();
-			tags.add(MailTag.JITI_EXAMINE);
-			mailService.mailSend(100001L, userList, tags, orgId.toString(), "审批消息", "新的审批消息请查看", examineId.toString(), "examine");
-		}
+	}
+
+	// 发送投票消息（如果使用不了就将异步删除）
+	public void sendVoteMail(DruidPooledConnection conn, Long orgId, Vote vote) throws Exception {
+		Vertx.vertx().executeBlocking(future -> {
+			// 下面这行代码可能花费很长时间
+			DruidDataSource dds;
+			DruidPooledConnection c = null;
+			try {
+				dds = DataSource.getDruidDataSource("rdsDefault.prop");
+				c = (DruidPooledConnection) dds.getConnection();
+				// 获取投票权限
+				if (vote != null) {
+					JSONObject rolesJO = JSON.parseObject(vote.crowd);
+					if (rolesJO != null) {
+						JSONArray roles = JSON.parseArray(rolesJO.getString("roles"));
+						if (roles != null && roles.size() > 0) {
+							EXP exp = EXP.INS().key("org_id", orgId).and(EXP.JSON_CONTAINS_KEYS(roles, "roles", null));
+							JSONArray userList = orgUserRepository.getUserIds(conn, exp);
+							if (userList != null && userList.size() > 0) {
+								JSONArray tags = new JSONArray();
+								tags.add(MailTag.JITI_VOTE.name);
+								mailService.mailSend(Mail.JITI_MODULEID, userList, tags, orgId.toString(), "投票消息", "新的投票消息请查看",
+										vote.id.toString(), "vote");
+							}
+						}
+					}
+
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			future.complete("ok");
+		}, res -> {
+			System.out.println("The result is: " + res.result());
+		});
 	}
 	
-	//发送投票消息
-	public void sendVoteMail(DruidPooledConnection conn,Long orgId, Vote vote) throws Exception {
-		//获取投票权限
-		JSONObject rolesJO = JSON.parseObject(vote.crowd);
-		JSONArray roles = JSON.parseArray(rolesJO.getString("roles"));
-		if(roles!=null && roles.size()>0) {
-			EXP exp = EXP.JSON_CONTAINS_KEYS(roles, "roles", null);
-			JSONArray userList = orgUserRepository.getUserIds(conn, exp);
-			JSONArray tags = new JSONArray();
-			tags.add(MailTag.JITI_VOTE);
-			mailService.mailSend(100001L, userList, tags, orgId.toString(), "投票消息", "新的投票消息请查看", vote.id.toString(), "vote");
-		}
-	}
-	
-
 	private void shareMessage(DruidPooledConnection conn, String data, String perName, Byte examineStatus)
 			throws Exception {
 		JSONObject jo = JSONObject.parseObject(data);

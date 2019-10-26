@@ -79,12 +79,6 @@ public class Message {
 	 */
 	@RDSAnnField(column = RDSAnnField.ID)
 	public Long userId;
-	
-	/**
-	 * 投票编号或审批编号
-	 */
-	@RDSAnnField(column = RDSAnnField.ID)
-	public Long ownerId;
 
 	/**
 	 * 标题
@@ -121,12 +115,6 @@ public class Message {
 	 */
 	@RDSAnnField(column = RDSAnnField.BYTE)
 	public Byte status;
-	
-	/**
-	 * 查看权限
-	 */
-	@RDSAnnField(column = RDSAnnField.BYTE)
-	public JSONObject roles;
 	
 
 }

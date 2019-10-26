@@ -3,6 +3,7 @@ package xhj.cn.start;
 import io.vertx.core.Vertx;
 import zyxhj.core.controller.TestController;
 import zyxhj.core.controller.UserController;
+import zyxhj.core.service.MailService;
 import zyxhj.flow.service.FlowService;
 import zyxhj.flow.service.ProcessService;
 import zyxhj.jiti.controller.ApprovalProcessController;
@@ -71,6 +72,8 @@ public class JITIVerticle extends ZeroVerticle {
 		initCtrl(ctrlMap, Singleton.ins(ProcessService.class, "process"));
 
 		initCtrl(ctrlMap, Singleton.ins(FlowService.class, "flow"));
+		
+		initCtrl(ctrlMap, Singleton.ins(MailService.class, "mail"));
 
 	}
 

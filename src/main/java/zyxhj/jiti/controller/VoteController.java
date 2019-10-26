@@ -453,8 +453,8 @@ public class VoteController extends Controller {
 			Integer offset //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse
-					.getNewSuccessResp(voteService.getVoteByUserRoles(conn, orgId, userId, roles, count, offset,false));
+			return APIResponse.getNewSuccessResp(
+					voteService.getVoteByUserRoles(conn, orgId, userId, roles, count, offset, false));
 		}
 	}
 
@@ -475,7 +475,7 @@ public class VoteController extends Controller {
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse
-					.getNewSuccessResp(voteService.getVoteByUserRoles(conn, orgId, userId, roles, count, offset,true));
+					.getNewSuccessResp(voteService.getVoteByUserRoles(conn, orgId, userId, roles, count, offset, true));
 		}
 	}
 
@@ -496,12 +496,26 @@ public class VoteController extends Controller {
 			return APIResponse.getNewSuccessResp();
 		}
 	}
-	
+
 	public int VotoISOver() throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
 			return voteService.VotoISOver(conn);
 		}
 	}
-	
-	
+
+	@POSTAPI(//
+			path = "getNoVoteUsers", //
+			des = "获取当前投票未投票的用户", //
+			ret = "JSONArray"//
+	)
+	public JSONArray getNoVoteUsers(//
+			Long orgId, //
+			Long voteId//
+	) throws Exception {
+
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return voteService.getNoVoteUsers(conn, orgId, voteId);
+		}
+	}
+
 }

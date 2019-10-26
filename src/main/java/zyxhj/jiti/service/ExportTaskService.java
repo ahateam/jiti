@@ -184,7 +184,7 @@ public class ExportTaskService {
 
 					// 获取组织名称
 					ORG org = orgService.getORGById(conn, orgId);
-					//将文件上传到OSS
+					// 将文件上传到OSS
 					String url = ExportDataIntoOSS(dataListExcel, org.name);
 					// 修改任务状态为文件已生成
 					exp.completedCount = offset;
@@ -211,14 +211,14 @@ public class ExportTaskService {
 			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 			dataListExcel.write(outputStream);
 			InputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
-			//生成文件名
+			// 生成文件名
 			Date date = new Date();
 			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-hh-mm-ss");
 			String OSSCatalogue = uploadFile.OSSCATALOGUE_PRINT_EXCEL;
-			String fileName =  orgName + "" + dateFormat.format(date) + ".xlsx";
+			String fileName = orgName + "" + dateFormat.format(date) + ".xlsx";
 
 			// 上传到OSS
-			String url = uploadFile.uploadFileToOSS(OSSCatalogue, fileName, inputStream);
+			String url = uploadFile.uploadFileToOSS(UploadFile.BUCKETNAME_JITI, OSSCatalogue, fileName, inputStream);
 			outputStream.close();
 			return url;
 		} catch (Exception e) {

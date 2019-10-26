@@ -258,7 +258,7 @@ public class ImportTaskService {
 							// 股东成员职务
 							String ts = StringUtils.trim(dutyShareholders);
 							if(ts!=null) {
-								JSONArray ja = getRoleArray(ts.trim());
+								JSONArray ja = JSON.parseArray(JSON.toJSONString(ts.trim().split("/")));
 								if (ja.size() > 1) {
 									for (int r = 0; r < ja.size(); r++) {
 										String role = ja.getString(r);
@@ -294,7 +294,7 @@ public class ImportTaskService {
 							// 董事会职务
 							String ts = StringUtils.trim(dutyDirectors);
 							if(ts!=null) {
-								JSONArray ja = getRoleArray(ts.trim());
+								JSONArray ja = JSON.parseArray(JSON.toJSONString(ts.trim().split("/")));
 								if (ja.size() > 1) {
 									for (int r = 0; r < ja.size(); r++) {
 										String role = ja.getString(r);
@@ -328,7 +328,7 @@ public class ImportTaskService {
 							// 监事会职务
 							String ts = StringUtils.trim(dutyVisors);
 							if (ts != null) {
-								JSONArray ja = getRoleArray(ts.trim());
+								JSONArray ja = JSON.parseArray(JSON.toJSONString(ts.trim().split("/")));
 								if (ja.size() > 1) {
 									for (int r = 0; r < ja.size(); r++) {
 										String role = ja.getString(r);
@@ -700,40 +700,4 @@ public class ImportTaskService {
 	public ImportTask getImportTask(DruidPooledConnection conn, Long importTaskId) throws Exception {
 		return taskRepository.get(conn, EXP.INS().key("id", importTaskId));
 	}
-
-	/**
-	 * 遍历字符串，将其中的角色添加到JSONArry中
-	 */
-	private JSONArray getRoleArray(String roleStr) {
-		JSONArray roleArray = new JSONArray();
-		roleStr.trim();
-		int start = roleStr.indexOf("/");
-		if (start < 0) {
-			roleArray.add(roleStr);
-		} else {
-			int end = roleStr.lastIndexOf("/");
-			roleArray.add(roleStr.substring(0, start));
-			if (end == start) {
-				roleArray.add(roleStr.substring(start + 1, roleStr.length()));
-			} else {
-				String newStr = roleStr.substring(start + 1, roleStr.length());
-				String newStr2 = newStr;
-				for (int i = 0; i < 5; i++) {
-					if (newStr2.indexOf("/") > 0) {
-						newStr2 = newStr.substring(newStr.indexOf("/") + 1, newStr.length());
-						newStr = newStr.substring(0, newStr.indexOf("/"));
-						roleArray.add(newStr);
-						start = newStr.indexOf("/") + 1;
-						newStr = newStr2;
-					} else {
-						newStr2 = newStr2.substring(newStr2.lastIndexOf("/") + 1, newStr2.length());
-						roleArray.add(newStr2);
-						break;
-					}
-				}
-			}
-		}
-		return roleArray;
-	}
-
 }

@@ -164,6 +164,7 @@ public class ApprovalProcessService {
 							}
 							// 判断是否有用户
 							if (uarray != null && uarray.size() > 0) {
+								//发送消息
 								mailService.mailSend(moduleId, uarray, pd.tags, userId.toString(), pro.title, "content",
 										"操作下一步", "备用字段");
 							}

@@ -396,7 +396,7 @@ public class ORGService {
 		for (Superior sup : superior) {
 			json.add(sup.orgId);
 		}
-		return orgRepository.getList(conn, EXP.IN("id", json.toArray()), count, offset);
+		return orgRepository.getList(conn, EXP.IN("id", json.toArray()).append("ORDER BY create_time DESC"), count, offset);
 	}
 
 	/**
@@ -796,7 +796,7 @@ public class ORGService {
 	public List<ORGExamine> getORGExamineByStatus(DruidPooledConnection conn, Byte status, Long superiorId,
 			Integer count, Integer offset) throws Exception {
 
-		return orgExamineRepository.getList(conn, EXP.INS().key("superior_id", superiorId).andKey("examine", status),
+		return orgExamineRepository.getList(conn, EXP.INS().key("superior_id", superiorId).andKey("examine", status).append(" ORDER BY create_time DESC"),
 				count, offset);
 
 	}
@@ -804,7 +804,7 @@ public class ORGService {
 	// 查询自己提交的申请
 	public List<ORGExamine> getORGExamineByUser(DruidPooledConnection conn, Long userId, Integer count, Integer offset)
 			throws Exception {
-		return orgExamineRepository.getList(conn, EXP.INS().key("user_id", userId), count, offset);
+		return orgExamineRepository.getList(conn, EXP.INS().key("user_id", userId).append("ORDER BY create_time DESC"), count, offset);
 	}
 
 	// 删除申请
@@ -1062,9 +1062,9 @@ public class ORGService {
 	}
 
 	// 获取公告
-	public List<Notice> getNotice(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)
+	public List<Notice> getNotice(DruidPooledConnection conn, Long orgId,String title, Integer count, Integer offset)
 			throws Exception {
-		return noticeRepository.getNotice(conn, orgId, count, offset);
+		return noticeRepository.getNotice(conn, orgId,title, count, offset);
 	}
 
 	// 修改公告

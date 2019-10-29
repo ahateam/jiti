@@ -85,9 +85,9 @@ public class VoteService {
 		}
 	}
 
-	public List<Vote> getVotes(DruidPooledConnection conn, Long orgId, Byte status, Integer count, Integer offset)
+	public List<Vote> getVotes(DruidPooledConnection conn, Long orgId, Byte status,String title, Integer count, Integer offset)
 			throws Exception {
-		return voteRepository.getVotes(conn, orgId, status, count, offset);
+		return voteRepository.getVotes(conn, orgId, status,title,count, offset);
 	}
 
 	public List<Vote> getUserVotes(DruidPooledConnection conn, Long orgId, Long userId, Integer count, Integer offset)

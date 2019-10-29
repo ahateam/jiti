@@ -195,11 +195,12 @@ public class VoteController extends Controller {
 	public APIResponse getVotes(//
 			@P(t = "组织编号") Long orgId, //
 			@P(t = "投票状态，空或不填则表示全部查询", r = false) Byte status, //
+			@P(t = "投票标题", r = false) String title, //
 			Integer count, //
 			Integer offset //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(voteService.getVotes(conn, orgId, status, count, offset));
+			return APIResponse.getNewSuccessResp(voteService.getVotes(conn, orgId, status,title,count, offset));
 		}
 	}
 

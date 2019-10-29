@@ -1712,11 +1712,12 @@ public class ORGController extends Controller {
 	)
 	public APIResponse getNotice(//
 			@P(t = "组织编号") Long orgId, //
+			@P(t = "公告标题", r = false) String title, //
 			Integer count, //
 			Integer offset //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.getNotice(conn, orgId, count, offset));
+			return APIResponse.getNewSuccessResp(orgService.getNotice(conn, orgId,title, count, offset));
 		}
 	}
 

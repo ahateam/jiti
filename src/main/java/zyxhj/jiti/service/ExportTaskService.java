@@ -45,6 +45,7 @@ public class ExportTaskService {
 			taskRepository = Singleton.ins(ExportTaskRepository.class);
 			orgUserService = Singleton.ins(ORGUserService.class);
 			orgService = Singleton.ins(ORGService.class);
+			uploadFile = Singleton.ins(UploadFile.class);
 
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
@@ -216,7 +217,16 @@ public class ExportTaskService {
 			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-hh-mm-ss");
 			String OSSCatalogue = uploadFile.OSSCATALOGUE_PRINT_EXCEL;
 			String fileName = orgName + "" + dateFormat.format(date) + ".xlsx";
+			if(OSSCatalogue==null) {
+				System.out.println("OSSCatalogue==null");
+			}
+			if(inputStream==null) {
+				System.out.println("inputStream==null");
+			}
 
+			if(fileName==null) {
+				System.out.println("fileName==null");
+			}
 			// 上传到OSS
 			String url = uploadFile.uploadFileToOSS(UploadFile.BUCKETNAME_JITI, OSSCatalogue, fileName, inputStream);
 			outputStream.close();

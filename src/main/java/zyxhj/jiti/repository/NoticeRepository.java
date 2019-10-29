@@ -3,6 +3,7 @@ package zyxhj.jiti.repository;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.StringUtils;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
@@ -52,9 +53,13 @@ public class NoticeRepository extends RDSRepository<Notice> {
 		return getList(conn, sql, count, offset);
 	}
 
-	public List<Notice> getNotice(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)
+	public List<Notice> getNotice(DruidPooledConnection conn, Long orgId,String title, Integer count, Integer offset)
 			throws Exception {
-		EXP sql = EXP.INS().key("org_id", orgId).append("ORDER BY create_time DESC");
+		EXP sql = EXP.INS().key("org_id", orgId);
+		if(!StringUtils.isBlank(title)) {
+			sql.and(EXP.LIKE("title", title));
+		}
+		sql.append("ORDER BY create_time DESC");
 		
 		return getList(conn,sql, count, offset);
 	}

@@ -458,7 +458,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 			throws Exception {
 		StringBuffer sb = new StringBuffer("SELECT * FROM tb_ecm_org_user  WHERE ");
 		EXP sql = EXP.INS().key("org_id", orgId).and("family_number IS NOT NULL", null, null)
-				.append("GROUP BY family_master");
+				.append("GROUP BY family_master ORDER BY family_number ASC");
 //		sql.addEx("org_id = ? ", orgId);
 //		sql.AND(" family_number IS NOT NULL ");
 //		sql.addEx("GROUP BY family_master");

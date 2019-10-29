@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
 
@@ -18,25 +20,25 @@ public class VoteRepository extends RDSRepository<Vote> {
 		super(Vote.class);
 	}
 
-	public List<Vote> getVotes(DruidPooledConnection conn, Long orgId, Byte status, Integer count, Integer offset)
+	public List<Vote> getVotes(DruidPooledConnection conn, Long orgId, Byte status,String title, Integer count, Integer offset)
 			throws ServerException {
+		StringBuffer sb = new StringBuffer();
+		List<Object> params = new ArrayList<Object>();
+		EXP sql = EXP.INS().key("org_id", orgId);
 		if (status == null) {
-			return getList(conn, EXP.INS().key("org_id", orgId).append("ORDER BY create_time DESC"), count, offset);
-
+			if(!StringUtils.isBlank(title)) {
+				sql.and(EXP.LIKE("title", title));
+			}
 		} else {
-//			return getList(conn,
-//					EXP.INS().key("org_id", orgId).andKey("status", status).append("ORDER BY create_time DESC"), count,
-//					offset);
-
-			EXP sql = EXP.INS().key("org_id", orgId).andKey("status", status);
-			StringBuffer sb = new StringBuffer();
-			List<Object> params = new ArrayList<Object>();
-			sql.toSQL(sb, params);
-			sb.append(" ORDER BY create_time DESC");
-			return getList(conn, sb.toString(), params, count, offset);
-			
-			
+			sql.andKey("status", status);
+			if(!StringUtils.isBlank(title)) {
+				sql.and(EXP.LIKE("title", title));
+			}
 		}
+		sql.toSQL(sb, params);
+		sb.append(" ORDER BY create_time DESC");
+		return getList(conn, sb.toString(), params, count, offset);
+		
 	}
 
 	public List<Vote> getUserVotes(DruidPooledConnection conn, Long orgId, Long userId, Integer count, Integer offset)

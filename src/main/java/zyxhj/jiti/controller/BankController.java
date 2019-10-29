@@ -108,12 +108,13 @@ public class BankController extends Controller {
 	public APIResponse getVotes(//
 			@P(t = "组织编号") Long orgId, //
 			@P(t = "状态(可填可不填)", r = false) Byte status, //
+			@P(t = "投票标题", r = false) String title, //
 			Integer count, //
 			Integer offset//
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(
-					ServiceUtils.checkNull(voteService.getVotes(conn, orgId, status, count, offset)));
+					ServiceUtils.checkNull(voteService.getVotes(conn, orgId, status,title, count, offset)));
 		}
 	}
 

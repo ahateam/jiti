@@ -59,7 +59,7 @@ public class ORGController extends Controller {
 			orgUserRoleService = Singleton.ins(ORGUserRoleService.class);
 			messageService = Singleton.ins(MessageService.class);
 			userService = Singleton.ins(UserService.class);
-			mailService = Singleton.ins(MailService.class);
+			mailService = Singleton.ins(MailService.class,"node");
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -2018,6 +2018,20 @@ public class ORGController extends Controller {
 					orgService.getExamineByORGNameDistrict(conn, districtId, ORGName, examine, count, offset));
 		}
 	}
+	@POSTAPI(//
+			path = "getExamineById", //
+			des = "通过审批编号获取审批信息", //
+			ret = "ORGExamine"//
+	)
+	public APIResponse getExamineById(//
+			@P(t = "区级编号") Long examineId //
+	) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse.getNewSuccessResp(
+					orgService.getExamineById(conn, examineId));
+		}
+	}
+	
 
 	@POSTAPI(//
 			path = "getORGExamineByUserANDLikeORGName", //
@@ -2123,10 +2137,13 @@ public class ORGController extends Controller {
 			)
 	public APIResponse latlestMail(//
 			@P(t = "用户编号") Long userId//
-			) throws Exception {
+			){
 		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(mailService.latlestMail(Mail.JITI_MODULEID, userId.toString()));
+		}catch(Exception e){
+			e.printStackTrace();
 		}
+		return null;
 	}
 
 	@POSTAPI(//

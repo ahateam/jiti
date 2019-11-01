@@ -44,6 +44,7 @@ import zyxhj.jiti.domain.ORGUser;
 import zyxhj.jiti.domain.ORGUserRole;
 import zyxhj.jiti.domain.Superior;
 import zyxhj.jiti.repository.DistrictRepository;
+import zyxhj.jiti.repository.ExamineRepository;
 import zyxhj.jiti.repository.FamilyRepository;
 import zyxhj.jiti.repository.NoticeRepository;
 import zyxhj.jiti.repository.NoticeTaskRecordRepository;
@@ -80,6 +81,7 @@ public class ORGService {
 	private NoticeTaskRepository noticeTaskRepository;
 	private NoticeTaskRecordRepository noticeTaskRecordRepository;
 	private NoticeRepository noticeRepository;
+	private ExamineRepository examineRepository;
 //	private WxDataService wxDataService;
 //	private WxFuncService wxFuncService;
 
@@ -98,6 +100,7 @@ public class ORGService {
 			noticeTaskRepository = Singleton.ins(NoticeTaskRepository.class);
 			noticeTaskRecordRepository = Singleton.ins(NoticeTaskRecordRepository.class);
 			noticeRepository = Singleton.ins(NoticeRepository.class);
+			examineRepository = Singleton.ins(ExamineRepository.class);
 //			wxDataService = Singleton.ins(WxDataService.class);
 //			wxFuncService = Singleton.ins(WxFuncService.class);
 		} catch (Exception e) {
@@ -1281,6 +1284,10 @@ public class ORGService {
 			throw new ServerException(BaseRC.USER_NOT_EXIST);
 		}
 
+	}
+
+	public Examine getExamineById(DruidPooledConnection conn, Long examineId) throws Exception {
+		return examineRepository.get(conn, EXP.INS().key("id", examineId));
 	}
 
 }

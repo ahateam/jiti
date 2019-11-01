@@ -79,28 +79,28 @@ public class messageTest {
 	public void testmail() {
 		try {
 
-			JSONArray ja = mailService.mailList(100001L, "397652463180671", 10, 0);
-			System.out.println(ja.toJSONString());
+			JSONArray ja = mailService.mailList(100001L, "401825967889475", 10, 0);
 			Long maxTime = 0L;
 			JSONObject maxMail = new JSONObject();
-			System.out.println(ja.size());
-			for (int i = 0; i < ja.size(); i++) {
-				JSONObject mail = JSON.parseObject(ja.getString(i));
-				if (mail.getBoolean("active")) {
-					Object o = mail.get("createTime");
-					if (o instanceof Long) {
-						Long time = Long.parseLong(o.toString());
-						if (time > maxTime) {
-							System.out.println("time:" + time);
-							maxTime = time;
-							maxMail = mail;
-							System.out.println("maxTime:" + maxTime);
+			if (ja != null && ja.size() > 0) {
+				for (int i = 0; i < ja.size(); i++) {
+					JSONObject mail = JSON.parseObject(ja.getString(i));
+					if (mail.getBoolean("active")) {
+						Object o = mail.get("createTime");
+						if (o instanceof Long) {
+							System.out.println();
+							Long time = Long.parseLong(o.toString());
+							System.out.println(time);
+							if (time > maxTime) {
+								System.out.println(1001);
+								maxTime = time;
+								maxMail = mail;
+							}
 						}
 					}
 				}
+				System.out.println(maxMail.toJSONString());
 			}
-			System.out.println(maxMail.toJSONString());
-
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -174,15 +174,15 @@ public class messageTest {
 			Long s = Longlist.get(i);
 			for (int j = 0; j < Longlist1.size(); j++) {
 				Long s1 = Longlist1.get(j);
-				if(s == s1) {
+				if (s == s1) {
 					list.add(s1);
 					break;
 				}
 			}
 		}
 		Longlist.removeAll(list);
-		System.out.println("---------------"+Longlist.size());
-		for(int i = 0; i < Longlist.size(); i ++) {
+		System.out.println("---------------" + Longlist.size());
+		for (int i = 0; i < Longlist.size(); i++) {
 			System.out.println(Longlist.get(i));
 		}
 

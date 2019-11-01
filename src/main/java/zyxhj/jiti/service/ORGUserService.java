@@ -1213,8 +1213,7 @@ public class ORGUserService {
 	}
 
 	// 发送审批消息（如果使用不了就将异步删除）
-	public void sendEexamineMail(Long orgId, Long examineId, Long permissionId)
-			throws Exception {
+	public void sendEexamineMail(Long orgId, Long examineId, Long permissionId) throws Exception {
 		Vertx.vertx().executeBlocking(future -> {
 			// 下面这行代码可能花费很长时间
 			DruidDataSource dds;
@@ -1230,22 +1229,23 @@ public class ORGUserService {
 				System.out.println(rel.size());
 				if (rel != null && rel.size() > 0) {
 					JSONArray roles = new JSONArray();
+					Long role = 0L;
 					for (ORGPermissionRel r : rel) {
-						Long role = r.roleId;
+						role = r.roleId;
 						roles.add(role);
 					}
 					if (roles != null && roles.size() > 0) {
 						// 查询拥有当前角色的用户
 						EXP exp = EXP.INS().key("org_id", orgId).and(EXP.JSON_CONTAINS_KEYS(roles, "roles", null));
-						
+
 						JSONArray userList = orgUserRepository.getUserIds(conn, exp);
 						System.out.println("---------------------------------------------------------");
-						System.out.println("userList.size==="+userList.size());
+						System.out.println("userList.size===" + userList.size());
 						if (userList != null && userList.size() > 0) {
 							JSONArray tags = new JSONArray();
 							tags.add(MailTag.JITI_EXAMINE.name);
-							mailService.mailSend(Mail.JITI_MODULEID, userList, tags, orgId.toString(), "审批消息", "新的审批消息请查看",
-									examineId.toString(), "examine");
+							mailService.mailSend(Mail.JITI_MODULEID, userList, tags, orgId.toString(), "审批消息",
+									"新的审批消息请查看", examineId.toString(), "examine");
 							System.out.println("---------------------------------------------------------");
 							System.out.println("发送消息成功");
 						}
@@ -1262,14 +1262,14 @@ public class ORGUserService {
 	}
 
 	// 发送投票消息（如果使用不了就将异步删除）
-	public void sendVoteMail(DruidPooledConnection conn, Long orgId, Vote vote) throws Exception {
+	public void sendVoteMail( Long orgId, Vote vote) throws Exception {
 		Vertx.vertx().executeBlocking(future -> {
 			// 下面这行代码可能花费很长时间
 			DruidDataSource dds;
-			DruidPooledConnection c = null;
+			DruidPooledConnection conn = null;
 			try {
 				dds = DataSource.getDruidDataSource("rdsDefault.prop");
-				c = (DruidPooledConnection) dds.getConnection();
+				conn = (DruidPooledConnection) dds.getConnection();
 				// 获取投票权限
 				if (vote != null) {
 					JSONObject rolesJO = JSON.parseObject(vote.crowd);
@@ -1281,13 +1281,14 @@ public class ORGUserService {
 							if (userList != null && userList.size() > 0) {
 								JSONArray tags = new JSONArray();
 								tags.add(MailTag.JITI_VOTE.name);
-								mailService.mailSend(Mail.JITI_MODULEID, userList, tags, orgId.toString(), "投票消息", "新的投票消息请查看",
-										vote.id.toString(), "vote");
+								mailService.mailSend(Mail.JITI_MODULEID, userList, tags, orgId.toString(), "投票消息",
+										"新的投票消息请查看", vote.id.toString(), "vote");
 							}
 						}
 					}
 
 				}
+
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -1296,17 +1297,22 @@ public class ORGUserService {
 			System.out.println("The result is: " + res.result());
 		});
 	}
-	
+
 	private void shareMessage(DruidPooledConnection conn, String data, String perName, Byte examineStatus)
 			throws Exception {
 		JSONObject jo = JSONObject.parseObject(data);
 		JSONArray oldDatas = jo.getJSONArray("oldData");
+		JSONObject userInfo = new JSONObject();
+		JSONObject user = new JSONObject();
+		JSONObject orgUser = new JSONObject();
+		Long orgId = 0L;
+		Long userId = 0L;
 		for (int i = 0; i < oldDatas.size(); i++) {
-			JSONObject userInfo = oldDatas.getJSONObject(i);
-			JSONObject user = userInfo.getJSONObject("user");
-			Long userId = user.getLong("id");
-			JSONObject orgUser = userInfo.getJSONObject("orgUser");
-			Long orgId = orgUser.getLong("orgId");
+			userInfo = oldDatas.getJSONObject(i);
+			user = userInfo.getJSONObject("user");
+			userId = user.getLong("id");
+			orgUser = userInfo.getJSONObject("orgUser");
+			orgId = orgUser.getLong("orgId");
 			messageService.createExamineMessage(conn, orgId, userId, perName, data, examineStatus);
 		}
 	}

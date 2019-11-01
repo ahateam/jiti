@@ -302,7 +302,7 @@ public class VoteController extends Controller {
 			path = "vote", //
 			des = "投票"//
 	)
-	public APIResponse vote(//
+	public void vote(//
 			@P(t = "组织编号") Long orgId, //
 			@P(t = "投票编号") Long voteId, //
 			@P(t = "用户编号") Long userId, //
@@ -313,7 +313,7 @@ public class VoteController extends Controller {
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
 			voteService.vote(conn, orgId, voteId, userId, selections, ballotCount, remark);
-			return APIResponse.getNewSuccessResp();
+//			return APIResponse.getNewSuccessResp();
 		}
 	}
 

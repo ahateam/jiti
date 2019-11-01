@@ -150,7 +150,7 @@ public class VoteService {
 				// 如果自动带有弃权选项，则默认创建一个VoteOption
 				addVoteOption(conn, v.id, true, "弃权", "", "");
 			}
-			orgUserService.sendVoteMail(conn, orgId, v);
+			orgUserService.sendVoteMail( orgId, v);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

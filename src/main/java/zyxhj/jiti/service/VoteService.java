@@ -85,9 +85,9 @@ public class VoteService {
 		}
 	}
 
-	public List<Vote> getVotes(DruidPooledConnection conn, Long orgId, Byte status,String title, Integer count, Integer offset)
-			throws Exception {
-		return voteRepository.getVotes(conn, orgId, status,title,count, offset);
+	public List<Vote> getVotes(DruidPooledConnection conn, Long orgId, Byte status, String title, Integer count,
+			Integer offset) throws Exception {
+		return voteRepository.getVotes(conn, orgId, status, title, count, offset);
 	}
 
 	public List<Vote> getUserVotes(DruidPooledConnection conn, Long orgId, Long userId, Integer count, Integer offset)
@@ -150,7 +150,11 @@ public class VoteService {
 				// 如果自动带有弃权选项，则默认创建一个VoteOption
 				addVoteOption(conn, v.id, true, "弃权", "", "");
 			}
-			orgUserService.sendVoteMail( orgId, v);
+			if (v != null && v.id != null) {
+				orgUserService.sendVoteMail(orgId, v);
+			}else {
+				throw new ServerException(BaseRC.ECM_VOIT_NOTEXIST);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -588,16 +592,16 @@ public class VoteService {
 	 */
 	public JSONObject getVoteDetail(DruidPooledConnection conn, Long voteId) throws Exception {
 		Vote vote = voteRepository.get(conn, EXP.INS().key("id", voteId));
-
-		List<VoteOption> options = optionRepository.getList(conn, EXP.INS().key("vote_id", voteId), 512, 0);
-
-		int ticketCount = ticketRepository.countTicket(conn, voteId);
-
-		vote.quorum = orgUserRepository.getParticipateCount(conn, vote.orgId, vote.id, JSON.parseObject(vote.crowd));
 		JSONObject ret = new JSONObject();
-		ret.put("vote", vote);
-		ret.put("ops", options);
-		ret.put("ticketCount", ticketCount);
+		if (vote != null) {
+			List<VoteOption> options = optionRepository.getList(conn, EXP.INS().key("vote_id", voteId), 512, 0);
+			int ticketCount = ticketRepository.countTicket(conn, voteId);
+			vote.quorum = orgUserRepository.getParticipateCount(conn, vote.orgId, vote.id,
+					JSON.parseObject(vote.crowd));
+			ret.put("vote", vote);
+			ret.put("ops", options);
+			ret.put("ticketCount", ticketCount);
+		}
 
 		return ret;
 	}
@@ -661,7 +665,6 @@ public class VoteService {
 		//
 		// }
 		//
-		// System.out.println(ma);
 		List<Double> list = new ArrayList<Double>();
 		Double d = 0.0; // 拿来放总票率
 		// 遍历orgid 获取orgid下的投票
@@ -793,10 +796,10 @@ public class VoteService {
 							}
 						}
 						userList.removeAll(userIds);
-						JSONArray ulist= new JSONArray();
+						JSONArray ulist = new JSONArray();
 						for (int i = 0; i < userList.size(); i++) {
 							User user = userService.getUserById(conn, userList.get(i).userId);
-							if(user!=null) {
+							if (user != null) {
 								JSONObject userJo = new JSONObject();
 								userJo.put("id", user.id);
 								userJo.put("realName", user.realName);

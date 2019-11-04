@@ -152,9 +152,8 @@ public class VoteService {
 			}
 			if (v != null && v.id != null) {
 				orgUserService.sendVoteMail(orgId, v);
-			}else {
-				throw new ServerException(BaseRC.ECM_VOIT_NOTEXIST);
 			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -592,17 +591,20 @@ public class VoteService {
 	 */
 	public JSONObject getVoteDetail(DruidPooledConnection conn, Long voteId) throws Exception {
 		Vote vote = voteRepository.get(conn, EXP.INS().key("id", voteId));
+
 		JSONObject ret = new JSONObject();
 		if (vote != null) {
 			List<VoteOption> options = optionRepository.getList(conn, EXP.INS().key("vote_id", voteId), 512, 0);
+
 			int ticketCount = ticketRepository.countTicket(conn, voteId);
+
 			vote.quorum = orgUserRepository.getParticipateCount(conn, vote.orgId, vote.id,
 					JSON.parseObject(vote.crowd));
 			ret.put("vote", vote);
 			ret.put("ops", options);
 			ret.put("ticketCount", ticketCount);
-		}
 
+		}
 		return ret;
 	}
 
@@ -665,6 +667,7 @@ public class VoteService {
 		//
 		// }
 		//
+		// System.out.println(ma);
 		List<Double> list = new ArrayList<Double>();
 		Double d = 0.0; // 拿来放总票率
 		// 遍历orgid 获取orgid下的投票

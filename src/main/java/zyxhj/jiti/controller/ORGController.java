@@ -20,12 +20,14 @@ import zyxhj.jiti.domain.Notice;
 import zyxhj.jiti.domain.ORG;
 import zyxhj.jiti.domain.ORGExamine;
 import zyxhj.jiti.domain.ORGUserRole;
+import zyxhj.jiti.domain.Vote;
 import zyxhj.jiti.service.MessageService;
 import zyxhj.jiti.service.ORGPermissionService;
 import zyxhj.jiti.service.ORGService;
 import zyxhj.jiti.service.ORGUserGroupService;
 import zyxhj.jiti.service.ORGUserRoleService;
 import zyxhj.jiti.service.ORGUserService;
+import zyxhj.jiti.service.VoteService;
 import zyxhj.utils.ServiceUtils;
 import zyxhj.utils.Singleton;
 import zyxhj.utils.api.APIResponse;
@@ -50,7 +52,6 @@ public class ORGController extends Controller {
 		super(node);
 		try {
 			dds = DataSource.getDruidDataSource("rdsDefault.prop");
-
 			orgService = Singleton.ins(ORGService.class);
 			orgUserService = Singleton.ins(ORGUserService.class);
 
@@ -59,7 +60,7 @@ public class ORGController extends Controller {
 			orgUserRoleService = Singleton.ins(ORGUserRoleService.class);
 			messageService = Singleton.ins(MessageService.class);
 			userService = Singleton.ins(UserService.class);
-			mailService = Singleton.ins(MailService.class,"node");
+			mailService = Singleton.ins(MailService.class, "node");
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -1717,7 +1718,7 @@ public class ORGController extends Controller {
 			Integer offset //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.getNotice(conn, orgId,title, count, offset));
+			return APIResponse.getNewSuccessResp(orgService.getNotice(conn, orgId, title, count, offset));
 		}
 	}
 
@@ -2018,20 +2019,19 @@ public class ORGController extends Controller {
 					orgService.getExamineByORGNameDistrict(conn, districtId, ORGName, examine, count, offset));
 		}
 	}
+
 	@POSTAPI(//
 			path = "getExamineById", //
 			des = "通过审批编号获取审批信息", //
 			ret = "ORGExamine"//
 	)
 	public APIResponse getExamineById(//
-			@P(t = "区级编号") Long examineId //
+			@P(t = "审批编号") Long examineId //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(
-					orgService.getExamineById(conn, examineId));
+			return APIResponse.getNewSuccessResp(orgService.getExamineById(conn, examineId));
 		}
 	}
-	
 
 	@POSTAPI(//
 			path = "getORGExamineByUserANDLikeORGName", //
@@ -2131,39 +2131,36 @@ public class ORGController extends Controller {
 	}
 
 	@POSTAPI(//
-			path = "latlestMail",//
-			des = "获取当前用户的最新消息",//
-			ret = "JSONArray"
-			)
+			path = "latlestMail", //
+			des = "获取当前用户的最新消息", //
+			ret = "JSONArray")
 	public APIResponse latlestMail(//
 			@P(t = "用户编号") Long userId//
-			){
+	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(mailService.latlestMail(Mail.JITI_MODULEID, userId.toString()));
-		}catch(Exception e){
-			e.printStackTrace();
+			return APIResponse.getNewSuccessResp(orgService.getLatlestMail(conn,userId));
 		}
-		return null;
 	}
 
 	@POSTAPI(//
-			path = "editMailStatus",//
+			path = "editMailStatus", //
 			des = "标记消息为已读"//
-			)
+	)
 	public APIResponse editMailStatus(//
-			@P(t = "用户编号") Long userId,//
-			@P(t = "自增编号") Long sequenceId,//
-			@P(t = "标签") JSONArray tags,//
-			@P(t = "发送编号") String orgId,//
-			@P(t = "消息标题") String title,//
-			@P(t = "消息内容") String text,//
-			@P(t = "消息操作编号（投票编号或审批编号）") String action,//
-			@P(t = "备用字段") String ext,//
+			@P(t = "用户编号") Long userId, //
+			@P(t = "自增编号") Long sequenceId, //
+			@P(t = "标签") JSONArray tags, //
+			@P(t = "发送编号") String orgId, //
+			@P(t = "消息标题") String title, //
+			@P(t = "消息内容") String text, //
+			@P(t = "消息操作编号（投票编号或审批编号）") String action, //
+			@P(t = "备用字段") String ext, //
 			@P(t = "消息创建时间") Long createTime//
-			) throws Exception {
+	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(mailService.delMail(Mail.JITI_MODULEID, userId.toString(), sequenceId, tags, orgId.toString(), title, text, action, createTime, ext));
+			return APIResponse.getNewSuccessResp(mailService.delMail(Mail.JITI_MODULEID, userId.toString(), sequenceId,
+					tags, orgId.toString(), title, text, action, createTime, ext));
 		}
 	}
-	
+
 }

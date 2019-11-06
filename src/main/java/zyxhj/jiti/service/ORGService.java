@@ -26,9 +26,11 @@ import com.google.common.cache.CacheBuilder;
 
 import io.vertx.core.Vertx;
 import zyxhj.core.domain.LoginBo;
+import zyxhj.core.domain.Mail;
 import zyxhj.core.domain.User;
 import zyxhj.core.domain.UserSession;
 import zyxhj.core.repository.UserRepository;
+import zyxhj.core.service.MailService;
 import zyxhj.jiti.domain.District;
 import zyxhj.jiti.domain.Examine;
 import zyxhj.jiti.domain.Family;
@@ -59,6 +61,7 @@ import zyxhj.utils.CacheCenter;
 import zyxhj.utils.IDUtils;
 import zyxhj.utils.ServiceUtils;
 import zyxhj.utils.Singleton;
+import zyxhj.utils.api.APIResponse;
 import zyxhj.utils.api.BaseRC;
 import zyxhj.utils.api.ServerException;
 import zyxhj.utils.data.DataSource;
@@ -82,6 +85,8 @@ public class ORGService {
 	private NoticeTaskRecordRepository noticeTaskRecordRepository;
 	private NoticeRepository noticeRepository;
 	private ExamineRepository examineRepository;
+	private MailService mailService;
+	private VoteService voteService;
 //	private WxDataService wxDataService;
 //	private WxFuncService wxFuncService;
 
@@ -101,6 +106,8 @@ public class ORGService {
 			noticeTaskRecordRepository = Singleton.ins(NoticeTaskRecordRepository.class);
 			noticeRepository = Singleton.ins(NoticeRepository.class);
 			examineRepository = Singleton.ins(ExamineRepository.class);
+			mailService = Singleton.ins(MailService.class, "node");
+			voteService = Singleton.ins(VoteService.class);
 //			wxDataService = Singleton.ins(WxDataService.class);
 //			wxFuncService = Singleton.ins(WxFuncService.class);
 		} catch (Exception e) {
@@ -399,7 +406,8 @@ public class ORGService {
 		for (Superior sup : superior) {
 			json.add(sup.orgId);
 		}
-		return orgRepository.getList(conn, EXP.IN("id", json.toArray()).append("ORDER BY create_time DESC"), count, offset);
+		return orgRepository.getList(conn, EXP.IN("id", json.toArray()).append("ORDER BY create_time DESC"), count,
+				offset);
 	}
 
 	/**
@@ -799,7 +807,8 @@ public class ORGService {
 	public List<ORGExamine> getORGExamineByStatus(DruidPooledConnection conn, Byte status, Long superiorId,
 			Integer count, Integer offset) throws Exception {
 
-		return orgExamineRepository.getList(conn, EXP.INS().key("superior_id", superiorId).andKey("examine", status).append(" ORDER BY create_time DESC"),
+		return orgExamineRepository.getList(conn,
+				EXP.INS().key("superior_id", superiorId).andKey("examine", status).append(" ORDER BY create_time DESC"),
 				count, offset);
 
 	}
@@ -807,7 +816,8 @@ public class ORGService {
 	// 查询自己提交的申请
 	public List<ORGExamine> getORGExamineByUser(DruidPooledConnection conn, Long userId, Integer count, Integer offset)
 			throws Exception {
-		return orgExamineRepository.getList(conn, EXP.INS().key("user_id", userId).append("ORDER BY create_time DESC"), count, offset);
+		return orgExamineRepository.getList(conn, EXP.INS().key("user_id", userId).append("ORDER BY create_time DESC"),
+				count, offset);
 	}
 
 	// 删除申请
@@ -1065,9 +1075,9 @@ public class ORGService {
 	}
 
 	// 获取公告
-	public List<Notice> getNotice(DruidPooledConnection conn, Long orgId,String title, Integer count, Integer offset)
+	public List<Notice> getNotice(DruidPooledConnection conn, Long orgId, String title, Integer count, Integer offset)
 			throws Exception {
-		return noticeRepository.getNotice(conn, orgId,title, count, offset);
+		return noticeRepository.getNotice(conn, orgId, title, count, offset);
 	}
 
 	// 修改公告
@@ -1288,6 +1298,37 @@ public class ORGService {
 
 	public Examine getExamineById(DruidPooledConnection conn, Long examineId) throws Exception {
 		return examineRepository.get(conn, EXP.INS().key("id", examineId));
+	}
+
+	public JSONObject getLatlestMail(DruidPooledConnection conn, Long userId) throws Exception {
+		JSONObject mail = mailService.latlestMail(Mail.JITI_MODULEID, userId.toString());
+		System.out.println("-------------------latlestMail---------------------------");
+		System.out.println(mail.toJSONString());
+		// 判断是否取到消息
+		if (!StringUtils.isBlank(mail.toJSONString())) {
+			// 判断消息是否为空
+			if (mail != null) {
+				String obj = mail.getString("action");
+				// 判断消息中的action是否为空
+				if (!StringUtils.isBlank(obj)) {
+
+					Long id = Long.parseLong(obj);
+					JSONObject v = voteService.getVoteDetail(conn, id);
+					String va = v.getString("vote");
+					// 判断当前action是否为投票编号
+					if (!StringUtils.isBlank(va)) {
+							return mail;
+					} else {
+						Examine e = getExamineById(conn, id);
+						// 判断当前action是否为审批编号
+						if (e != null) {
+							return mail;
+						}
+					}
+				}
+			}
+		}
+		return new JSONObject();
 	}
 
 }

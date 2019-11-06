@@ -85,10 +85,6 @@ public class ORGService {
 	private NoticeTaskRecordRepository noticeTaskRecordRepository;
 	private NoticeRepository noticeRepository;
 	private ExamineRepository examineRepository;
-	private MailService mailService;
-	private VoteService voteService;
-//	private WxDataService wxDataService;
-//	private WxFuncService wxFuncService;
 
 	public ORGService() {
 		try {
@@ -106,10 +102,6 @@ public class ORGService {
 			noticeTaskRecordRepository = Singleton.ins(NoticeTaskRecordRepository.class);
 			noticeRepository = Singleton.ins(NoticeRepository.class);
 			examineRepository = Singleton.ins(ExamineRepository.class);
-			mailService = Singleton.ins(MailService.class, "node");
-			voteService = Singleton.ins(VoteService.class);
-//			wxDataService = Singleton.ins(WxDataService.class);
-//			wxFuncService = Singleton.ins(WxFuncService.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -1300,35 +1292,6 @@ public class ORGService {
 		return examineRepository.get(conn, EXP.INS().key("id", examineId));
 	}
 
-	public JSONObject getLatlestMail(DruidPooledConnection conn, Long userId) throws Exception {
-		JSONObject mail = mailService.latlestMail(Mail.JITI_MODULEID, userId.toString());
-		System.out.println("-------------------latlestMail---------------------------");
-		System.out.println(mail.toJSONString());
-		// 判断是否取到消息
-		if (!StringUtils.isBlank(mail.toJSONString())) {
-			// 判断消息是否为空
-			if (mail != null) {
-				String obj = mail.getString("action");
-				// 判断消息中的action是否为空
-				if (!StringUtils.isBlank(obj)) {
-
-					Long id = Long.parseLong(obj);
-					JSONObject v = voteService.getVoteDetail(conn, id);
-					String va = v.getString("vote");
-					// 判断当前action是否为投票编号
-					if (!StringUtils.isBlank(va)) {
-							return mail;
-					} else {
-						Examine e = getExamineById(conn, id);
-						// 判断当前action是否为审批编号
-						if (e != null) {
-							return mail;
-						}
-					}
-				}
-			}
-		}
-		return new JSONObject();
-	}
+	
 
 }

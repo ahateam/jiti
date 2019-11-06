@@ -63,8 +63,6 @@ public class ORGUserService {
 	private ExamineRepository examineRepository;
 	private ORGService orgService;
 	private ORGPermissionRelaRepository orgPermissionRelaRepository;
-//	private WxDataService wxDataService;
-	// private WxFuncService wxFuncService;
 	private MessageService messageService;
 	private MailService mailService;
 
@@ -76,13 +74,12 @@ public class ORGUserService {
 			orgUserImportTaskRepository = Singleton.ins(ORGUserImportTaskRepository.class);
 			orgUserImportRecordRepository = Singleton.ins(ORGUserImportRecordRepository.class);
 			examineRepository = Singleton.ins(ExamineRepository.class);
-			orgService = Singleton.ins(ORGService.class);
+//			orgService = Singleton.ins(ORGService.class,"node");
+			orgService = new ORGService();
 			orgPermissionRelaRepository = Singleton.ins(ORGPermissionRelaRepository.class);
-//			wxDataService = Singleton.ins(WxDataService.class);
-			// wxFuncService = Singleton.ins(WxFuncService.class);
 			messageService = Singleton.ins(MessageService.class);
 			orgUserRoleRepository = Singleton.ins(ORGUserRoleRepository.class);
-			mailService = Singleton.ins(MailService.class,"node");
+			mailService = Singleton.ins(MailService.class, "node");
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -1262,37 +1259,37 @@ public class ORGUserService {
 	}
 
 	// 发送投票消息（如果使用不了就将异步删除）
-	public void sendVoteMail( Long orgId, Vote vote) throws Exception {
+	public void sendVoteMail(Long orgId, Vote vote) throws Exception {
 //		Vertx.vertx().executeBlocking(future -> {
-			// 下面这行代码可能花费很长时间
-			DruidDataSource dds;
-			DruidPooledConnection conn = null;
-			try {
-				dds = DataSource.getDruidDataSource("rdsDefault.prop");
-				conn = (DruidPooledConnection) dds.getConnection();
-				// 获取投票权限
-				if (vote != null) {
-					JSONObject rolesJO = JSON.parseObject(vote.crowd);
-					if (rolesJO != null) {
-						JSONArray roles = JSON.parseArray(rolesJO.getString("roles"));
-						if (roles != null && roles.size() > 0) {
-							EXP exp = EXP.INS().key("org_id", orgId).and(EXP.JSON_CONTAINS_KEYS(roles, "roles", null));
-							JSONArray userList = orgUserRepository.getUserIds(conn, exp);
-							if (userList != null && userList.size() > 0) {
-								JSONArray tags = new JSONArray();
-								tags.add(MailTag.JITI_VOTE.name);
-								JSONArray receivers = userList;
-								mailService.mailSend(Mail.JITI_MODULEID, receivers, tags, orgId.toString(), "投票消息",
-										"新的投票消息请查看", vote.id.toString(), "vote");
-							}
+		// 下面这行代码可能花费很长时间
+		DruidDataSource dds;
+		DruidPooledConnection conn = null;
+		try {
+			dds = DataSource.getDruidDataSource("rdsDefault.prop");
+			conn = (DruidPooledConnection) dds.getConnection();
+			// 获取投票权限
+			if (vote != null) {
+				JSONObject rolesJO = JSON.parseObject(vote.crowd);
+				if (rolesJO != null) {
+					JSONArray roles = JSON.parseArray(rolesJO.getString("roles"));
+					if (roles != null && roles.size() > 0) {
+						EXP exp = EXP.INS().key("org_id", orgId).and(EXP.JSON_CONTAINS_KEYS(roles, "roles", null));
+						JSONArray userList = orgUserRepository.getUserIds(conn, exp);
+						if (userList != null && userList.size() > 0) {
+							JSONArray tags = new JSONArray();
+							tags.add(MailTag.JITI_VOTE.name);
+							JSONArray receivers = userList;
+							mailService.mailSend(Mail.JITI_MODULEID, receivers, tags, orgId.toString(), "投票消息",
+									"新的投票消息请查看", vote.id.toString(), "vote");
 						}
 					}
-
 				}
 
-			} catch (Exception e) {
-				e.printStackTrace();
 			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 //			future.complete("ok");
 //		}, res -> {
 //			System.out.println("The result is: " + res.result());

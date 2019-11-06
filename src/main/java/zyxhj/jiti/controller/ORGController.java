@@ -47,6 +47,7 @@ public class ORGController extends Controller {
 	private MessageService messageService;
 	private UserService userService;
 	private static MailService mailService;
+	private VoteService voteService;
 
 	public ORGController(String node) {
 		super(node);
@@ -61,6 +62,7 @@ public class ORGController extends Controller {
 			messageService = Singleton.ins(MessageService.class);
 			userService = Singleton.ins(UserService.class);
 			mailService = Singleton.ins(MailService.class, "node");
+			voteService = Singleton.ins(VoteService.class);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -2138,7 +2140,7 @@ public class ORGController extends Controller {
 			@P(t = "用户编号") Long userId//
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.getLatlestMail(conn,userId));
+			return APIResponse.getNewSuccessResp(voteService.getLatlestMail(conn,userId));
 		}
 	}
 

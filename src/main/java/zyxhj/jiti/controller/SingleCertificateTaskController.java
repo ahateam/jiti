@@ -14,7 +14,7 @@ import zyxhj.utils.data.DataSource;
 
 public class SingleCertificateTaskController extends Controller {
 
-	private static Logger log = LoggerFactory.getLogger(ORGController.class);
+	private static Logger log = LoggerFactory.getLogger(SingleCertificateTaskController.class);
 
 	private DruidDataSource dds;
 	private SingleCertificateTaskService scftService;

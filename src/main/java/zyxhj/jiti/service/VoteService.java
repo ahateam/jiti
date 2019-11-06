@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,9 +18,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
+import zyxhj.core.domain.Mail;
 import zyxhj.core.domain.User;
 import zyxhj.core.repository.UserRepository;
+import zyxhj.core.service.MailService;
 import zyxhj.core.service.UserService;
+import zyxhj.jiti.domain.Examine;
 import zyxhj.jiti.domain.ORGUser;
 import zyxhj.jiti.domain.Vote;
 import zyxhj.jiti.domain.VoteOption;
@@ -42,11 +46,11 @@ public class VoteService {
 	private VoteOptionRepository optionRepository;
 	private VoteTicketRepository ticketRepository;
 	private ORGUserRepository orgUserRepository;
-//	private WxDataService wxDataService;
-	// private WxFuncService wxFuncService;
 	private MessageService messageService;
 	private ORGUserService orgUserService;
 	private UserService userService;
+	private MailService mailService;
+	private ORGService orgService;
 
 	public VoteService() {
 		try {
@@ -54,11 +58,11 @@ public class VoteService {
 			optionRepository = Singleton.ins(VoteOptionRepository.class);
 			ticketRepository = Singleton.ins(VoteTicketRepository.class);
 			orgUserRepository = Singleton.ins(ORGUserRepository.class);
-//			wxDataService = Singleton.ins(WxDataService.class);
-			// wxFuncService = Singleton.ins(WxFuncService.class);
 			messageService = Singleton.ins(MessageService.class);
 			orgUserService = Singleton.ins(ORGUserService.class);
 			userService = Singleton.ins(UserService.class);
+			orgService = Singleton.ins(ORGService.class);
+			mailService = Singleton.ins(MailService.class, "node");
 
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
@@ -818,4 +822,38 @@ public class VoteService {
 		}
 		return null;
 	}
+	
+	
+	public JSONObject getLatlestMail(DruidPooledConnection conn, Long userId) throws Exception {
+		JSONObject mail = mailService.latlestMail(Mail.JITI_MODULEID, userId.toString());
+		System.out.println("-------------------latlestMail---------------------------");
+		System.out.println(mail.toJSONString());
+		// 判断是否取到消息
+		if (!StringUtils.isBlank(mail.toJSONString())) {
+			// 判断消息是否为空
+			if (mail != null) {
+				String obj = mail.getString("action");
+				// 判断消息中的action是否为空
+				if (!StringUtils.isBlank(obj)) {
+
+					Long id = Long.parseLong(obj);
+					JSONObject v = getVoteDetail(conn, id);
+					String va = v.getString("vote");
+					// 判断当前action是否为投票编号
+					if (!StringUtils.isBlank(va)) {
+							return mail;
+					} else {
+						Examine e = orgService.getExamineById(conn, id);
+						// 判断当前action是否为审批编号
+						if (e != null) {
+							return mail;
+						}
+					}
+				}
+			}
+		}
+		return new JSONObject();
+	}
 }
+
+

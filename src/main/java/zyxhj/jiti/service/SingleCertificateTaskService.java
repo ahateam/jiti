@@ -24,7 +24,7 @@ import zyxhj.utils.data.EXP;
 
 public class SingleCertificateTaskService {
 
-	private static Logger log = LoggerFactory.getLogger(ORGService.class);
+	private static Logger log = LoggerFactory.getLogger(SingleCertificateTaskService.class);
 
 	private ORGRepository orgRepository;
 	private ORGUserRepository orgUserRepository;

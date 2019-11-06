@@ -76,7 +76,7 @@ public class ORGUserService {
 			orgUserImportTaskRepository = Singleton.ins(ORGUserImportTaskRepository.class);
 			orgUserImportRecordRepository = Singleton.ins(ORGUserImportRecordRepository.class);
 			examineRepository = Singleton.ins(ExamineRepository.class);
-			orgService = Singleton.ins(ORGService.class, "node");
+			orgService = Singleton.ins(ORGService.class);
 			orgPermissionRelaRepository = Singleton.ins(ORGPermissionRelaRepository.class);
 //			wxDataService = Singleton.ins(WxDataService.class);
 			// wxFuncService = Singleton.ins(WxFuncService.class);

@@ -1419,27 +1419,43 @@ public class ORGUserService {
 		// ORGPermission.per_examine.id);
 		JSONArray json = JSONArray.parseArray(permissionIds);
 		boolean check = false;
-		for (int i = 0; i < json.size(); i++) {
+		int size = json.size();
+		for (int i = 0; i < size; i++) {
 			if (type == Examine.TYPE.FAMILY.v()) {
+				System.out.println("is family ");
+
 				if (json.getLong(i) == ORGPermission.per_feparate_family.id) {
+					System.out.println("is family success");
 					check = true;
+					break;
 				}
 			} else if (type == Examine.TYPE.SHARE.v()) {
+
+				System.out.println("is share ");
 				if (json.getLong(i) == ORGPermission.per_share_change.id) {
+
+					System.out.println("is share success");
+
 					check = true;
+					break;
 				}
 			}
 		}
 		if (check) {
+			System.out.println("have roles");
+			EXP exp = EXP.INS().key("org_id", orgId).andKey("type", type);
 			// 有权限 获取审核列表
-			if (status == null) {
-				status = 0;
+			if (status != null) {
+				System.out.println("status is null");
+				exp.andKey("status", status);
 			}
-			return examineRepository.getList(conn,
-					EXP.INS().key("org_id", orgId).andKey("type", type).andKey("status", status), count, offset);
+
+			List<Examine> examineList = examineRepository.getList(conn, exp, count, offset);
+			System.out.println("examinelist.size " + examineList.size());
+			return examineList;
 		} else {
 			// 用户查看自己的审核 TODO 有问题
-			return examineRepository.getExamineLikeUserId(conn, orgId, userId, count, offset);
+			return examineRepository.getExamineLikeUserId(conn, orgId, userId, type, count, offset);
 		}
 	}
 

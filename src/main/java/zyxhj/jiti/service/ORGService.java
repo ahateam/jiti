@@ -85,7 +85,7 @@ public class ORGService {
 	private NoticeTaskRecordRepository noticeTaskRecordRepository;
 	private NoticeRepository noticeRepository;
 	private ExamineRepository examineRepository;
-
+	
 	public ORGService() {
 		try {
 			orgRepository = Singleton.ins(ORGRepository.class);

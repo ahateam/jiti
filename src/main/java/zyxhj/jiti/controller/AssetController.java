@@ -51,7 +51,7 @@ public class AssetController extends Controller {
 	)
 	public APIResponse createAsset(//
 			@P(t = "组织编号") Long orgId, //
-			@P(t = "资产原始编号") String originId, //
+			@P(t = "资产原始编号", r = false) String originId, //
 			@P(t = "资产原始名称") String name, //
 			@P(t = "资产证件号", r = false) String sn, //
 			@P(t = "资源类型") String resType, //

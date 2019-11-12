@@ -9,6 +9,7 @@ import zyxhj.flow.service.ProcessService;
 import zyxhj.jiti.controller.ApprovalProcessController;
 import zyxhj.jiti.controller.AssetController;
 import zyxhj.jiti.controller.BankController;
+import zyxhj.jiti.controller.CustomerController;
 import zyxhj.jiti.controller.DemonstrationController;
 import zyxhj.jiti.controller.ExportTaskController;
 import zyxhj.jiti.controller.ExternalController;
@@ -74,6 +75,8 @@ public class JITIVerticle extends ZeroVerticle {
 		initCtrl(ctrlMap, Singleton.ins(FlowService.class, "flow"));
 		
 		initCtrl(ctrlMap, Singleton.ins(MailService.class, "mail"));
+		
+		initCtrl(ctrlMap, Singleton.ins(CustomerController.class, "customer"));
 
 	}
 

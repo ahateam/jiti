@@ -118,9 +118,10 @@ public class ImportTaskService {
 				ColumnBuilder cb = new ColumnBuilder();
 				cb.add("orgId", orgId);
 				cb.add("status", (long) ImportTempRecord.STATUS.PENDING.v());
+				System.out.println();
 				for (int i = 0; i < colCount; i++) {
 					cb.add(StringUtils.join("Col", i), ExcelUtils.getString(row.get(i)));
-					System.out.println(ExcelUtils.getString(row.get(i)));
+					System.out.print(ExcelUtils.getString(row.get(i))+"\t");
 				}
 
 				count++;
@@ -198,7 +199,7 @@ public class ImportTaskService {
 						Long orgId = data.getLong("orgId");
 						Long recordId = data.getLong("recordId");
 
-						String fa = data.getString(StringUtils.join("Col", co++)); // 户序号
+						String fa = data.getString(StringUtils.join("Col", co++)).replaceAll(" ",""); // 户序号
 
 						if (StringUtils.isBlank(fa)) {
 							// 户序号为空，直接跳过
@@ -221,19 +222,19 @@ public class ImportTaskService {
 						String familyRelations = data.getString(StringUtils.join("Col", co++));
 
 						String mobile = data.getString(StringUtils.join("Col", co++));
-						Double shareAmount = data.getDouble(StringUtils.join("Col", co++));
+						Double shareAmount = getDouble(data.getString(StringUtils.join("Col", co++)));
 
 						// 资源股
-						Double resourceShares = data.getDouble(StringUtils.join("Col", co++));
+						Double resourceShares = getDouble(data.getString(StringUtils.join("Col", co++)));
 						// 资产股
-						Double assetShares = data.getDouble(StringUtils.join("Col", co++));
+						Double assetShares = getDouble(data.getString(StringUtils.join("Col", co++)));
 						// 是否为组织成员
 						Boolean isORGUser = true;
 						if (data.getString(StringUtils.join("Col", co++)).equals("否")) {
 							isORGUser = false;
 						}
 
-						Integer weight = data.getInteger(StringUtils.join("Col", co++));
+						Integer weight = getInt(data.getString(StringUtils.join("Col", co++)));
 						String address = data.getString(StringUtils.join("Col", co++));
 						String familyMaster = data.getString(StringUtils.join("Col", co++));
 						Boolean shareCerHolder = false;
@@ -699,5 +700,21 @@ public class ImportTaskService {
 
 	public ImportTask getImportTask(DruidPooledConnection conn, Long importTaskId) throws Exception {
 		return taskRepository.get(conn, EXP.INS().key("id", importTaskId));
+	}
+	
+	/**
+	 * 数值类型判断
+	 */
+	public Double getDouble(String dou) {
+		if(!StringUtils.isBlank(dou)) {
+			return Double.valueOf(dou.replaceAll(" ", ""));
+		}
+		return 0.0;
+	}
+	public Integer getInt(String dou) {
+		if(!StringUtils.isBlank(dou)) {
+			return Integer.parseInt(dou.replaceAll(" ", ""));
+		}
+		return 0;
 	}
 }

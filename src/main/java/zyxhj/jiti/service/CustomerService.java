@@ -2,6 +2,7 @@ package zyxhj.jiti.service;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,6 +10,7 @@ import com.alibaba.druid.pool.DruidPooledConnection;
 
 import zyxhj.jiti.domain.Customer;
 import zyxhj.jiti.repository.CustomerRepository;
+import zyxhj.utils.IDUtils;
 import zyxhj.utils.Singleton;
 import zyxhj.utils.data.EXP;
 
@@ -32,6 +34,7 @@ public class CustomerService {
 	public void createCustomer(DruidPooledConnection conn, String name, String phone, String qqNumber, String wxNumber,
 			String Email, String remark) throws Exception {
 		Customer cus = new Customer();
+		cus.id = IDUtils.getSimpleId();
 		cus.name = name;
 		cus.phone = phone;
 		cus.qqNumber = qqNumber;
@@ -55,18 +58,20 @@ public class CustomerService {
 		cus.remark = remark;
 		return customerRepository.update(conn, EXP.INS().key("id", cusId), cus, true);
 	}
+
 	/**
 	 * 启用或禁用客服
 	 */
-	public int enableORDisableCustomer(DruidPooledConnection conn, Long cusId,Byte status) throws Exception {
+	public int enableORDisableCustomer(DruidPooledConnection conn, Long cusId, Byte status) throws Exception {
 		EXP set = EXP.INS().key("status", status);
 		EXP where = EXP.INS().key("id", cusId);
 		return customerRepository.update(conn, set, where);
 	}
+
 	/**
 	 * 查询客服
 	 */
-	public Customer getCustomer(DruidPooledConnection conn) throws Exception{
+	public Customer getCustomer(DruidPooledConnection conn) throws Exception {
 		return customerRepository.get(conn, null);
 	}
 
@@ -75,5 +80,13 @@ public class CustomerService {
 	 */
 	public int deleteCustomer(DruidPooledConnection conn, Long cusId) throws Exception {
 		return customerRepository.delete(conn, EXP.INS().key("id", cusId));
+	}
+
+	public List<Customer> getCustomerByName(DruidPooledConnection conn, String name, Integer count, Integer offset)
+			throws Exception {
+		if(StringUtils.isBlank(name)) {
+			return customerRepository.getList(conn, null,count,offset);
+		}
+		return customerRepository.getList(conn, EXP.INS().LIKE("name", name), count, offset);
 	}
 }

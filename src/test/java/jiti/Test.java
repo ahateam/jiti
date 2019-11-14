@@ -22,6 +22,7 @@ import com.alibaba.fastjson.JSONArray;
 import zyxhj.jiti.controller.ORGController;
 import zyxhj.jiti.domain.ORGUser;
 import zyxhj.jiti.repository.ORGUserRepository;
+import zyxhj.jiti.service.FeedbackService;
 import zyxhj.jiti.service.ORGService;
 import zyxhj.jiti.service.ORGUserService;
 import zyxhj.jiti.service.SingleCertificateTaskService;
@@ -43,7 +44,7 @@ public class Test {
 
 	private static ORGService orgService = new ORGService();
 	private static ORGUserService orgUserService = new ORGUserService();
-	private static SingleCertificateTaskService scftService = new SingleCertificateTaskService();  
+	private static SingleCertificateTaskService scftService = new SingleCertificateTaskService();
 
 	public static void main(String[] args) throws Exception {
 		//
@@ -114,7 +115,6 @@ public class Test {
 		System.out.println();
 	}
 
-
 	@org.junit.Test
 	public void testiiii() {
 		try {
@@ -136,8 +136,8 @@ public class Test {
 		System.out.println(sheet.getRow(0).getLastCellNum());
 		XSSFCellStyle lockstyle = (XSSFCellStyle) wb.createCellStyle();
 		lockstyle.setLocked(true);
-		
-		lockstyle.setFillPattern(FillPatternType.SOLID_FOREGROUND );
+
+		lockstyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 		int columnCount = -1;
 		int rowCount = 0;
 		sheet.createRow(1);
@@ -155,7 +155,7 @@ public class Test {
 		output.close();
 	}
 
-	//复制文件
+	// 复制文件
 	public static void copyFile(String in, String out) throws Exception {
 		InputStream inputStream = new FileInputStream(new File(in));
 
@@ -176,12 +176,33 @@ public class Test {
 
 	}
 
+
 	@org.junit.Test
 	public void testget() throws Exception {
-//		scftService.getFamilyInfo(conn, 397652553337218L, 10L);
-//		scftService.getFamilyInfoByCodeANDFamilyNumber(conn, 101L, "N2520303MF102560XT");
-		scftService.getFamilyInfo(conn, 401653766220125L, 101L);
+		FeedbackService fservice = new FeedbackService();
+		for(int i = 0 ; i < 100; i++) {
+			fservice.createFeedback(conn,Long.valueOf(i), "ifdasfas"+i, "10086"+i);
+		}
 	}
-	
-	
+	public void show() {
+		for (int i = 1; i < 10; i++) {
+			for (int j = 10 - i; j > 0; j--) {
+				System.out.print(" ");
+			}
+			for (int j = 1; j < 2 * i; j++) {
+				System.out.print("*");
+			}
+			System.out.println();
+		}
+		for (int i = 9; i > 0; i--) {
+			for (int j = 10 - i; j > 0; j--) {
+				System.out.print(" ");
+			}
+			for (int j = 1; j < 2 * i; j++) {
+				System.out.print("*");
+			}
+			System.out.println();
+		}
+	}
+
 }

@@ -3,6 +3,7 @@ package xhj.cn.start;
 import com.alibaba.druid.pool.DruidDataSource;
 
 import zyxhj.core.domain.ExportTask;
+import zyxhj.jiti.domain.Feedback;
 import zyxhj.utils.data.DataSource;
 import zyxhj.utils.data.rds.RDSUtils;
 
@@ -20,9 +21,9 @@ public class Test {
 		try {
 			DruidDataSource dds = DataSource.getDruidDataSource("rdsDefault.prop");
 
-			// RDSUtils.dropTableByEntity(dds, ORGPermission.class);
+//			 RDSUtils.dropTableByEntity(dds, Feedback.class);
 
-			 RDSUtils.createTableByEntity(dds, ExportTask.class);
+			 RDSUtils.createTableByEntity(dds, Feedback.class);
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

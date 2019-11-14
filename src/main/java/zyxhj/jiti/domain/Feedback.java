@@ -1,5 +1,7 @@
 package zyxhj.jiti.domain;
 
+import java.util.Date;
+
 import com.alibaba.fastjson.JSONArray;
 
 import zyxhj.utils.data.rds.RDSAnnEntity;
@@ -30,4 +32,7 @@ public class Feedback {
 	@RDSAnnField(column = RDSAnnField.TEXT_NAME)
 	public String phone;
 
+	// 反馈时间
+	@RDSAnnField(column = RDSAnnField.TIME)
+	public Date feedbackTime;
 }

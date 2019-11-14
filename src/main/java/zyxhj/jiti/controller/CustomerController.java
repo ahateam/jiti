@@ -99,11 +99,25 @@ public class CustomerController extends Controller {
 
 	@POSTAPI(//
 			path = "getCustomer", //
-			des = "修改客服信息"//
+			des = "获取客服列表"//
 	)
 	public APIResponse getCustomer() throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(customerService.getCustomer(conn));
+		}
+	}
+
+	@POSTAPI(//
+			path = "getCustomerByName", //
+			des = "获取客服列表"//
+	)
+	public APIResponse getCustomerByName(//
+			@P(t = "客户姓名", r = false) String name, //
+			Integer count, //
+			Integer offset//
+	) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse.getNewSuccessResp(customerService.getCustomerByName(conn, name, count, offset));
 		}
 	}
 
@@ -137,31 +151,28 @@ public class CustomerController extends Controller {
 		}
 	}
 
-	
 	@POSTAPI(//
 			path = "getFeedbackByfbId", //
 			des = "获取反馈信息"//
 	)
 	public APIResponse getFeedbackByfbId(//
-			@P(t = "反馈id")Long fbId //
+			@P(t = "反馈id") Long fbId //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(feedbackService.getFeedback(conn,fbId));
+			return APIResponse.getNewSuccessResp(feedbackService.getFeedback(conn, fbId));
 		}
 	}
-	
+
 	@POSTAPI(//
 			path = "deleteFeedback", //
 			des = "获取反馈信息"//
 	)
 	public APIResponse deleteFeedback(//
-			@P(t = "反馈id")Long fbId //
+			@P(t = "反馈id") Long fbId //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(feedbackService.deleteFeedback(conn,fbId));
+			return APIResponse.getNewSuccessResp(feedbackService.deleteFeedback(conn, fbId));
 		}
 	}
-	
-	
-	
+
 }

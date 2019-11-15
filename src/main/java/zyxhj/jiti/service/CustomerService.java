@@ -72,7 +72,7 @@ public class CustomerService {
 	 * 查询客服
 	 */
 	public Customer getCustomer(DruidPooledConnection conn) throws Exception {
-		return customerRepository.get(conn, null);
+		return customerRepository.get(conn, EXP.INS().key("status", 0));
 	}
 
 	/**

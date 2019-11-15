@@ -38,7 +38,7 @@ public class FeedbackService {
 	}
 
 	public List<Feedback> getFeedbackList(DruidPooledConnection conn, Integer count, Integer offset) throws Exception {
-		return feedbackRepository.getList(conn, EXP.INS().append(" ORDER BY feedback_time DESC"), count, offset);
+		return feedbackRepository.getList(conn, null, count, offset);
 	}
 	
 	public Feedback getFeedback(DruidPooledConnection conn,Long fbId) throws Exception {

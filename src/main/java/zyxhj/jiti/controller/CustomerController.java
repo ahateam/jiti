@@ -145,10 +145,13 @@ public class CustomerController extends Controller {
 	public APIResponse getFeedbackList(//
 			Integer count, //
 			Integer offset//
-	) throws Exception {
+	) {
 		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(feedbackService.getFeedbackList(conn, count, offset));
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
+		return null;
 	}
 
 	@POSTAPI(//

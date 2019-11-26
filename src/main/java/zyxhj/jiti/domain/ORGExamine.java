@@ -133,7 +133,7 @@ public class ORGExamine {
 	 * 股份份数总数
 	 */
 	@RDSAnnField(column = RDSAnnField.INTEGER)
-	public Integer shareAmount;
+	public Double shareAmount;
 
 	/**
 	 * 资源股

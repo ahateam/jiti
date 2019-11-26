@@ -205,4 +205,14 @@ public class Test {
 		}
 	}
 
+	@org.junit.Test
+	public void testssss() {
+		try {
+			orgService.delSubOrg(conn, 403008741706773L);
+		} catch (ServerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 }

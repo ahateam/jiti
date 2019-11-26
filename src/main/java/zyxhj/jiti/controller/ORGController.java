@@ -152,7 +152,7 @@ public class ORGController extends Controller {
 			@P(t = "街道地址") String address, //
 			@P(t = "组织机构证书图片地址", r = false) String imgOrg, //
 			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
-			@P(t = "总股份数") Integer shareAmount, //
+			@P(t = "总股份数") Double shareAmount, //
 			@P(t = "资源股", r = false) Double resourceShares, //
 			@P(t = "资产股", r = false) Double assetShares //
 	) throws Exception {
@@ -175,7 +175,7 @@ public class ORGController extends Controller {
 			@P(t = "街道地址") String address, //
 			@P(t = "组织机构证书图片地址", r = false) String imgOrg, //
 			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
-			@P(t = "总股份数", r = false) Integer shareAmount, //
+			@P(t = "总股份数", r = false) Double shareAmount, //
 			@P(t = "等级") Byte level, //
 			@P(t = "上级组织id", r = false) Long superiorId, //
 			@P(t = "总资源股", r = false) Double resourceShares, //
@@ -284,7 +284,7 @@ public class ORGController extends Controller {
 			@P(t = "股权证书图片地址") String shareCerImg, //
 			@P(t = "是否持证人") Boolean shareCerHolder, //
 			@P(t = "股份数") Double shareAmount, //
-			@P(t = "选举权重") Integer weight, //
+			@P(t = "选举权重") Double weight, //
 			@P(t = "角色（股东，董事长，经理等）") JSONArray roles, //
 			@P(t = "分组") JSONArray groups, //
 			@P(t = "标签，包含groups,tags,以及其它自定义分组标签列表") JSONObject tags, //
@@ -384,7 +384,7 @@ public class ORGController extends Controller {
 			@P(t = "股权证书图片地址") String shareCerImg, //
 			@P(t = "是否持证人", r = false) Boolean shareCerHolder, //
 			@P(t = "股份数", r = false) Double shareAmount, //
-			@P(t = "选举权重") Integer weight, //
+			@P(t = "选举权重") Double weight, //
 			@P(t = "角色（股东，董事长，经理等）") JSONArray roles, //
 			@P(t = "分组") JSONArray groups, //
 			@P(t = "标签，包含groups,tags,以及其它自定义分组标签列表") JSONObject tags, //
@@ -828,7 +828,7 @@ public class ORGController extends Controller {
 			@P(t = "街道地址") String address, //
 			@P(t = "组织机构证书图片地址", r = false) String imgOrg, //
 			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
-			@P(t = "总股份数") Integer shareAmount, //
+			@P(t = "总股份数") Double shareAmount, //
 			@P(t = "等级", r = false) Byte level, //
 			@P(t = "组织id", r = false) Long orgId, //
 			@P(t = "上级组织id", r = false) Long superiorId, //
@@ -860,7 +860,7 @@ public class ORGController extends Controller {
 			@P(t = "街道地址") String address, //
 			@P(t = "组织机构证书图片地址", r = false) String imgOrg, //
 			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
-			@P(t = "总股份数", r = false) Integer shareAmount, //
+			@P(t = "总股份数", r = false) Double shareAmount, //
 			@P(t = "申请状态") Byte examine, //
 			@P(t = "等级") Byte level, //
 			@P(t = "组织id", r = false) Long orgId, //
@@ -894,7 +894,7 @@ public class ORGController extends Controller {
 			@P(t = "街道地址") String address, //
 			@P(t = "组织机构证书图片地址", r = false) String imgOrg, //
 			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
-			@P(t = "总股份数", r = false) Integer shareAmount, //
+			@P(t = "总股份数", r = false) Double shareAmount, //
 			@P(t = "等级") Byte level, //
 			@P(t = "上级组织id", r = false) Long superiorId, //
 			@P(t = "组织id", r = false) Long orgId, //
@@ -2140,7 +2140,7 @@ public class ORGController extends Controller {
 			@P(t = "用户编号") Long userId//
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(voteService.getLatlestMail(conn,userId));
+			return APIResponse.getNewSuccessResp(voteService.getLatlestMail(conn, userId));
 		}
 	}
 
@@ -2162,6 +2162,20 @@ public class ORGController extends Controller {
 		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(mailService.delMail(Mail.JITI_MODULEID, userId.toString(), sequenceId,
 					tags, orgId.toString(), title, text, action, createTime, ext));
+		}
+	}
+
+	@POSTAPI(//
+			path = "getCooperativeList", //
+			des = "获取所有合作社"//
+	)
+	public APIResponse getCooperativeList(//
+			@P(t = "用户编号", r = false) String ORGName, //
+			Integer count, //
+			Integer offset//
+	) throws Exception {
+		try (DruidPooledConnection conn = dds.getConnection()) {
+			return APIResponse.getNewSuccessResp(orgService.getCooperativeList(conn, ORGName, count, offset));
 		}
 	}
 

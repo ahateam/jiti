@@ -345,7 +345,7 @@ public class ExamineService {
 					String shareCerImg = jo.getString("shareCerImg");
 					Boolean shareCerHolder = jo.getBoolean("shareCerHolder");
 					Double shareAmount = jo.getDouble("shareAmount");
-					Integer weight = jo.getInteger("weight");
+					Double weight = jo.getDouble("weight");
 					JSONArray roles = jo.getJSONArray("roles");
 					JSONArray groups = jo.getJSONArray("groups");
 					Long familyNumber = jo.getLong("familyNumber");
@@ -411,7 +411,7 @@ public class ExamineService {
 					String shareCerImg = json.getString("shareCerImg");
 					Boolean shareCerHolder = json.getBoolean("shareCerHolder");
 					Double shareAmount = json.getDouble("shareAmount");
-					Integer weight = json.getInteger("weight");
+					Double weight = json.getDouble("weight");
 					JSONArray roles = json.getJSONArray("roles");
 					JSONArray groups = json.getJSONArray("groups");
 					Long familyNumber = json.getLong("familyNumber");
@@ -492,7 +492,7 @@ public class ExamineService {
 					String shareCerImg = jo.getString("shareCerImg");
 					Boolean shareCerHolder = jo.getBoolean("shareCerHolder");
 					Double shareAmount = jo.getDouble("shareAmount");
-					Integer weight = jo.getInteger("weight");
+					Double weight = jo.getDouble("weight");
 					JSONArray roles = jo.getJSONArray("roles");
 					JSONArray groups = jo.getJSONArray("groups");
 					Long familyNumber = jo.getLong("familyNumber");
@@ -588,7 +588,7 @@ public class ExamineService {
 				String shareCerImg = json.getString("shareCerImg");
 				Boolean shareCerHolder = json.getBoolean("shareCerHolder");
 				Double shareAmount = json.getDouble("shareAmount");
-				Integer weight = json.getInteger("weight");
+				Double weight = json.getDouble("weight");
 				JSONArray roles = json.getJSONArray("roles");
 				JSONArray groups = json.getJSONArray("groups");
 				Long familyNumber = maxNum;

@@ -1,6 +1,7 @@
 package zyxhj.jiti.service;
 
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -163,6 +164,7 @@ public class ImportTaskService {
 	// 开始导入用户
 	public void importOrgUser(Long importTaskId) throws Exception {
 
+		
 		// 异步方法，不会阻塞
 		Vertx.vertx().executeBlocking(future -> {
 			// 下面这行代码可能花费很长时间
@@ -185,7 +187,8 @@ public class ImportTaskService {
 				ImportTask ta = new ImportTask();
 				ta.status = ImportTask.STATUS.PROGRESSING.v();
 				taskRepository.update(conn, EXP.INS().key("id", importTaskId), ta, true);
-
+				System.out.println(new SimpleDateFormat("yyyy-MM-dd hh:ss:mm").format(new Date()));
+				System.out.println("开始导入输入");
 				for (int k = 0; k < amount / 100 + 1; k++) {
 					// 根据taskid去获取导入表
 					JSONArray listImportTemp = getListImportTemp(client, importTaskId, 100, offset);
@@ -234,7 +237,7 @@ public class ImportTaskService {
 							isORGUser = false;
 						}
 
-						Integer weight = getInt(data.getString(StringUtils.join("Col", co++)));
+						Double weight = getDouble(data.getString(StringUtils.join("Col", co++)));
 						String address = data.getString(StringUtils.join("Col", co++));
 						String familyMaster = data.getString(StringUtils.join("Col", co++));
 						Boolean shareCerHolder = false;
@@ -710,11 +713,5 @@ public class ImportTaskService {
 			return Double.valueOf(dou.replaceAll(" ", ""));
 		}
 		return 0.0;
-	}
-	public Integer getInt(String dou) {
-		if(!StringUtils.isBlank(dou)) {
-			return Integer.parseInt(dou.replaceAll(" ", ""));
-		}
-		return 0;
 	}
 }

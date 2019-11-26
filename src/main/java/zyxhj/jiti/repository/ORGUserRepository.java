@@ -469,6 +469,7 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		StringBuffer sql = new StringBuffer(
 				"SELECT OU.family_number AS '户序号', OU.family_master AS '户主姓名', OU.address AS '地址', U.real_name AS '姓名', U.id_number AS '身份证号码', ou.is_org_user AS '是否组织成员', ou.share_amount AS '个人持股数（股）', ou.family_relations AS '与户主关系', ou.share_cer_no AS '成员股权证号', ou.resource_shares AS '本户资源股', ou.asset_shares AS '本户资产股', o.`name` AS '合作社名称', o.address AS '合作社地址', o.create_time AS '合作社成立时间', o.`code` AS '合作社信用代码', o.asset_shares AS '集体资产股', o.resource_shares AS '集体资源股' FROM ( tb_ecm_org O LEFT JOIN tb_ecm_org_user OU ON O.id = OU.org_id ) LEFT JOIN tb_user U ON OU.user_id = U.id WHERE O.id =");
 		sql.append(orgId);
+		sql.append(" ORDER BY OU.family_number");
 		return this.sqlGetObjectsList(conn, sql.toString(), null, count, offset);
 	}
 

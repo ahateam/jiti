@@ -196,7 +196,7 @@ public class ORGUserService {
 	public void createORGUser(DruidPooledConnection conn, Long orgId, String mobile, String realName, String idNumber,
 			Byte sex, String familyRelations, Double resourceShares, Double assetShares, Boolean isOrgUser,
 			String address, String shareCerNo, String shareCerImg, Boolean shareCerHolder, Double shareAmount,
-			Integer weight, JSONArray roles, JSONArray groups, JSONObject tags, Long familyNumber, String familyMaster)
+			Double weight, JSONArray roles, JSONArray groups, JSONObject tags, Long familyNumber, String familyMaster)
 			throws Exception {
 		User extUser = userRepository.get(conn, EXP.INS().key("id_number", idNumber));
 
@@ -246,7 +246,7 @@ public class ORGUserService {
 	// 修改字段后的方法----插入方法
 	private void insertORGUser(DruidPooledConnection conn, Long orgId, Long userId, Byte sex, String familyRelations,
 			Double resourceShares, Double assetShares, Boolean isORGUser, String address, String shareCerNo,
-			String shareCerImg, Boolean shareCerHolder, Double shareAmount, Integer weight, JSONArray roles,
+			String shareCerImg, Boolean shareCerHolder, Double shareAmount, Double weight, JSONArray roles,
 			JSONArray groups, JSONObject tags, Long familyNumber, String familyMaster) throws Exception {
 		ORGUser or = new ORGUser();
 		// Family fa = new Family();
@@ -309,7 +309,7 @@ public class ORGUserService {
 	 * @param isOrgUser
 	 */
 	public int editORGUser(DruidPooledConnection conn, Long orgId, Long userId, String address, String shareCerNo,
-			String shareCerImg, Boolean shareCerHolder, Double shareAmount, Integer weight, JSONArray roles,
+			String shareCerImg, Boolean shareCerHolder, Double shareAmount, Double weight, JSONArray roles,
 			JSONArray groups, JSONObject tags, Long familyNumber, String familyMaster, Double assetShares,
 			Double resourceShares, Boolean isOrgUser) throws Exception {
 		ORGUser renew = new ORGUser();
@@ -398,7 +398,7 @@ public class ORGUserService {
 					isOrgUser = false;
 				}
 
-				Integer weight = ExcelUtils.parseInt(row.get(tt++));
+				Double weight = ExcelUtils.parseDouble(row.get(tt++));
 				String address = ExcelUtils.getString(row.get(tt++));
 				String familyMaster = ExcelUtils.getString(row.get(tt++));
 				Boolean shareCerHolder = ExcelUtils.parseShiFou(row.get(tt++));
@@ -1569,7 +1569,7 @@ public class ORGUserService {
 					String shareCerImg = jo.getString("shareCerImg");
 					Boolean shareCerHolder = jo.getBoolean("shareCerHolder");
 					Double shareAmount = jo.getDouble("shareAmount");
-					Integer weight = jo.getInteger("weight");
+					Double weight = jo.getDouble("weight");
 					JSONArray roles = jo.getJSONArray("roles");
 					JSONArray groups = jo.getJSONArray("groups");
 					Long familyNumber = jo.getLong("familyNumber");
@@ -1634,7 +1634,7 @@ public class ORGUserService {
 					String shareCerImg = json.getString("shareCerImg");
 					Boolean shareCerHolder = json.getBoolean("shareCerHolder");
 					Double shareAmount = json.getDouble("shareAmount");
-					Integer weight = json.getInteger("weight");
+					Double weight = json.getDouble("weight");
 					JSONArray roles = json.getJSONArray("roles");
 					JSONArray groups = json.getJSONArray("groups");
 					Long familyNumber = json.getLong("familyNumber");
@@ -1710,7 +1710,7 @@ public class ORGUserService {
 					String shareCerImg = jo.getString("shareCerImg");
 					Boolean shareCerHolder = jo.getBoolean("shareCerHolder");
 					Double shareAmount = jo.getDouble("shareAmount");
-					Integer weight = jo.getInteger("weight");
+					Double weight = jo.getDouble("weight");
 					JSONArray roles = jo.getJSONArray("roles");
 					JSONArray groups = jo.getJSONArray("groups");
 					Long familyNumber = jo.getLong("familyNumber");
@@ -1799,7 +1799,7 @@ public class ORGUserService {
 				String shareCerImg = json.getString("shareCerImg");
 				Boolean shareCerHolder = json.getBoolean("shareCerHolder");
 				Double shareAmount = json.getDouble("shareAmount");
-				Integer weight = json.getInteger("weight");
+				Double weight = json.getDouble("weight");
 				JSONArray roles = json.getJSONArray("roles");
 				JSONArray groups = json.getJSONArray("groups");
 				Long familyNumber = maxNum;

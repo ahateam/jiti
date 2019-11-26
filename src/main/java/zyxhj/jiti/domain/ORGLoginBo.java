@@ -38,7 +38,7 @@ public class ORGLoginBo {
 	public Boolean shareCerHolder;
 
 	public Double shareAmount;
-	public Integer weight;
+	public Double weight;
 	public Double resourceShares;
 	public Double assetShares;
 

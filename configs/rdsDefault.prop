@@ -1,11 +1,11 @@
 #外网地址
-url:jdbc:mysql://rm-bp1p284w3qc3j9o96xo.mysql.rds.aliyuncs.com:3306/temptest?useUnicode=true&characterEncoding=utf-8
+url:jdbc:mysql://rm-bp1zsono3j4952d501o.mysql.rds.aliyuncs.com:3306/test?useUnicode=true&characterEncoding=utf-8
 
 #内网地址
-#url:jdbc:mysql://rm-bp1p284w3qc3j9o96.mysql.rds.aliyuncs.com:3306/temptest?useUnicode=true&characterEncoding=utf-8
+#url:jdbc:mysql://rm-bp1zsono3j4952d5090130.mysql.rds.aliyuncs.com:3306/test?useUnicode=true&characterEncoding=utf-8
 
 driverClassName:com.mysql.cj.jdbc.Driver
-username:root
+username:rdsroot
 password:Aa123456Aa
 
 filters:stat

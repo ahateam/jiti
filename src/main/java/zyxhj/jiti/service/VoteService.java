@@ -455,7 +455,7 @@ public class VoteService {
 			if (crowd.containsKey("groups")) {
 				// 如果有角色权限要求，则判定角色
 				JSONArray cGroups = crowd.getJSONArray("groups");
-				JSONArray uGroups = JSON.parseArray(ou.groups);
+				JSONArray uGroups = JSON.parseArray(ou.groupss);
 
 				if (comparePromissionArray(cGroups, uGroups)) {
 					return true;

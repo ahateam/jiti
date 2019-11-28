@@ -192,7 +192,7 @@ public class ORGService {
 		ret.assetShares = orgUser.assetShares;
 
 		ret.orgRoles = JSON.parseArray(orgUser.roles);
-		ret.groups = JSON.parseArray(orgUser.groups);
+		ret.groupss = JSON.parseArray(orgUser.groupss);
 		ret.permissions = orgPermissionService.getPermissionsByRoles(conn, orgUser.orgId, ret.orgRoles);
 		ret.orgTags = JSON.parseObject(orgUser.tags);
 

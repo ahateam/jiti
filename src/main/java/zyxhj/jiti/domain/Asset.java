@@ -210,7 +210,7 @@ public class Asset {
 	 * 分组，怕长度不够2048
 	 */
 	@RDSAnnField(column = "VARCHAR(2048)")
-	public String groups;
+	public String groupss;
 
 	/**
 	 * 标签

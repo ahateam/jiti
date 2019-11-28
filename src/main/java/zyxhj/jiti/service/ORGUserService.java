@@ -268,7 +268,7 @@ public class ORGUserService {
 		or.weight = weight;
 
 		or.roles = array2JsonString(checkRoles(roles));
-		or.groups = array2JsonString(checkGroups(conn, orgId, groups));
+		or.groupss = array2JsonString(checkGroups(conn, orgId, groups));
 		or.tags = obj2JsonString(tags);
 
 		or.familyNumber = familyNumber;
@@ -322,7 +322,7 @@ public class ORGUserService {
 		renew.weight = weight;
 		renew.roles = array2JsonString(roles);
 		renew.tags = obj2JsonString(tags);
-		renew.groups = array2JsonString(groups);
+		renew.groupss = array2JsonString(groups);
 
 		renew.familyNumber = familyNumber;
 		renew.familyMaster = familyMaster;

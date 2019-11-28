@@ -237,7 +237,7 @@ public class ImportTaskService {
 							isORGUser = false;
 						}
 
-						Double weight = getDouble(data.getString(StringUtils.join("Col", co++)));
+						Double weight = data.getDouble(StringUtils.join("Col", co++));
 						String address = data.getString(StringUtils.join("Col", co++));
 						String familyMaster = data.getString(StringUtils.join("Col", co++));
 						Boolean shareCerHolder = false;

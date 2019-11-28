@@ -93,7 +93,7 @@ public class AssetService {
 
 		a.imgs = imgs;
 		a.remark = remark;
-		a.groups = ORGUserService.array2JsonString(ORGUserService.checkGroups(conn, orgId, groups));
+		a.groupss = ORGUserService.array2JsonString(ORGUserService.checkGroups(conn, orgId, groups));
 
 		assetRepository.insert(conn, a);
 
@@ -144,7 +144,7 @@ public class AssetService {
 		a.imgs = imgs;
 		a.remark = remark;
 
-		a.groups = ORGUserService.array2JsonString(ORGUserService.checkGroups(conn, orgId, groups));
+		a.groupss = ORGUserService.array2JsonString(ORGUserService.checkGroups(conn, orgId, groups));
 
 		return assetRepository.update(conn,EXP.INS().key("id", assetId), a, true);
 		

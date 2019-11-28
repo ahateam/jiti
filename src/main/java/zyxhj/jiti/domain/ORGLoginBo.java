@@ -43,6 +43,6 @@ public class ORGLoginBo {
 	public Double assetShares;
 
 	public JSONArray orgRoles;
-	public JSONArray groups;
+	public JSONArray groupss;
 	public JSONObject orgTags;
 }

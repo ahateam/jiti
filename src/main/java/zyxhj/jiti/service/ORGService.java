@@ -783,7 +783,11 @@ public class ORGService {
 		newORG.imgAuth = imgAuth;
 		newORG.level = level;
 		newORG.shareAmount = shareAmount;
-		newORG.updateDistrict = updateDistrict;
+		if(null == updateDistrict) {
+			newORG.updateDistrict = false;
+		}else {
+			newORG.updateDistrict = updateDistrict;
+		}
 		newORG.assetShares = assetShares;
 		newORG.resourceShares = resourceShares;
 

@@ -531,7 +531,6 @@ public class VoteService {
 				VOTE_CACHE.put(voteId, vote);
 			}
 		}
-
 		// 非投票中状态，抛出异常
 		if (vote.status != Vote.STATUS.VOTING.v()) {
 			throw new ServerException(BaseRC.ECM_VOIT_STATUS_ERROR);

@@ -1421,21 +1421,15 @@ public class ORGUserService {
 		boolean check = false;
 		int size = json.size();
 		for (int i = 0; i < size; i++) {
+			//户审批
 			if (type == Examine.TYPE.FAMILY.v()) {
-				System.out.println("is family ");
-
 				if (json.getLong(i) == ORGPermission.per_feparate_family.id) {
-					System.out.println("is family success");
 					check = true;
 					break;
 				}
+			//股权变更
 			} else if (type == Examine.TYPE.SHARE.v()) {
-
-				System.out.println("is share ");
 				if (json.getLong(i) == ORGPermission.per_share_change.id) {
-
-					System.out.println("is share success");
-
 					check = true;
 					break;
 				}
@@ -2141,7 +2135,7 @@ public class ORGUserService {
 			if (s[12] == null) {
 				data.put("合作社地址", "");
 			} else {
-				data.put("合作社地址", s[11].toString());
+				data.put("合作社地址", s[12].toString());
 			}
 
 			if (s[13] == null) {

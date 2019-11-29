@@ -536,4 +536,9 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		return ja;
 	}
 
+	public List<ORGUser> getUserss(DruidPooledConnection conn) throws Exception {
+		String where = "share_cer_img is not null";
+		return this.getList(conn, where, null, null, null);
+	}
+
 }

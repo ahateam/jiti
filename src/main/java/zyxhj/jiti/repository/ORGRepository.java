@@ -92,4 +92,9 @@ public class ORGRepository extends RDSRepository<ORG> {
 		String sql = " id in (select org_id from tb_ecm_superior where superior_id = "+districtId+" ) and name like '%"+ORGName+"%'";
 		return this.getList(conn, sql, null, count, offset);
 	}
+
+	public List<ORG> getOrgs(DruidPooledConnection conn) throws Exception {
+		String where = "img_org is not null or img_auth is not null";
+		return this.getList(conn, where, null, null, null);
+	}
 }

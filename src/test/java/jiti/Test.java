@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.Row;
@@ -19,8 +20,17 @@ import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSONArray;
 
+import zyxhj.core.domain.ExportTask;
+import zyxhj.core.repository.ExportTaskRepository;
+import zyxhj.core.repository.UserRepository;
 import zyxhj.jiti.controller.ORGController;
+import zyxhj.jiti.domain.Examine;
+import zyxhj.jiti.domain.ORG;
+import zyxhj.jiti.domain.ORGExamine;
 import zyxhj.jiti.domain.ORGUser;
+import zyxhj.jiti.repository.ExamineRepository;
+import zyxhj.jiti.repository.ORGExamineRepository;
+import zyxhj.jiti.repository.ORGRepository;
 import zyxhj.jiti.repository.ORGUserRepository;
 import zyxhj.jiti.service.FeedbackService;
 import zyxhj.jiti.service.ORGService;
@@ -176,14 +186,14 @@ public class Test {
 
 	}
 
-
 	@org.junit.Test
 	public void testget() throws Exception {
 		FeedbackService fservice = new FeedbackService();
-		for(int i = 0 ; i < 100; i++) {
-			fservice.createFeedback(conn,Long.valueOf(i), "ifdasfas"+i, "10086"+i);
+		for (int i = 0; i < 100; i++) {
+			fservice.createFeedback(conn, Long.valueOf(i), "ifdasfas" + i, "10086" + i);
 		}
 	}
+
 	public void show() {
 		for (int i = 1; i < 10; i++) {
 			for (int j = 10 - i; j > 0; j--) {
@@ -214,5 +224,100 @@ public class Test {
 			e.printStackTrace();
 		}
 	}
+
+	/**
+	 * 修改文件地址
+	 */
+	public void eidtFilePath() {
+		// 修改org表的文件地址
+		// 获取所有组织
+		try {
+			
+			editorg();
+			editexp();
+			edituser();
+			editexamine();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	
+	@org.junit.Test
+	public void editorg() throws Exception {
+		ORGRepository org = new ORGRepository();
+		List<ORG> orgs = org.getOrgs(conn);
+		for(ORG o :orgs ) {
+			String imgOrg = o.imgOrg;
+			String imgAuth = o.imgAuth;
+			if(!StringUtils.isBlank(imgOrg)) {
+				imgOrg = imgOrg.substring(imgOrg.indexOf(".com")+5,imgOrg.length());
+			}
+			if(!StringUtils.isBlank(imgAuth)) {
+				imgAuth = imgAuth.substring(imgAuth.indexOf(".com")+5,imgAuth.length());
+			}
+			o.imgOrg = imgOrg;
+			o.imgAuth =imgAuth;
+			int i = org.update(conn, EXP.INS().key("id", o.id), o, true);
+			System.out.println(i);
+		}
+	}
+	@org.junit.Test
+	public void editexp() throws Exception {
+		// 修改导出数据文件地址
+		ExportTaskRepository exp = new ExportTaskRepository();
+		List<ExportTask> exps = exp.getExportTasks(conn);
+		
+		for(ExportTask o :exps ) {
+			String fileUrls = o.fileUrls;
+			if(!StringUtils.isBlank(fileUrls)) {
+				fileUrls = fileUrls.substring(fileUrls.indexOf(".com")+5,fileUrls.length());
+			}
+			o.fileUrls = fileUrls;
+			int i = exp.update(conn, EXP.INS().key("id", o.id), o, true);
+			System.out.println(i);
+		}
+		
+	}
+	@org.junit.Test
+	public void editexamine() throws Exception {
+		//修改审批表文件地址
+		ORGExamineRepository exa = new ORGExamineRepository();
+		List<ORGExamine> es = exa.getExamines(conn);
+		for(ORGExamine o :es ) {
+			String imgOrg = o.imgOrg;
+			String imgAuth = o.imgAuth;
+			if(!StringUtils.isBlank(imgOrg)) {
+				imgOrg = imgOrg.substring(imgOrg.indexOf(".com")+5,imgOrg.length());
+			}
+			if(!StringUtils.isBlank(imgAuth)) {
+				imgAuth = imgAuth.substring(imgAuth.indexOf(".com")+5,imgAuth.length());
+			}
+			o.imgOrg = imgOrg;
+			o.imgAuth =imgAuth;
+			int i = exa.update(conn, EXP.INS().key("id", o.id), o, true);
+			System.out.println(i);
+		}
+		
+		
+	}
+	
+	@org.junit.Test
+	public void edituser() throws Exception {
+		// 修改ORGUser表的
+		ORGUserRepository user = new ORGUserRepository();
+		List<ORGUser> users = user.getUserss(conn);
+		
+		for(ORGUser o :users ) {
+			String shareCerImg = o.shareCerImg;
+			if(!StringUtils.isBlank(shareCerImg)) {
+				shareCerImg = shareCerImg.substring(shareCerImg.indexOf(".com")+5,shareCerImg.length());
+			}
+			o.shareCerImg = shareCerImg;
+			int i = user.update(conn, EXP.INS().key("user_id", o.userId).andKey("org_id", o.orgId), o, true);
+			System.out.println(i);
+		}
+		
+	}
+
 }

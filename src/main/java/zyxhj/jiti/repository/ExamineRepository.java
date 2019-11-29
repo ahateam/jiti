@@ -44,4 +44,9 @@ public class ExamineRepository extends RDSRepository<Examine> {
 		return null;
 	}
 
+	public List<Examine> getExamines(DruidPooledConnection conn) throws Exception {
+		String where = "img_org is not null or img_auth is not null";
+		return this.getList(conn, where, null, null, null);
+	}
+
 }

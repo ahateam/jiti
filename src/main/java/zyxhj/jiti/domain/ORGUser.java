@@ -57,7 +57,7 @@ public class ORGUser {
 	/**
 	 * 投票权重
 	 */
-	@RDSAnnField(column = RDSAnnField.INTEGER)
+	@RDSAnnField(column = RDSAnnField.DOUBLE)
 	public Double weight;
 	
 	/**

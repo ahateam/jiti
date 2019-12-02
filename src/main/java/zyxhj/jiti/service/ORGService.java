@@ -1176,7 +1176,10 @@ public class ORGService {
 
 	}
 
-	public int delSubOrg(DruidPooledConnection conn, Long id) throws ServerException {
+	/**
+	 * 删除组织所有数据
+	 */
+	public JSONObject delSubOrg(DruidPooledConnection conn, Long id) throws ServerException {
 		try {
 			//删除组织
 			orgRepository.delete(conn, EXP.INS().key("id", id));
@@ -1185,18 +1188,18 @@ public class ORGService {
 			//删除组织行政区归属表
 			orgDistrictRepository.delete(conn, EXP.INS().key("org_id", id));
 			
-			
-			//删除组织用户数据
-			orgUserRepository.delete(conn, EXP.INS().key("org_id", id));
+
 			//删除用户数据
 			userRepository.delORGUser(conn,id);
+			//删除组织用户数据
+			int userSize = orgUserRepository.delete(conn, EXP.INS().key("org_id", id));
 			//删除户数据
 			familyRepository.delete(conn, EXP.INS().key("org_id", id));
 			
 			
 			
 			//删除组织资产
-			assetRepository.delete(conn, EXP.INS().key("org_id", id));
+			int assetSize = assetRepository.delete(conn, EXP.INS().key("org_id", id));
 			//删除资产导入任务记录
 			assetImpRecReporsitory.delete(conn, EXP.INS().key("org_id", id));
 			//删除资产导入任务（任务批次，方便管理）
@@ -1209,17 +1212,42 @@ public class ORGService {
 			
 			//删除公告
 			noticeRepository.delete(conn, EXP.INS().key("org_id", id));
-			
-			
-			
-			
-			
-			
-			return 1;
+			JSONObject jo = new JSONObject();
+			jo.put("user", userSize);
+			jo.put("asset", assetSize);
+			return jo;
 		} catch (Exception e) {
-			return 0;
+			return new JSONObject();
 		}
 	}
+	
+	/**
+	 *删除所有用户数据（user数据、orgUser数据、family数据） 
+	 */
+	public int delORGUser(DruidPooledConnection conn, Long id) throws Exception {
+
+		//删除用户数据
+		int size = userRepository.delORGUser(conn,id);
+		//删除组织用户数据
+		orgUserRepository.delete(conn, EXP.INS().key("org_id", id));
+		//删除户数据
+		familyRepository.delete(conn, EXP.INS().key("org_id", id));
+		return size;
+	}
+	
+	/**
+	 * 删除组织资产数据
+	 */
+	public int delORGAsset(DruidPooledConnection conn, Long id) throws Exception {
+		//删除组织资产
+		int size = assetRepository.delete(conn, EXP.INS().key("org_id", id));
+		//删除资产导入任务记录
+		assetImpRecReporsitory.delete(conn, EXP.INS().key("org_id", id));
+		//删除资产导入任务（任务批次，方便管理）
+		assetImpTaskReporsitory.delete(conn, EXP.INS().key("org_id", id));
+		return size;
+	}
+	
 
 	/**
 	 * 获取上级组织

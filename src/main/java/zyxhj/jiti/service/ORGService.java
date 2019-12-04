@@ -1222,17 +1222,17 @@ public class ORGService {
 	}
 	
 	/**
-	 *删除所有用户数据（user数据、orgUser数据、family数据） 
+	 *删除所有用户数据（user数据、orgUser数据、family数据） 管理员除外
 	 */
 	public int delORGUser(DruidPooledConnection conn, Long id) throws Exception {
 
 		//删除用户数据
-		int size = userRepository.delORGUser(conn,id);
+		userRepository.delORGUser(conn,id);
 		//删除组织用户数据
-		orgUserRepository.delete(conn, EXP.INS().key("org_id", id));
+		int userSize = orgUserRepository.delORGUser(conn,id);
 		//删除户数据
 		familyRepository.delete(conn, EXP.INS().key("org_id", id));
-		return size;
+		return userSize;
 	}
 	
 	/**

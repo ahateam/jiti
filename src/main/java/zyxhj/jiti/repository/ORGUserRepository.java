@@ -541,4 +541,18 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		return this.getList(conn, where, null, null, null);
 	}
 
+	public int delORGUser(DruidPooledConnection conn, Long id) throws Exception {
+		// 获取当前组织管理员
+		String where = StringUtils.join(" org_id = ", id, " and JSON_CONTAINS(roles, '102', '$')");
+		List<ORGUser> adminList = this.getList(conn, where, null, null, null);
+		String sql = StringUtils.join(" org_id = ", id);
+		int length = adminList.size();
+		if (length > 0) {
+			for (int i = 0; i < length; i++) {
+				sql = StringUtils.join(sql, " and user_id <> ", adminList.get(i).userId);
+			}
+		}
+		return this.delete(conn, sql, null);
+	}
+
 }

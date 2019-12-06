@@ -57,19 +57,8 @@ public class Test {
 	private static SingleCertificateTaskService scftService = new SingleCertificateTaskService();
 
 	public static void main(String[] args) throws Exception {
-		//
-		// String phone = "[17353166886,18651813050]";
-		// JSONArray json = new JSONArray();
-		// json.add("18651813050");
-		// json.add("17353166886");
-		// // or.SendSms(phone);
 
-		Integer j = 3508;
-		// System.out.println((i/100)+1);
-
-		for (int i = 0; i < (j / 100) + 1; i++) {
-			System.out.println(i);
-		}
+		testesss();
 	}
 
 	@org.junit.Test
@@ -232,7 +221,7 @@ public class Test {
 		// 修改org表的文件地址
 		// 获取所有组织
 		try {
-			
+
 			editorg();
 			editexp();
 			edituser();
@@ -242,82 +231,146 @@ public class Test {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@org.junit.Test
 	public void editorg() throws Exception {
 		ORGRepository org = new ORGRepository();
 		List<ORG> orgs = org.getOrgs(conn);
-		for(ORG o :orgs ) {
+		for (ORG o : orgs) {
 			String imgOrg = o.imgOrg;
 			String imgAuth = o.imgAuth;
-			if(!StringUtils.isBlank(imgOrg)) {
-				imgOrg = imgOrg.substring(imgOrg.indexOf(".com")+5,imgOrg.length());
+			if (!StringUtils.isBlank(imgOrg)) {
+				imgOrg = imgOrg.substring(imgOrg.indexOf(".com") + 5, imgOrg.length());
 			}
-			if(!StringUtils.isBlank(imgAuth)) {
-				imgAuth = imgAuth.substring(imgAuth.indexOf(".com")+5,imgAuth.length());
+			if (!StringUtils.isBlank(imgAuth)) {
+				imgAuth = imgAuth.substring(imgAuth.indexOf(".com") + 5, imgAuth.length());
 			}
 			o.imgOrg = imgOrg;
-			o.imgAuth =imgAuth;
+			o.imgAuth = imgAuth;
 			int i = org.update(conn, EXP.INS().key("id", o.id), o, true);
 			System.out.println(i);
 		}
 	}
+
 	@org.junit.Test
 	public void editexp() throws Exception {
 		// 修改导出数据文件地址
 		ExportTaskRepository exp = new ExportTaskRepository();
 		List<ExportTask> exps = exp.getExportTasks(conn);
-		
-		for(ExportTask o :exps ) {
+
+		for (ExportTask o : exps) {
 			String fileUrls = o.fileUrls;
-			if(!StringUtils.isBlank(fileUrls)) {
-				fileUrls = fileUrls.substring(fileUrls.indexOf(".com")+5,fileUrls.length());
+			if (!StringUtils.isBlank(fileUrls)) {
+				fileUrls = fileUrls.substring(fileUrls.indexOf(".com") + 5, fileUrls.length());
 			}
 			o.fileUrls = fileUrls;
 			int i = exp.update(conn, EXP.INS().key("id", o.id), o, true);
 			System.out.println(i);
 		}
-		
+
 	}
+
 	@org.junit.Test
 	public void editexamine() throws Exception {
-		//修改审批表文件地址
+		// 修改审批表文件地址
 		ORGExamineRepository exa = new ORGExamineRepository();
 		List<ORGExamine> es = exa.getExamines(conn);
-		for(ORGExamine o :es ) {
+		for (ORGExamine o : es) {
 			String imgOrg = o.imgOrg;
 			String imgAuth = o.imgAuth;
-			if(!StringUtils.isBlank(imgOrg)) {
-				imgOrg = imgOrg.substring(imgOrg.indexOf(".com")+5,imgOrg.length());
+			if (!StringUtils.isBlank(imgOrg)) {
+				imgOrg = imgOrg.substring(imgOrg.indexOf(".com") + 5, imgOrg.length());
 			}
-			if(!StringUtils.isBlank(imgAuth)) {
-				imgAuth = imgAuth.substring(imgAuth.indexOf(".com")+5,imgAuth.length());
+			if (!StringUtils.isBlank(imgAuth)) {
+				imgAuth = imgAuth.substring(imgAuth.indexOf(".com") + 5, imgAuth.length());
 			}
 			o.imgOrg = imgOrg;
-			o.imgAuth =imgAuth;
+			o.imgAuth = imgAuth;
 			int i = exa.update(conn, EXP.INS().key("id", o.id), o, true);
 			System.out.println(i);
 		}
-		
-		
+
 	}
-	
+
 	@org.junit.Test
 	public void edituser() throws Exception {
 		// 修改ORGUser表的
 		ORGUserRepository user = new ORGUserRepository();
 		List<ORGUser> users = user.getUserss(conn);
-		
-		for(ORGUser o :users ) {
+
+		for (ORGUser o : users) {
 			String shareCerImg = o.shareCerImg;
-			if(!StringUtils.isBlank(shareCerImg)) {
-				shareCerImg = shareCerImg.substring(shareCerImg.indexOf(".com")+5,shareCerImg.length());
+			if (!StringUtils.isBlank(shareCerImg)) {
+				shareCerImg = shareCerImg.substring(shareCerImg.indexOf(".com") + 5, shareCerImg.length());
 			}
 			o.shareCerImg = shareCerImg;
 			int i = user.update(conn, EXP.INS().key("user_id", o.userId).andKey("org_id", o.orgId), o, true);
 			System.out.println(i);
 		}
-		
+
 	}
 
+	@org.junit.Test
+	public static void testPss() {
+		List<Integer> list = new ArrayList<Integer>();
+		list.add(1);
+		list.add(1);
+		list.add(1);
+		list.add(1);
+		list.add(2);
+		list.add(2);
+		list.add(2);
+		list.add(3);
+		list.add(3);
+		list.add(3);
+		List<Integer> list1 = new ArrayList<Integer>();
+		int now = 0;
+		int last = 0;
+		int c = 0;
+		for (int i = 0; i < 2; i++) {
+			for (int j = 0; j < list.size(); j++) {
+				if (i == 0 && j == 0) {
+					last = now = list.get(j);
+				}
+				now = list.get(j);
+				if (now == c) {
+					System.out.print(now + "\t");
+					now = last;
+				} else if (now == last) {
+					System.out.print(now + "\t");
+					list1.add(now);
+				} else if (last + 1 == now) {
+					System.out.print(now + "\t");
+					list1.add(now);
+					last = now;
+				} else if (last + 1 < now) {
+					System.out.print(now + "\t");
+					c = now;
+					now = last + 1;
+					last = now;
+					list1.add(now);
+				}
+				System.out.println(now);
+			}
+			list.clear();
+			list.add(5);
+			list.add(5);
+			list.add(5);
+			list.add(5);
+			list.add(25);
+			list.add(25);
+			list.add(28);
+			list.add(29);
+			list.add(31);
+			list.add(32);
+		}
+//		for (int i = 0; i < list1.size(); i++) {
+//			System.out.println(list1.get(i) + "\t");
+//		}
+	}
+	
+	public static void testesss() {
+		String a = "2019年12月08日";
+		System.out.println(a.length());
+	}
 }

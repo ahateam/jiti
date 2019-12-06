@@ -260,7 +260,13 @@ public class ExportTaskService {
 							row.createCell(4).setCellValue(listresult.get(i).get(key).toString());
 							break;
 						} else if ("身份证号码".equals(s)) {
-							row.createCell(5).setCellValue(listresult.get(i).get(key).toString());
+							String idNumber = listresult.get(i).get(key).toString();
+							if(!StringUtils.isBlank(idNumber)) {
+								if(idNumber.length()<8 || idNumber.length() > 20  ) {
+									idNumber = "";
+								}
+							}
+							row.createCell(5).setCellValue(idNumber);
 							break;
 						} else if ("是否集体组织成员".equals(s)) {
 							row.createCell(6).setCellValue(listresult.get(i).get(key).toString());

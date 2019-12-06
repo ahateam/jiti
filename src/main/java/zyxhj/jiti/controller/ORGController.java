@@ -1908,12 +1908,14 @@ public class ORGController extends Controller {
 		}
 	}
 
-	/**
-	 * 
-	 */
 	@POSTAPI(//
-			path = "delSubOrg", des = "移除下级组织机构", ret = "")
-	public APIResponse delSubOrg(@P(t = "组织id") Long orgId) throws Exception {
+			path = "delSubOrg", //
+			des = "移除下级组织机构", //
+			ret = ""//
+	)
+	public APIResponse delSubOrg(//
+			@P(t = "组织id") Long orgId//
+	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
 			return APIResponse.getNewSuccessResp(orgService.delSubOrg(conn, orgId));
 		}
@@ -2178,7 +2180,7 @@ public class ORGController extends Controller {
 			return APIResponse.getNewSuccessResp(orgService.getCooperativeList(conn, ORGName, count, offset));
 		}
 	}
-	
+
 	@POSTAPI(//
 			path = "delORGUser", //
 			des = "删除合作社所有用户"//
@@ -2190,8 +2192,7 @@ public class ORGController extends Controller {
 			return APIResponse.getNewSuccessResp(orgService.delORGUser(conn, orgId));
 		}
 	}
-	
-	
+
 	@POSTAPI(//
 			path = "delORGAsset", //
 			des = "删除合作社所有资产"//
@@ -2203,6 +2204,5 @@ public class ORGController extends Controller {
 			return APIResponse.getNewSuccessResp(orgService.delORGAsset(conn, orgId));
 		}
 	}
-	
 
 }

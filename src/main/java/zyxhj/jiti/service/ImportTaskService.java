@@ -119,10 +119,9 @@ public class ImportTaskService {
 				ColumnBuilder cb = new ColumnBuilder();
 				cb.add("orgId", orgId);
 				cb.add("status", (long) ImportTempRecord.STATUS.PENDING.v());
-				System.out.println();
 				for (int i = 0; i < colCount; i++) {
 					cb.add(StringUtils.join("Col", i), ExcelUtils.getString(row.get(i)));
-					System.out.print(ExcelUtils.getString(row.get(i))+"\t");
+					System.out.print(ExcelUtils.getString(row.get(i)) + "\t");
 				}
 
 				count++;
@@ -164,7 +163,6 @@ public class ImportTaskService {
 	// 开始导入用户
 	public void importOrgUser(Long importTaskId) throws Exception {
 
-		
 		// 异步方法，不会阻塞
 		Vertx.vertx().executeBlocking(future -> {
 			// 下面这行代码可能花费很长时间
@@ -187,11 +185,13 @@ public class ImportTaskService {
 				ImportTask ta = new ImportTask();
 				ta.status = ImportTask.STATUS.PROGRESSING.v();
 				taskRepository.update(conn, EXP.INS().key("id", importTaskId), ta, true);
-				System.out.println(new SimpleDateFormat("yyyy-MM-dd hh:ss:mm").format(new Date()));
-				System.out.println("开始导入输入");
+				JSONArray listImportTemp = new JSONArray();
+				Long now = 0L;
+				Long last = 0L;
+				Long c = 0L;
 				for (int k = 0; k < amount / 100 + 1; k++) {
 					// 根据taskid去获取导入表
-					JSONArray listImportTemp = getListImportTemp(client, importTaskId, 100, offset);
+					listImportTemp = getListImportTemp(client, importTaskId, 100, offset);
 					// 遍历获取到的数据
 					for (int i = 0; i < listImportTemp.size(); i++) {
 						//// 将数据处理后放入到集合中
@@ -202,7 +202,7 @@ public class ImportTaskService {
 						Long orgId = data.getLong("orgId");
 						Long recordId = data.getLong("recordId");
 
-						String fa = data.getString(StringUtils.join("Col", co++)).replaceAll(" ",""); // 户序号
+						String fa = data.getString(StringUtils.join("Col", co++)).replaceAll(" ", ""); // 户序号
 
 						if (StringUtils.isBlank(fa)) {
 							// 户序号为空，直接跳过
@@ -210,6 +210,29 @@ public class ImportTaskService {
 							continue;
 						}
 						Long familyNumber = Long.parseLong(fa);
+
+						if (i == 0 && k == 0) {
+							last = now = familyNumber;
+						}
+						now = familyNumber;
+						if (now == c) {
+							System.out.print(now + "\t");
+							now = last;
+						} else if (now == last) {
+							System.out.print(now + "\t");
+							familyNumber = now;
+						} else if (last + 1 == now) {
+							System.out.print(now + "\t");
+							familyNumber = now;
+							last = now;
+						} else if (last + 1 < now) {
+							System.out.print(now + "\t");
+							c = now;
+							now = last + 1;
+							last = now;
+							familyNumber = now;
+						}
+						familyNumber = now;
 
 						String realName = data.getString(StringUtils.join("Col", co++));
 						String idNumber = data.getString(StringUtils.join("Col", co++));
@@ -219,7 +242,6 @@ public class ImportTaskService {
 						if (data.getString(StringUtils.join("Col", co++)).equals("女")) {
 							sex = 1;
 						}
-						System.out.println(sex);
 
 						// 与户主关系
 						String familyRelations = data.getString(StringUtils.join("Col", co++));
@@ -250,7 +272,6 @@ public class ImportTaskService {
 						String dutyDirectors = data.getString(StringUtils.join("Col", co++));
 						String dutyVisors = data.getString(StringUtils.join("Col", co++));
 						String dutyOthers = data.getString(StringUtils.join("Col", co++));
-//						String dutyAdmins = data.getString(StringUtils.join("Col", co++));
 
 						String groups = data.getString(StringUtils.join("Col", co++));
 						String tags = data.getString(StringUtils.join("Col", co++));
@@ -261,7 +282,7 @@ public class ImportTaskService {
 						{
 							// 股东成员职务
 							String ts = StringUtils.trim(dutyShareholders);
-							if(ts!=null) {
+							if (ts != null) {
 								JSONArray ja = JSON.parseArray(JSON.toJSONString(ts.trim().split("/")));
 								if (ja.size() > 1) {
 									for (int r = 0; r < ja.size(); r++) {
@@ -290,14 +311,12 @@ public class ImportTaskService {
 									}
 								}
 							}
-							
 
 						}
-
 						{
 							// 董事会职务
 							String ts = StringUtils.trim(dutyDirectors);
-							if(ts!=null) {
+							if (ts != null) {
 								JSONArray ja = JSON.parseArray(JSON.toJSONString(ts.trim().split("/")));
 								if (ja.size() > 1) {
 									for (int r = 0; r < ja.size(); r++) {
@@ -327,7 +346,6 @@ public class ImportTaskService {
 							}
 
 						}
-
 						{
 							// 监事会职务
 							String ts = StringUtils.trim(dutyVisors);
@@ -346,7 +364,7 @@ public class ImportTaskService {
 											// 无，不加
 										}
 									}
-								}else {
+								} else {
 									String role = ja.getString(0);
 									if (role.equals(ORGUserRole.role_supervisor.name)) {
 										roles.add(ORGUserRole.role_supervisor.roleId);// 监事
@@ -358,32 +376,12 @@ public class ImportTaskService {
 										// 无，不加
 									}
 								}
-								
+
 							}
 
 						}
 
-//						{
-//							// 其它管理角色
-//							temp = CodecUtils.convertCommaStringList2JSONArray(dutyAdmins);
-//							for (int j = 0; j < temp.size(); j++) {
-//								String ts = StringUtils.trim(temp.getString(j));
-//
-//								if (ts.equals(ORGUserRole.role_user.name)) {
-//									roles.add(ORGUserRole.role_user.roleId);// 用户
-//								} else if (ts.equals(ORGUserRole.role_outuser.name)) {
-//									roles.add(ORGUserRole.role_outuser.roleId);// 外部人员
-//								} else if (ts.equals(ORGUserRole.role_admin.name)) {
-//									roles.add(ORGUserRole.role_admin.roleId);// 管理员
-//								} else {
-//									// 无，不填默认当作用户
-//									roles.add(ORGUserRole.role_user.roleId);// 用户
-//								}
-//							}
-//						}
-
 						{
-
 							// TODO 这个地方要跟系统中的其它角色做匹配
 							// 其它角色
 							temp = CodecUtils.convertCommaStringList2JSONArray(dutyOthers);
@@ -405,7 +403,6 @@ public class ImportTaskService {
 						{
 							// 分组
 							temp = CodecUtils.convertCommaStringList2JSONArray(groups);
-
 							for (int j = 0; j < temp.size(); j++) {
 								String ts = StringUtils.trim(temp.getString(j));
 								if (ts.equals("null") || ts.equals("无")) {
@@ -414,7 +411,6 @@ public class ImportTaskService {
 									arrGroups.add(ts);
 								}
 							}
-
 						}
 
 						JSONObject joTags = new JSONObject();
@@ -422,7 +418,6 @@ public class ImportTaskService {
 						{
 							// 标签
 							temp = CodecUtils.convertCommaStringList2JSONArray(tags);
-
 							for (int j = 0; j < temp.size(); j++) {
 								String ts = StringUtils.trim(temp.getString(j));
 								if (ts.equals("null") || ts.equals("无")) {
@@ -431,14 +426,10 @@ public class ImportTaskService {
 									arrTags.add(ts);
 								}
 							}
-
 							if (arrTags.size() > 0) {
 								joTags.put("tags", arrTags);
 							}
 						}
-
-						// System.out.println("----------" + JSON.toJSONString(joTags));
-
 						// 处理idNunber为空的问题
 						if (StringUtils.isBlank(idNumber)) {
 							idNumber = StringUtils.join(orgId, "-", fa, "-", IDUtils.getHexSimpleId());
@@ -446,9 +437,8 @@ public class ImportTaskService {
 						if (StringUtils.isBlank(mobile)) {
 							mobile = StringUtils.join(orgId, "-", fa, "-", IDUtils.getHexSimpleId());
 						}
-
 						try {
-							if (idNumber.length() < 15 || idNumber.length() > 19) {
+							if (idNumber.length() < 8 || idNumber.length() > 20) {
 								throw new ServerException(BaseRC.AUTH_ERROR, "身份证号不规范");
 							}
 							orgUserService.createORGUser(conn, orgId, mobile, realName, idNumber, sex, familyRelations,
@@ -461,10 +451,8 @@ public class ImportTaskService {
 							cb.add("status", (long) ImportTempRecord.STATUS.SUCCESS.v());
 							List<Column> columns = cb.build();
 							TSRepository.nativeUpdate(client, tempRecordRepository.getTableName(), pk, true, columns);
-
 							taskRepository.countORGUserImportCompletionTask(conn, importTaskId);
 						} catch (Exception e) {
-
 							System.out.println("导入User信息失败+" + realName);
 
 							PrimaryKey pk = new PrimaryKeyBuilder().add("taskId", importTaskId)
@@ -480,7 +468,6 @@ public class ImportTaskService {
 					}
 					offset = offset + 100;
 				}
-
 				System.out.println("==============导入结束===================");
 				// 执行完成 修改任务表里成功与失败数量
 				ImportTask imp = new ImportTask();
@@ -488,7 +475,6 @@ public class ImportTaskService {
 				imp.status = ImportTask.STATUS.COMPLETED.v();
 				taskRepository.update(conn, EXP.INS().key("id", importTaskId), imp, true);
 			} catch (Exception eee) {
-				System.out.println(123456);
 				eee.printStackTrace();
 			} finally {
 				try {
@@ -704,12 +690,12 @@ public class ImportTaskService {
 	public ImportTask getImportTask(DruidPooledConnection conn, Long importTaskId) throws Exception {
 		return taskRepository.get(conn, EXP.INS().key("id", importTaskId));
 	}
-	
+
 	/**
 	 * 数值类型判断
 	 */
 	public Double getDouble(String dou) {
-		if(!StringUtils.isBlank(dou)) {
+		if (!StringUtils.isBlank(dou)) {
 			return Double.valueOf(dou.replaceAll(" ", ""));
 		}
 		return 0.0;

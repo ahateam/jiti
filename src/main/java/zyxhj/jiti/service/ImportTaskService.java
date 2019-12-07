@@ -189,6 +189,7 @@ public class ImportTaskService {
 				Long now = 0L;
 				Long last = 0L;
 				Long c = 0L;
+				Long orgId = 0L;
 				for (int k = 0; k < amount / 100 + 1; k++) {
 					// 根据taskid去获取导入表
 					listImportTemp = getListImportTemp(client, importTaskId, 100, offset);
@@ -199,7 +200,7 @@ public class ImportTaskService {
 
 						// 获取导入数据
 						JSONObject data = JSONObject.parseObject(listImportTemp.getString(i));
-						Long orgId = data.getLong("orgId");
+						orgId = data.getLong("orgId");
 						Long recordId = data.getLong("recordId");
 
 						String fa = data.getString(StringUtils.join("Col", co++)).replaceAll(" ", ""); // 户序号
@@ -438,9 +439,9 @@ public class ImportTaskService {
 							mobile = StringUtils.join(orgId, "-", fa, "-", IDUtils.getHexSimpleId());
 						}
 						try {
-							if (idNumber.length() < 8 || idNumber.length() > 20) {
-								throw new ServerException(BaseRC.AUTH_ERROR, "身份证号不规范");
-							}
+//							if (idNumber.length() < 8 || idNumber.length() > 20) {
+//								throw new ServerException(BaseRC.AUTH_ERROR, "身份证号不规范");
+//							}
 							orgUserService.createORGUser(conn, orgId, mobile, realName, idNumber, sex, familyRelations,
 									resourceShares, assetShares, isORGUser, address, shareCerNo, "", shareCerHolder,
 									shareAmount, weight, roles, arrGroups, joTags, familyNumber, familyMaster);
@@ -469,6 +470,8 @@ public class ImportTaskService {
 					offset = offset + 100;
 				}
 				System.out.println("==============导入结束===================");
+				//补充股权证号
+				orgUserService.setShareCerNo(conn, orgId);
 				// 执行完成 修改任务表里成功与失败数量
 				ImportTask imp = new ImportTask();
 				imp.finishTime = new Date();

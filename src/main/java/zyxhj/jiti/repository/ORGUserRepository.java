@@ -555,4 +555,13 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		return this.delete(conn, sql, null);
 	}
 
+	public Object[] getFamilyMaster(DruidPooledConnection conn, Long orgId, Long familyNumber, String familyMaster) throws Exception {
+		String sql = StringUtils.join(
+				"select u.id ,org_id, real_name, family_master, family_number, share_cer_no from tb_user u, tb_ecm_org_user o "
+				+ "where u.id = o.user_id and u.real_name = o.family_master and o.org_id = ",
+				orgId, " and o.family_number = ", familyNumber, " and o.family_master = '", familyMaster,"'");
+		Object[] s = this.sqlGetObjects(conn, sql, null);
+		return s;
+	}
+
 }

@@ -263,7 +263,11 @@ public class ExportTaskService {
 							String idNumber = listresult.get(i).get(key).toString();
 							if(!StringUtils.isBlank(idNumber)) {
 								if(idNumber.length()<8 || idNumber.length() > 20  ) {
-									idNumber = "";
+									if(idNumber.length()==25 && idNumber.indexOf("年")>0) {
+										idNumber = idNumber.substring(0, 11);
+									}else {
+										idNumber = "";
+									}
 								}
 							}
 							row.createCell(5).setCellValue(idNumber);

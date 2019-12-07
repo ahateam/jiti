@@ -18,13 +18,16 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 
 import com.alibaba.druid.pool.DruidPooledConnection;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 
 import zyxhj.core.domain.ExportTask;
 import zyxhj.core.repository.ExportTaskRepository;
 import zyxhj.core.repository.UserRepository;
+import zyxhj.core.service.UserService;
 import zyxhj.jiti.controller.ORGController;
 import zyxhj.jiti.domain.Examine;
+import zyxhj.jiti.domain.Family;
 import zyxhj.jiti.domain.ORG;
 import zyxhj.jiti.domain.ORGExamine;
 import zyxhj.jiti.domain.ORGUser;
@@ -53,12 +56,16 @@ public class Test {
 	}
 
 	private static ORGService orgService = new ORGService();
+	private static UserService userService = new UserService();
 	private static ORGUserService orgUserService = new ORGUserService();
 	private static SingleCertificateTaskService scftService = new SingleCertificateTaskService();
 
 	public static void main(String[] args) throws Exception {
 
-		testesss();
+		Long orgId = 403379009872608L;
+		// 填充股权证号
+		// 查询股权证号为空的户，
+		
 	}
 
 	@org.junit.Test
@@ -367,10 +374,5 @@ public class Test {
 //		for (int i = 0; i < list1.size(); i++) {
 //			System.out.println(list1.get(i) + "\t");
 //		}
-	}
-	
-	public static void testesss() {
-		String a = "2019年12月08日";
-		System.out.println(a.length());
 	}
 }

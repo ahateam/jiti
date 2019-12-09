@@ -195,7 +195,7 @@ public class ImportTaskService {
 					listImportTemp = getListImportTemp(client, importTaskId, 100, offset);
 					// 遍历获取到的数据
 					for (int i = 0; i < listImportTemp.size(); i++) {
-						//// 将数据处理后放入到集合中
+						// 将数据处理后放入到集合中
 						int co = 0;// 定义一个变量来循环
 
 						// 获取导入数据
@@ -387,14 +387,6 @@ public class ImportTaskService {
 							// 其它角色
 							temp = CodecUtils.convertCommaStringList2JSONArray(dutyOthers);
 
-							// for (int i = 0; i < temp.size(); i++) {
-							// String ts = StringUtils.trim(temp.getString(i));
-							// if (ts.equals("null") || ts.equals("无")) {
-							// // 无和null，不加
-							// } else {
-							// roles.add(ts);
-							// }
-							// }
 						}
 
 						// 开始处理分组和标签
@@ -470,8 +462,8 @@ public class ImportTaskService {
 					offset = offset + 100;
 				}
 				System.out.println("==============导入结束===================");
-				//补充股权证号
-				orgUserService.setShareCerNo(conn, orgId);
+				// 补充股权证号---------待优化
+				orgUserService.setShareCerNoImp(conn, orgId);
 				// 执行完成 修改任务表里成功与失败数量
 				ImportTask imp = new ImportTask();
 				imp.finishTime = new Date();
@@ -490,7 +482,6 @@ public class ImportTaskService {
 		}, res -> {
 			System.out.println("The result is: " + res.result());
 		});
-
 	}
 
 	// 开始导入资产

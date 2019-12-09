@@ -92,6 +92,12 @@ public class ORGExamine {
 	 */
 	@RDSAnnField(column = "VARCHAR(64)")
 	public String code;
+	
+	/**
+	 * 组织创建时间
+	 */
+	@RDSAnnField(column = RDSAnnField.TIME)
+	public Date orgCreateTime;
 
 	/**
 	 * 省

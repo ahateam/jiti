@@ -1,6 +1,7 @@
 package zyxhj.jiti.controller;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -149,6 +150,7 @@ public class ORGController extends Controller {
 			@P(t = "组织编号") Long orgId, //
 			@P(t = "组织名称") String orgName, //
 			@P(t = "组织机构代码", r = false) String code, //
+			@P(t = "组织创建时间", r = false) Date orgCreateTime, //
 			@P(t = "街道地址") String address, //
 			@P(t = "组织机构证书图片地址", r = false) String imgOrg, //
 			@P(t = "组织授权证书图片地址", r = false) String imgAuth, //
@@ -157,7 +159,7 @@ public class ORGController extends Controller {
 			@P(t = "资产股", r = false) Double assetShares //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			orgService.editORG(conn, code, orgName, orgId, address, imgOrg, imgAuth, shareAmount, resourceShares,
+			orgService.editORG(conn,  orgName,code,orgCreateTime, orgId, address, imgOrg, imgAuth, shareAmount, resourceShares,
 					assetShares);
 			return APIResponse.getNewSuccessResp();
 		}
@@ -169,6 +171,7 @@ public class ORGController extends Controller {
 	public void createSubOrg(//
 			@P(t = "组织名称") String name, //
 			@P(t = "组织机构代码") String code, //
+			@P(t = "组织创建时间", r = false) Date orgCreateTime, //
 			@P(t = "省", r = false) Long province, //
 			@P(t = "市", r = false) Long city, //
 			@P(t = "区", r = false) Long district, //
@@ -182,7 +185,7 @@ public class ORGController extends Controller {
 			@P(t = "总资产股", r = false) Double assetShares //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			orgService.createSubOrg(conn, name, code, address, imgOrg, imgAuth, level, shareAmount, superiorId,
+			orgService.createSubOrg(conn, name, code,orgCreateTime, address, imgOrg, imgAuth, level, shareAmount, superiorId,
 					province, city, district, resourceShares, assetShares);
 		}
 	}
@@ -822,6 +825,7 @@ public class ORGController extends Controller {
 			@P(t = "创建者用户编号") Long userId, //
 			@P(t = "组织名称") String name, //
 			@P(t = "组织机构代码") String code, //
+			@P(t = "组织创建时间", r = false) Date orgCreateTime, //
 			@P(t = "省", r = false) Long province, //
 			@P(t = "市", r = false) Long city, //
 			@P(t = "区", r = false) Long district, //
@@ -836,7 +840,7 @@ public class ORGController extends Controller {
 			@P(t = "资产股", r = false) Double assetShares, //
 			@P(t = "是否为修改上级机构申请", r = false) Boolean updateDistrict) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.createORGApply(conn, userId, name, code, province, city,
+			return APIResponse.getNewSuccessResp(orgService.createORGApply(conn, userId, name, code,orgCreateTime, province, city,
 					district, address, imgOrg, imgAuth, shareAmount, level, superiorId, resourceShares, assetShares,
 					updateDistrict, orgId));
 		}
@@ -854,6 +858,7 @@ public class ORGController extends Controller {
 			@P(t = "创建者用户编号") Long userId, //
 			@P(t = "组织名称") String name, //
 			@P(t = "组织机构代码") String code, //
+			@P(t = "组织创建时间", r = false) Date orgCreateTime, //
 			@P(t = "省", r = false) Long province, //
 			@P(t = "市", r = false) Long city, //
 			@P(t = "区", r = false) Long district, //
@@ -870,7 +875,7 @@ public class ORGController extends Controller {
 			@P(t = "资产股", r = false) Double assetShares //
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.upORGApply(conn, orgExamineId, examine, userId, name, code,
+			return APIResponse.getNewSuccessResp(orgService.upORGApply(conn, orgExamineId, examine, userId, name, code,orgCreateTime,
 					province, city, district, address, imgOrg, imgAuth, shareAmount, level, superiorId, updateDistrict,
 					resourceShares, assetShares, orgId));
 		}
@@ -888,6 +893,7 @@ public class ORGController extends Controller {
 			@P(t = "创建者用户编号") Long userId, //
 			@P(t = "组织名称") String name, //
 			@P(t = "组织机构代码") String code, //
+			@P(t = "组织创建时间", r = false) Date orgCreateTime, //
 			@P(t = "省", r = false) Long province, //
 			@P(t = "市", r = false) Long city, //
 			@P(t = "区", r = false) Long district, //
@@ -903,7 +909,7 @@ public class ORGController extends Controller {
 			@P(t = "资产股", r = false) Double assetShares //
 	) {
 		try (DruidPooledConnection conn = dds.getConnection()) {
-			return APIResponse.getNewSuccessResp(orgService.upORGApplyAgain(conn, orgExamineId, userId, name, code,
+			return APIResponse.getNewSuccessResp(orgService.upORGApplyAgain(conn, orgExamineId, userId, name, code,orgCreateTime,
 					province, city, district, address, imgOrg, imgAuth, shareAmount, level, superiorId, orgId,
 					updateDistrict, assetShares, resourceShares));
 		} catch (Exception e) {

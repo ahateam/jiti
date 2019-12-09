@@ -62,13 +62,11 @@ public class Test {
 
 	public static void main(String[] args) throws Exception {
 
-		Long orgId = 403379009872608L;
-		// 填充股权证号
-		// 查询股权证号为空的户，
+		testsssss();
 		
 	}
 
-	@org.junit.Test
+	
 	public void testAAA() throws ServerException {
 
 		int[] a = { 101, 102 };
@@ -121,7 +119,6 @@ public class Test {
 		System.out.println();
 	}
 
-	@org.junit.Test
 	public void testiiii() {
 		try {
 			dealExcel("C:\\Users\\Admin\\Desktop\\省标打印程序.xlsm", "C:\\Users\\Admin\\Desktop\\省标打印程序2.xlsm");
@@ -182,7 +179,6 @@ public class Test {
 
 	}
 
-	@org.junit.Test
 	public void testget() throws Exception {
 		FeedbackService fservice = new FeedbackService();
 		for (int i = 0; i < 100; i++) {
@@ -211,7 +207,6 @@ public class Test {
 		}
 	}
 
-	@org.junit.Test
 	public void testssss() {
 		try {
 			orgService.delSubOrg(conn, 403008741706773L);
@@ -239,7 +234,6 @@ public class Test {
 		}
 	}
 
-	@org.junit.Test
 	public void editorg() throws Exception {
 		ORGRepository org = new ORGRepository();
 		List<ORG> orgs = org.getOrgs(conn);
@@ -259,7 +253,6 @@ public class Test {
 		}
 	}
 
-	@org.junit.Test
 	public void editexp() throws Exception {
 		// 修改导出数据文件地址
 		ExportTaskRepository exp = new ExportTaskRepository();
@@ -277,7 +270,6 @@ public class Test {
 
 	}
 
-	@org.junit.Test
 	public void editexamine() throws Exception {
 		// 修改审批表文件地址
 		ORGExamineRepository exa = new ORGExamineRepository();
@@ -299,7 +291,6 @@ public class Test {
 
 	}
 
-	@org.junit.Test
 	public void edituser() throws Exception {
 		// 修改ORGUser表的
 		ORGUserRepository user = new ORGUserRepository();
@@ -316,8 +307,7 @@ public class Test {
 		}
 
 	}
-
-	@org.junit.Test
+	
 	public static void testPss() {
 		List<Integer> list = new ArrayList<Integer>();
 		list.add(1);
@@ -375,4 +365,13 @@ public class Test {
 //			System.out.println(list1.get(i) + "\t");
 //		}
 	}
+	
+	public static void testsssss() {
+		try {
+			orgUserService.setShareCerNoImp(conn, 403420225459274L);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 }
+

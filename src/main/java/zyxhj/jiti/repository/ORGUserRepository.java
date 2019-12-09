@@ -320,10 +320,6 @@ public class ORGUserRepository extends RDSRepository<ORGUser> {
 		StringBuffer sb = new StringBuffer();
 		List<Object> params = new ArrayList<Object>();
 
-//		sql.addEx("org_id = ? ", orgId);
-//		sql.AND(StringUtils.join("family_master LIKE '%", master, "%'"));
-//		sql.addEx("GROUP BY family_number");
-//		sql.fillSQL(sb);
 		EXP sql = EXP.INS().key("org_id", orgId).and(EXP.INS().LIKE("family_master", master));
 		sql.toSQL(sb, params);
 		sb.append(" GROUP BY family_number");

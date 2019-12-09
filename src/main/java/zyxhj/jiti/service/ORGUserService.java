@@ -5,7 +5,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
@@ -17,7 +16,6 @@ import com.alibaba.druid.pool.DruidPooledConnection;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.alicloud.openservices.tablestore.SyncClient;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
@@ -303,6 +301,16 @@ public class ORGUserService {
 					familyRepository.update(conn, EXP.INS().key("org_id", orgId).andKey("family_number", familyNumber)
 							.andKey("family_master", familyMaster), family, true);
 				}
+			} else {
+				Family f = new Family();
+				f.id = IDUtils.getSimpleId();
+				f.orgId = orgId;
+				f.familyMaster = familyMaster;
+				f.familyNumber = familyNumber;
+				JSONArray ja = new JSONArray();
+				ja.add(userId);
+				f.familyMember = ja.toJSONString();
+				familyRepository.insert(conn, f);
 			}
 		}
 	}
@@ -1942,43 +1950,110 @@ public class ORGUserService {
 				EXP.INS().key("org_id", orgId).and(EXP.JSON_CONTAINS("roles", "$", role)), null, null);
 	}
 
-	public List<ORGUser> getShareCerNoISNULL(DruidPooledConnection conn, Long orgId) throws Exception {
-		EXP where = EXP.INS().key("org_id", orgId).andKey("share_cer_no", "")
-				.append("GROUP BY family_number ORDER BY family_number ASC");
-		return orgUserRepository.getList(conn, where, null, null);
+	public List<ORGUser> getShareCerNoISNULL(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)
+			throws Exception {
+		EXP where = EXP.INS().key("org_id", orgId).append("GROUP BY family_number ORDER BY family_number ASC");
+		return orgUserRepository.getList(conn, where, count, offset);
 	}
 
-	public void setShareCerNo(DruidPooledConnection conn, Long orgId) throws Exception {
-		List<ORGUser> orguserList = getShareCerNoISNULL(conn, orgId);
-		for (ORGUser o : orguserList) {
-			Long familyNumber = o.familyNumber;
-			String familyMaster = o.familyMaster;
-			// 通过组织编号、户序号、户主姓名查询户主的股权证号，并给当前所有户成员赋值
-			Family family = getFamilyList(conn, orgId, familyNumber, familyMaster);
-			JSONArray ja = JSON.parseArray(family.familyMember);
-			Object[] familyMasterUser = getFamilyMaster(conn, orgId, familyNumber, familyMaster);
-			if(familyMasterUser.length>0) {
-				Long masterId = Long.parseLong(familyMasterUser[0].toString());
-				String shareCerNo = familyMasterUser[5].toString();
-				Long masterNumber = Long.parseLong(familyMasterUser[4].toString());
-				if (ja != null && ja.size() > 0) {
+	public void setShareCerNoImp(DruidPooledConnection conn, Long orgId) throws Exception {
+		List<ORGUser> orguserList;
+		try {
+			orguserList = getShareCerNoISNULL(conn, orgId, null, null);
+			for (ORGUser o : orguserList) {
+				Long familyNumber = o.familyNumber;
+				String familyMaster = o.familyMaster;
+				// 获取当前户对象
+				Family family = getFamily(conn, orgId, familyNumber, familyMaster);
+				if (null != family) {
+					System.out.println("_______________________当前户存在_______________________");
+					JSONArray ja = JSON.parseArray(family.familyMember);
+					if (ja == null || ja.size() == 1) {
+						continue;
+					}
+					Object[] familyMasterUser = getFamilyMaster(conn, orgId, familyNumber, familyMaster);
+					if (null == familyMasterUser) {
+						continue;
+					}
 					for (int i = 0; i < ja.size(); i++) {
-						Long userId = ja.getLong(i);
-						if (userId != masterId && familyNumber == masterNumber) {
-							editShareCerNo(conn,orgId,userId,shareCerNo);
+						System.out.println(ja.get(i));
+					}
+					System.out.println("________________________________________________________________");
+					for (int i = 0; i < familyMasterUser.length; i++) {
+						System.out.println(familyMasterUser[i]);
+					}
+					if (familyMasterUser.length == 6) {
+						System.out.println("_______________________进入修改股权证号_______________________");
+						Long masterId = Long.parseLong(familyMasterUser[0].toString());
+						if (null == familyMasterUser[5]) {
+							System.out.println("_______________________当前户成员股权证号为空_______________________");
+							List<Object> u = new ArrayList<Object>();
+							for (int i = 0; i < ja.size(); i++) {
+								u.add(ja.getLong(i));
+							}
+							List<ORGUser> userList = getORGUser(conn, orgId, u);
+							if (userList.size() <= 0 && null == userList) {
+								continue;
+							}
+							int c = 0;
+							System.out.println("_______________________当前户成员存在001_______________________");
+							for (ORGUser ug : userList) {
+								if (!StringUtils.isBlank(ug.shareCerNo)) {
+									if (ja != null && ja.size() > 0) {
+										System.out.println("_______________________当前户成员存在股权证号_______________________");
+										for (int i = 0; i < ja.size(); i++) {
+											Long userId = ja.getLong(i);
+											if (userId != masterId) {
+												editShareCerNo(conn, orgId, userId, ug.shareCerNo);
+												System.out.println(
+														"_______________________当前户成员股权证号修改成功_______________________");
+											}
+										}
+									}
+									break;
+								}
+							}
+							continue;
+						} else {
+							System.out.println("_______________________当前户成员股权证号不为空_______________________");
+							String shareCerNo = familyMasterUser[5].toString();
+							Long masterNumber = Long.parseLong(familyMasterUser[4].toString());
+							if (ja != null && ja.size() > 0) {
+								System.out.println("_______________________户成员不为空_______________________");
+								for (int i = 0; i < ja.size(); i++) {
+									System.out.println(
+											"_______________________修改户成员股权证号" + (i + 1) + "_______________________");
+									Long userId = ja.getLong(i);
+									if (userId != masterId) {
+										System.out.println(
+												"familyNumber==" + familyNumber + "\t masterNumber==" + masterNumber);
+										System.out.println("userId==" + userId + "\t masterId==" + masterId);
+										editShareCerNo(conn, orgId, userId, shareCerNo);
+										System.out.println("_______________________当前户成员股权证号修改成功" + (i + 1)
+												+ "_______________________");
+									}
+								}
+							}
 						}
 					}
 				}
 			}
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
 		}
 	}
-	
-	public Family getFamilyList(DruidPooledConnection conn, Long orgId, Long familyNumber, String familyMaster)
+
+	private List<ORGUser> getORGUser(DruidPooledConnection conn, Long orgId, List<Object> u) throws Exception {
+		EXP where = EXP.INS().key("org_id", orgId).and(EXP.IN_ORDERED("user_id", u));
+		return orgUserRepository.getList(conn, where, null, null);
+	}
+
+	public Family getFamily(DruidPooledConnection conn, Long orgId, Long familyNumber, String familyMaster)
 			throws Exception {
 		FamilyRepository familyRepository = new FamilyRepository();
 		return familyRepository.get(conn, EXP.INS().key("org_id", orgId).andKey("family_number", familyNumber)
 				.andKey("family_master", familyMaster));
-
 	}
 
 	public Object[] getFamilyMaster(DruidPooledConnection conn, Long orgId, Long familyNumber, String familyMaster)

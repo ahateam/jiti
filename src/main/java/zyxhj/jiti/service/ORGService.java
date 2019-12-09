@@ -91,8 +91,7 @@ public class ORGService {
 	private AssetRepository assetRepository;
 	private AssetImportRecordRepository assetImpRecReporsitory;
 	private AssetImportTaskRepository assetImpTaskReporsitory;
-	
-	
+
 	public ORGService() {
 		try {
 			orgRepository = Singleton.ins(ORGRepository.class);
@@ -236,17 +235,17 @@ public class ORGService {
 	 * @param resourceShares
 	 */
 	public JSONObject createORG(DruidPooledConnection conn, Long orgExamineId, Long userId, String name, String code,
-			String address, String imgOrg, String imgAuth, Byte level, Double shareAmount, Double resourceShares,
-			Double assetShares) throws Exception {
+			Date orgCreateTime, String address, String imgOrg, String imgAuth, Byte level, Double shareAmount,
+			Double resourceShares, Double assetShares) throws Exception {
 		ORG existORG = orgRepository.get(conn, EXP.INS().key("code", code));
 		if (null == existORG) {
 			// 组织不存在
 			ORG newORG = new ORG();
 
 			newORG.id = orgExamineId;
-			newORG.createTime = new Date();
 			newORG.name = name;
 			newORG.code = code;
+			newORG.createTime = orgCreateTime;
 			newORG.address = address;
 			newORG.imgOrg = imgOrg;
 			newORG.imgAuth = imgAuth;
@@ -254,6 +253,7 @@ public class ORGService {
 			newORG.level = level;
 			newORG.resourceShares = resourceShares;
 			newORG.assetShares = assetShares;
+			
 
 			// 判断为哪个等级的机构
 			if (level == ORG.LEVEL.COOPERATIVE.v()) {
@@ -293,7 +293,7 @@ public class ORGService {
 
 	}
 
-	public ORG createSubORG(DruidPooledConnection conn, Long orgExamineId, String name, String code, String address,
+	public ORG createSubORG(DruidPooledConnection conn, Long orgExamineId, String name, String code,Date orgCreateTime,String address,
 			String imgOrg, String imgAuth, Byte level, Double shareAmount, Double resourceShares, Double assetShares)
 			throws Exception {
 		ORG existORG = orgRepository.get(conn, EXP.INS().key("code", code));
@@ -302,7 +302,7 @@ public class ORGService {
 			ORG newORG = new ORG();
 
 			newORG.id = orgExamineId;
-			newORG.createTime = new Date();
+			newORG.createTime = orgCreateTime;
 			newORG.name = name;
 			newORG.code = code;
 			newORG.address = address;
@@ -337,12 +337,12 @@ public class ORGService {
 	 * @param assetShares
 	 * @param resourceShares
 	 */
-	public void createSubOrg(DruidPooledConnection conn, String name, String code, String address, String imgOrg,
+	public void createSubOrg(DruidPooledConnection conn, String name, String code,Date orgCreateTime, String address, String imgOrg,
 			String imgAuth, Byte level, Double shareAmount, Long superiorId, Long province, Long city, Long district,
 			Double resourceShares, Double assetShares) throws Exception {
 		Long orgExamineId = IDUtils.getSimpleId();
 		// 创建组织
-		createSubORG(conn, orgExamineId, name, code, address, imgOrg, imgAuth, level, shareAmount, resourceShares,
+		createSubORG(conn, orgExamineId, name, code,orgCreateTime, address, imgOrg, imgAuth, level, shareAmount, resourceShares,
 				assetShares);
 
 		// 创建上级关系
@@ -360,9 +360,9 @@ public class ORGService {
 	 * @param assetShares
 	 * @param resourceShares
 	 */
-	public void editORG(DruidPooledConnection conn, String ogName, String code, Long orgId, String address,
-			String imgOrg, String imgAuth, Double shareAmount, Double resourceShares, Double assetShares)
-			throws Exception {
+	public void editORG(DruidPooledConnection conn, String ogName, String code, Date orgCreateTime, Long orgId,
+			String address, String imgOrg, String imgAuth, Double shareAmount, Double resourceShares,
+			Double assetShares) throws Exception {
 
 		ORG renew = new ORG();
 		renew.name = ogName;
@@ -373,6 +373,7 @@ public class ORGService {
 		renew.shareAmount = shareAmount;
 		renew.resourceShares = resourceShares;
 		renew.assetShares = assetShares;
+		renew.createTime = orgCreateTime;
 		orgRepository.update(conn, EXP.INS().key("id", orgId), renew, true);
 
 	}
@@ -540,10 +541,10 @@ public class ORGService {
 	 * @param assetShares
 	 * @param resourceShares
 	 */
-	public ORGExamine createORGApply(DruidPooledConnection conn, Long userId, String name, String code, Long province,
-			Long city, Long district, String address, String imgOrg, String imgAuth, Double shareAmount, Byte level,
-			Long superiorId, Double resourceShares, Double assetShares, Boolean updateDistrict, Long orgId)
-			throws Exception {
+	public ORGExamine createORGApply(DruidPooledConnection conn, Long userId, String name, String code,
+			Date orgCreateTime, Long province, Long city, Long district, String address, String imgOrg, String imgAuth,
+			Double shareAmount, Byte level, Long superiorId, Double resourceShares, Double assetShares,
+			Boolean updateDistrict, Long orgId) throws Exception {
 		ORG existORG = orgRepository.get(conn, EXP.INS().key("code", code));
 		if (null == existORG) {
 			// 组织不存在
@@ -554,6 +555,7 @@ public class ORGService {
 			newORG.userId = userId;
 			newORG.name = name;
 			newORG.code = code;
+			newORG.orgCreateTime = orgCreateTime;
 			newORG.province = province;
 			newORG.city = city;
 			newORG.district = district;
@@ -570,7 +572,7 @@ public class ORGService {
 			if (superiorId == null) {
 				newORG.type = ORGExamine.TYPE.INDEPENDENT.v();
 				// TODO 现为直接插入数据库 平台管理出来以后使用申请方式
-				createORG(conn, newORG.id, userId, name, code, address, imgOrg, imgAuth, level, shareAmount,
+				createORG(conn, newORG.id, userId, name, code,orgCreateTime, address, imgOrg, imgAuth, level, shareAmount,
 						resourceShares, assetShares);
 				// orgExamineRepository.insert(conn, newORG); //申请方式
 			} else {
@@ -590,6 +592,7 @@ public class ORGService {
 				newORG.userId = userId;
 				newORG.name = name;
 				newORG.code = code;
+				newORG.orgCreateTime = orgCreateTime;
 				newORG.province = province;
 				newORG.city = city;
 				newORG.district = district;
@@ -626,9 +629,9 @@ public class ORGService {
 
 	// 修改组织申请状态 新的申请
 	public ORGExamine upORGApply(DruidPooledConnection conn, Long orgExamineId, Byte examine, Long userId, String name,
-			String code, Long province, Long city, Long district, String address, String imgOrg, String imgAuth,
-			Double shareAmount, Byte level, Long superiorId, Boolean updateDistrict, Double resourceShares,
-			Double assetShares, Long orgId) throws Exception {
+			String code, Date orgCreateTime, Long province, Long city, Long district, String address, String imgOrg,
+			String imgAuth, Double shareAmount, Byte level, Long superiorId, Boolean updateDistrict,
+			Double resourceShares, Double assetShares, Long orgId) throws Exception {
 
 		ORGExamine ex = new ORGExamine();
 		// 是否有org
@@ -649,8 +652,8 @@ public class ORGService {
 			// 上级机构修改申请通过 则表示要修改原来的org 并将orgExamine修改为通过
 			if (examine == ORGExamine.STATUS.WAITING.v()) {
 				// 修改组织信息
-				editORG(conn, name, code, orgExamineId, address, imgOrg, imgAuth, shareAmount, resourceShares,
-						assetShares);
+				editORG(conn, name, code, orgCreateTime, orgExamineId, address, imgOrg, imgAuth, shareAmount,
+						resourceShares, assetShares);
 
 				// 将修改申请表改为通过
 				ex.examine = ORGExamine.STATUS.WAITING.v();
@@ -699,8 +702,8 @@ public class ORGService {
 				// 上级机构修改申请通过 则表示要修改原来的org 并将orgExamine修改为通过
 				if (examine == ORGExamine.STATUS.WAITING.v()) {
 					// 创建组织
-					createORG(conn, orgExamineId, userId, name, code, address, imgOrg, imgAuth, level, shareAmount,
-							resourceShares, assetShares);
+					createORG(conn, orgExamineId, userId, name, code, orgCreateTime, address, imgOrg, imgAuth, level,
+							shareAmount, resourceShares, assetShares);
 
 					// 创建上级关系
 					addSupAndSub(conn, superiorId, orgExamineId, level);
@@ -765,7 +768,7 @@ public class ORGService {
 	 * TODO 未使用
 	 */
 	// 再次提交组织申请
-	public int upORGApplyAgain(DruidPooledConnection conn, Long orgExamineId, Long userId, String name, String code,
+	public int upORGApplyAgain(DruidPooledConnection conn, Long orgExamineId, Long userId, String name, String code,Date orgCreateTime,
 			Long province, Long city, Long district, String address, String imgOrg, String imgAuth, Double shareAmount,
 			Byte level, Long superiorId, Long orgId, Boolean updateDistrict, Double assetShares, Double resourceShares)
 			throws Exception {
@@ -783,9 +786,10 @@ public class ORGService {
 		newORG.imgAuth = imgAuth;
 		newORG.level = level;
 		newORG.shareAmount = shareAmount;
-		if(null == updateDistrict) {
+		newORG.orgCreateTime = orgCreateTime;
+		if (null == updateDistrict) {
 			newORG.updateDistrict = false;
-		}else {
+		} else {
 			newORG.updateDistrict = updateDistrict;
 		}
 		newORG.assetShares = assetShares;
@@ -1181,36 +1185,31 @@ public class ORGService {
 	 */
 	public JSONObject delSubOrg(DruidPooledConnection conn, Long id) throws ServerException {
 		try {
-			//删除组织
+			// 删除组织
 			orgRepository.delete(conn, EXP.INS().key("id", id));
-			//删除上下级关系
+			// 删除上下级关系
 			superiorRepository.delete(conn, EXP.INS().key("org_id", id));
-			//删除组织行政区归属表
+			// 删除组织行政区归属表
 			orgDistrictRepository.delete(conn, EXP.INS().key("org_id", id));
-			
 
-			//删除用户数据
-			userRepository.delORGUser(conn,id);
-			//删除组织用户数据
+			// 删除用户数据
+			userRepository.delORGUser(conn, id);
+			// 删除组织用户数据
 			int userSize = orgUserRepository.delete(conn, EXP.INS().key("org_id", id));
-			//删除户数据
+			// 删除户数据
 			familyRepository.delete(conn, EXP.INS().key("org_id", id));
-			
-			
-			
-			//删除组织资产
+
+			// 删除组织资产
 			int assetSize = assetRepository.delete(conn, EXP.INS().key("org_id", id));
-			//删除资产导入任务记录
+			// 删除资产导入任务记录
 			assetImpRecReporsitory.delete(conn, EXP.INS().key("org_id", id));
-			//删除资产导入任务（任务批次，方便管理）
+			// 删除资产导入任务（任务批次，方便管理）
 			assetImpTaskReporsitory.delete(conn, EXP.INS().key("org_id", id));
-			
-			
-			//删除审批记录表
+
+			// 删除审批记录表
 			examineRepository.delete(conn, EXP.INS().key("org_id", id));
-			
-			
-			//删除公告
+
+			// 删除公告
 			noticeRepository.delete(conn, EXP.INS().key("org_id", id));
 			JSONObject jo = new JSONObject();
 			jo.put("user", userSize);
@@ -1220,34 +1219,33 @@ public class ORGService {
 			return new JSONObject();
 		}
 	}
-	
+
 	/**
-	 *删除所有用户数据（user数据、orgUser数据、family数据） 管理员除外
+	 * 删除所有用户数据（user数据、orgUser数据、family数据） 管理员除外
 	 */
 	public int delORGUser(DruidPooledConnection conn, Long id) throws Exception {
 
-		//删除用户数据
-		userRepository.delORGUser(conn,id);
-		//删除组织用户数据
-		int userSize = orgUserRepository.delORGUser(conn,id);
-		//删除户数据
+		// 删除用户数据
+		userRepository.delORGUser(conn, id);
+		// 删除组织用户数据
+		int userSize = orgUserRepository.delORGUser(conn, id);
+		// 删除户数据
 		familyRepository.delete(conn, EXP.INS().key("org_id", id));
 		return userSize;
 	}
-	
+
 	/**
 	 * 删除组织资产数据
 	 */
 	public int delORGAsset(DruidPooledConnection conn, Long id) throws Exception {
-		//删除组织资产
+		// 删除组织资产
 		int size = assetRepository.delete(conn, EXP.INS().key("org_id", id));
-		//删除资产导入任务记录
+		// 删除资产导入任务记录
 		assetImpRecReporsitory.delete(conn, EXP.INS().key("org_id", id));
-		//删除资产导入任务（任务批次，方便管理）
+		// 删除资产导入任务（任务批次，方便管理）
 		assetImpTaskReporsitory.delete(conn, EXP.INS().key("org_id", id));
 		return size;
 	}
-	
 
 	/**
 	 * 获取上级组织
@@ -1373,7 +1371,8 @@ public class ORGService {
 		if (StringUtils.isBlank(name)) {
 			return orgRepository.getList(conn, EXP.INS().key("level", ORG.LEVEL.COOPERATIVE.v()), count, offset);
 		}
-		return orgRepository.getList(conn, EXP.INS().key("level", ORG.LEVEL.COOPERATIVE.v()).and(EXP.LIKE("name", name)), count, offset);
+		return orgRepository.getList(conn,
+				EXP.INS().key("level", ORG.LEVEL.COOPERATIVE.v()).and(EXP.LIKE("name", name)), count, offset);
 	}
 
 }

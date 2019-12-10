@@ -1952,7 +1952,7 @@ public class ORGUserService {
 
 	public List<ORGUser> getShareCerNoISNULL(DruidPooledConnection conn, Long orgId, Integer count, Integer offset)
 			throws Exception {
-		EXP where = EXP.INS().key("org_id", orgId).append("GROUP BY family_number ORDER BY family_number ASC");
+		EXP where = EXP.INS().key("org_id", orgId).andKey("share_cer_no", "").append("GROUP BY family_number ORDER BY family_number ASC");
 		return orgUserRepository.getList(conn, where, count, offset);
 	}
 

@@ -2188,10 +2188,10 @@ public class ORGController extends Controller {
 	}
 
 	@POSTAPI(//
-			path = "delORGUser", //
+			path = "delORGUsers", //
 			des = "删除合作社所有用户"//
 	)
-	public APIResponse delORGUser(//
+	public APIResponse delORGUsers(//
 			Long orgId//
 	) throws Exception {
 		try (DruidPooledConnection conn = dds.getConnection()) {

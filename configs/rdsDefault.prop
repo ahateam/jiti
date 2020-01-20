@@ -6,7 +6,7 @@ url:jdbc:mysql://rm-bp1zsono3j4952d501o.mysql.rds.aliyuncs.com:3306/test?useUnic
 
 driverClassName:com.mysql.cj.jdbc.Driver
 username:rdsroot
-password:Aa123456Aa
+password:ZYyxamw1314
 
 filters:stat
 
